@@ -4,7 +4,7 @@
 $R.part('Objects', ['@extend', '$ModelHelper', '$PathHelper', '$ColorHelper', 'Debug',
     function LineObjectModel(extend, ModelHelper, PathHelper, ColorHelper, Debug) {
 
-        extend(this, 'DefaultObjectModel');
+        extend(this, '$DefaultObjectModel');
 
         //TODO: Add animation morphs!!
 

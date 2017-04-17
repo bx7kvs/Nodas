@@ -35,8 +35,7 @@ $R.part('Objects', ['Debug', '@app', 'Canvas', function Tree(Debug, app, Canvas)
             return root;
         }
     };
-
-    app.on('tick', function (date, canvas) {
+    app.$('tick' , function (date, canvas) {
         if (!root || !rootDrawer) return;
 
         if (!context) context = canvas.getContext('2d');

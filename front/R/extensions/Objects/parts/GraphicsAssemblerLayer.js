@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 2/7/2017.
  */
 $R.part('Objects', ['@inject', 'Debug', function GraphicsAssemblerLayer(inject, Debug) {
-    var canvas = inject('Canvas'),
+    var canvas = inject('$Canvas'),
         context = canvas.context(),
         width = 0,
         height = 0,

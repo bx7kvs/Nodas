@@ -2,8 +2,8 @@
  * Created by bx7kv_000 on 1/13/2017.
  */
 $R.part('Objects', ['@extend', '$ColorHelper', '$ModelHelper', 'Debug', function CircleObjectModel(extend, ColorHelper, ModelHelper, Debug) {
-    extend(this, 'DefaultObjectModel');
-    extend(this, 'GlobalBackgroundModel');
+    extend(this, '$DefaultObjectModel');
+    extend(this, '$GlobalBackgroundModel');
 
     var style = this.extension('Style'),
         animation = this.extension('Animation');

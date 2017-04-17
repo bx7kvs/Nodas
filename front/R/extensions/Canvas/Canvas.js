@@ -1,65 +1,58 @@
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
-$R.ext(['@canvas', '@config', 'Debug', function Canvas(canvas, config, Debug) {
+$R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
 
     var callbacks = [], width = 0, height = 0, xunits = 'px', yunits = 'px',
         parentNode = null, offset = [0, 0], scroll = [0, 0];
 
     if (config) {
-        if (config.size && typeof config.size == "object" && config.size.constructor == Array) {
-            if (typeof config.size[0] == "number") {
-                width = config.size[0];
-            }
-            else if (typeof config.size[0] == "string") {
-                if (config.size[0].match(/^[\d]+%$/)) {
-                    width = parseInt(config.size[0]);
-                    xunits = '%';
-                }
-                else {
-                    width = 1000;
-                    xunits = 'px';
-
-                    Debug.warn({width: config.size[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
-                }
+        var size = [config.width ? config.width : 1000, config.height ? config.height : 800];
+        if (typeof size[0] == "number") {
+            width = size[0];
+        }
+        else if (typeof size[0] == "string") {
+            if (size[0].match(/^[\d]+%$/)) {
+                width = parseInt(size[0]);
+                xunits = '%';
             }
             else {
                 width = 1000;
-                Debug.warn({width: config.size[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
-            }
-
-            if (typeof config.size[1] == "number") {
-                height = config.size[1];
-            }
-            else if (typeof config.size[1] == "string") {
-                if (config.size[1].match(/^[\d]+%$/)) {
-                    height = parseInt(config.size[1]);
-                    yunits = '%';
-                }
-                else {
-                    height = 800;
-                    Debug.warn({height: config.size[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
-                }
-            }
-            else {
-                height = 800;
-                Debug.warn({height: config.size[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
+                xunits = 'px';
+                Debug.warn({width: size[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
             }
         }
         else {
             width = 1000;
+            Debug.warn({width: size[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
+        }
+
+        if (typeof size[1] == "number") {
+            height = size[1];
+        }
+        else if (typeof size[1] == "string") {
+            if (size[1].match(/^[\d]+%$/)) {
+                height = parseInt(size[1]);
+                yunits = '%';
+            }
+            else {
+                height = 800;
+                Debug.warn({height: size[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
+            }
+        }
+        else {
             height = 800;
-            Debug.warn({height: config.size[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
+            Debug.warn({height: size[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
         }
     }
 
-    parentNode = canvas.parentElement;
+    parentNode = canvas.element().parentElement;
 
     var pW = 0, pH = 0;
 
     function GetParentSize() {
-        canvas.setAttribute('width', 0);
-        canvas.setAttribute('height', 0);
+        canvas.element().setAttribute('width', 0);
+        canvas.element().setAttribute('height', 0);
         if (parentNode) {
             var style = window.getComputedStyle(parentNode, null);
             pH = parseInt(style.getPropertyValue("height"));
@@ -68,7 +61,6 @@ $R.ext(['@canvas', '@config', 'Debug', function Canvas(canvas, config, Debug) {
     }
 
     function CompareOnResize() {
-
         if (parentNode) {
             if (xunits == '%' || yunits == '%') {
                 var _pW = pW, _pH = pH,
@@ -77,26 +69,25 @@ $R.ext(['@canvas', '@config', 'Debug', function Canvas(canvas, config, Debug) {
                 GetParentSize();
 
                 if (xunits == '%') {
-                    canvas.setAttribute('width', Math.floor(pW * (width / 100)));
+                    canvas.element().setAttribute('width', Math.floor(pW * (width / 100)));
                     change = true;
                 }
                 if (yunits == '%') {
-                    canvas.setAttribute('height', Math.floor(pH * (height / 100)));
+                    canvas.element().setAttribute('height', Math.floor(pH * (height / 100)));
                     change = true;
                 }
                 if (xunits == 'px') {
-                    canvas.setAttribute('width', width);
+                    canvas.element().setAttribute('width', width);
                 }
                 if (yunits == 'px') {
-                    canvas.setAttribute('height', height);
+                    canvas.element().setAttribute('height', height);
                 }
-
                 return change;
 
             }
             else {
-                canvas.setAttribute('width', width);
-                canvas.setAttribute('height', height);
+                canvas.element().setAttribute('width', width);
+                canvas.element().setAttribute('height', height);
                 return false;
             }
         }
@@ -108,7 +99,7 @@ $R.ext(['@canvas', '@config', 'Debug', function Canvas(canvas, config, Debug) {
     function GetCanvasOffset(x) {
         var offsetProp = x ? 'offsetLeft' : 'offsetTop';
 
-        var result = 0, element = canvas;
+        var result = 0, element = canvas.element();
 
         do {
             if (!isNaN(element[offsetProp])) {
@@ -182,7 +173,7 @@ $R.ext(['@canvas', '@config', 'Debug', function Canvas(canvas, config, Debug) {
             return;
         }
         for (var i = 0; i < array.length; i++) {
-            array[i].apply(canvas, data);
+            array[i].apply(canvas.element(), data);
         }
     }
 
@@ -212,13 +203,13 @@ $R.ext(['@canvas', '@config', 'Debug', function Canvas(canvas, config, Debug) {
         this.original = e;
         this.type = e.type;
         this.mouse = new RCanvasMouse(e);
-        this.canvas = canvas;
+        this.canvas = canvas.element();
     }
 
     function RCanvasResizeEvent(e) {
         this.original = e;
         this.type = 'canvasresize';
-        this.canvas = canvas;
+        this.canvas = canvas.element();
         this.offset = [offset[0], offset[1]];
         this.size = [width, height];
         this.original = [width, height];
@@ -231,19 +222,19 @@ $R.ext(['@canvas', '@config', 'Debug', function Canvas(canvas, config, Debug) {
         }
     }
 
-    canvas.addEventListener('mousemove', function (e) {
+    canvas.element().addEventListener('mousemove', function (e) {
         ResolveCanvasEventArray('mousemove', [new RCanvasMouseEvent(e)]);
     });
-    canvas.addEventListener('mousedown', function (e) {
+    canvas.element().addEventListener('mousedown', function (e) {
         ResolveCanvasEventArray('mousedown', [new RCanvasMouseEvent(e)]);
     });
-    canvas.addEventListener('mouseup', function (e) {
+    canvas.element().addEventListener('mouseup', function (e) {
         ResolveCanvasEventArray('mouseup', [new RCanvasMouseEvent(e)]);
     });
-    canvas.addEventListener('mouseleave', function (e) {
+    canvas.element().addEventListener('mouseleave', function (e) {
         ResolveCanvasEventArray('mouseleave', [new RCanvasMouseEvent(e)]);
     });
-    canvas.addEventListener('mouseenter', function (e) {
+    canvas.element().addEventListener('mouseenter', function (e) {
         ResolveCanvasEventArray('mouseenter', [new RCanvasMouseEvent(e)]);
     });
 

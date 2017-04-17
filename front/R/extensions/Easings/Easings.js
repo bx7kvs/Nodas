@@ -3,7 +3,7 @@
  */
 $R.ext(['Debug', function Easings(Debug) {
 
-    var easings  = {
+    var easings = {
         '_': function (t, b, c, d) {
             return c * (t /= d) * t * t + b;
         },
@@ -12,19 +12,19 @@ $R.ext(['Debug', function Easings(Debug) {
             return b + c * (t);
         },
         linearSoft: function (t, b, c, d) {
-            var ts=(t/=d)*t;
-            var tc=ts*t;
-            return b+c*(4*tc*ts + -10*ts*ts + 8*tc + -2*ts + t);
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (4 * tc * ts + -10 * ts * ts + 8 * tc + -2 * ts + t);
         },
         linearSoftOut: function (t, b, c, d) {
-            var ts=(t/=d)*t;
-            var tc=ts*t;
-            return b+c*(-3*tc*ts + 11*ts*ts + -14*tc + 6*ts + t);
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (-3 * tc * ts + 11 * ts * ts + -14 * tc + 6 * ts + t);
         },
         linearSoftIn: function (t, b, c, d) {
-            var ts=(t/=d)*t;
-            var tc=ts*t;
-            return b+c*(-1*tc*ts + 2*tc);
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (-1 * tc * ts + 2 * tc);
         },
         easeInQuad: function (t, b, c, d) {
             var result = c * (t /= d) * t + b;
@@ -125,9 +125,9 @@ $R.ext(['Debug', function Easings(Debug) {
     };
 
     this.get = function (name) {
-        if(easings[name]) return easings[name];
+        if (easings[name]) return easings[name];
 
-        Debug.error({name : name}, 'Easings / Unable to get undefined easing [{name}]. Linear easing function provided.');
+        Debug.error({name: name}, 'Easings / Unable to get undefined easing [{name}]. Linear easing function provided.');
         return easings['linear'];
     };
 }]);

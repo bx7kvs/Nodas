@@ -4,6 +4,6 @@
 
 $R.part('Objects', ['@extend', function GroupObjectModel(extend) {
 
-    extend(this,'DefaultObjectModel');
+    extend(this,'$DefaultObjectModel');
 
 }]);

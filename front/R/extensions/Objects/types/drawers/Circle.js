@@ -3,7 +3,7 @@
  */
 $R.part('Objects', ['$DrawerHelper', 'Debug', '@inject', function CircleObjectDrawer(DrawerHelper, Debug, inject) {
 
-    var assembler = inject('GraphicsAssembler'),
+    var assembler = inject('$GraphicsAssembler'),
         drawer = this.extension('Drawer'),
         boxExt = this.extension('Box'),
         style = this.extension('Style'),

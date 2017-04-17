@@ -8,7 +8,7 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
         morphs = {};
 
     this.morph = function (name, ordering, setter, applier) {
-        var morph = inject('Morph');
+        var morph = inject('$Morph');
         morph.config(name, this.object(), ordering, setter, applier);
         if (morph.valid()) {
             morphs[name] = morph;

@@ -4,7 +4,7 @@
 $R.part('Objects', ['@inject', '$DrawerHelper',
     function RectangleObjectDrawer(inject, DrawerHelper) {
 
-        var assembler = inject('GraphicsAssembler'),
+        var assembler = inject('$GraphicsAssembler'),
             style = this.extension('Style'),
             drawer = this.extension('Drawer'),
             boxExtension = this.extension('Box'),

@@ -4,9 +4,9 @@
 $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
     function RectangleObjectModel(extend, ModelHelper, ColorHelper, Debug) {
 
-        extend(this, 'DefaultObjectModel');
-        extend(this, 'GlobalBackgroundModel');
-        extend(this, 'GlobalSizeModel');
+        extend(this, '$DefaultObjectModel');
+        extend(this, '$GlobalBackgroundModel');
+        extend(this, '$GlobalSizeModel');
 
         var style = this.extension('Style'),
             animation = this.extension('Animation');

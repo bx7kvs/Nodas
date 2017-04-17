@@ -3,7 +3,7 @@
  */
 $R.part('Objects', ['@inject', 'Debug', function GraphicsAssembler(inject, Debug) {
 
-    var output = inject('Canvas'),
+    var output = inject('$Canvas'),
         context = output.context(),
         pipe = [],
         layers = {},
@@ -57,7 +57,7 @@ $R.part('Objects', ['@inject', 'Debug', function GraphicsAssembler(inject, Debug
             return;
         }
 
-        layers[name] = inject('GraphicsAssemblerLayer');
+        layers[name] = inject('$GraphicsAssemblerLayer');
         layers[name].f(updateFunc);
         layers[name].ordering(order);
         layers[name].update();

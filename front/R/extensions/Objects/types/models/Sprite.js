@@ -3,8 +3,8 @@
  */
 $R.part('Objects', ['@extend', '$ModelHelper', 'Debug', function SpriteObjectModel(extend, ModelHelper, Debug) {
 
-    extend(this, 'DefaultObjectModel');
-    extend(this, 'GlobalSizeModel');
+    extend(this, '$DefaultObjectModel');
+    extend(this, '$GlobalSizeModel');
 
     var style = this.extension('Style');
 

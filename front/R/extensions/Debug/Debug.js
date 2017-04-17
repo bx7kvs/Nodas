@@ -1,12 +1,13 @@
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
-$R.ext(['@config', function  Debug(config) {
+$R.ext(['$$config', function Debug(config) {
 
     var string = '$R [Debug] : ',
         regexp = /{[a-zA-Z]+}/g,
         regexpname = /[a-zA-Z]+/g;
-        warnings = config.warnings == undefined ? true : !!config.warnings;
+
+    warnings = config.warnings == undefined ? true : !!config.warnings;
 
 
     var errorCb = [], messageCb = [];
@@ -35,7 +36,7 @@ $R.ext(['@config', function  Debug(config) {
         var matches = message.match(regexp);
         var props = {};
 
-        if(matches) {
+        if (matches) {
             for (var i = 0; i < matches.length; i++) {
                 var matchname = matches[i].match(regexpname)[0];
                 if (matchname) props[matchname] = {
@@ -57,7 +58,7 @@ $R.ext(['@config', function  Debug(config) {
     }
 
     this.error = function (data, message) {
-        if(typeof data == "string") {
+        if (typeof data == "string") {
             message = data;
             data = {};
         }
@@ -71,9 +72,9 @@ $R.ext(['@config', function  Debug(config) {
 
     this.warn = function (data, message) {
 
-        if(!warnings) return;
+        if (!warnings) return;
 
-        if(typeof data == "string") {
+        if (typeof data == "string") {
             message = data;
             data = {};
         }

@@ -91,7 +91,7 @@ $R.ext(['@app', '@inject', function Resource(app, inject) {
         }
     }
 
-    app.on('tick', function (time) {
+    app.$('tick', function (time) {
         time = time.getTime();
         for (var i = 0; i < container.sprites.length; i++) {
             if (container.sprites[i].ready() && container.sprites[i].loaded() == 1) {

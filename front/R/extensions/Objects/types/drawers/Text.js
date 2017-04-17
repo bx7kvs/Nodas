@@ -9,7 +9,7 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
                 drawer = this.extension('Drawer'),
                 matrix = this.extension('Matrix'),
                 require_update = false,
-                assembler = inject('GraphicsAssembler'),
+                assembler = inject('$GraphicsAssembler'),
                 object = this;
 
             assembler.layer(0, 'text', UpdateTextLayer);

@@ -4,7 +4,7 @@
 $R.ext(['@inject', '$Tree','@app', function Objects(inject, Tree, app) {
 
     function InjectByType(type) {
-        var result = inject('Graphics');
+        var result = inject('$Graphics');
 
         result.defineType(type);
 

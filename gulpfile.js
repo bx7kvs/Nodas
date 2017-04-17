@@ -8,8 +8,14 @@ var gulp = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     cleanCss = require('gulp-clean-css');
 
+
 gulp.task('compile-js', function () {
-    return gulp.src(['./front/**/*.js'])
+    return gulp.src([
+        './front/R/core/**/*.js',
+        './front/R/*.js',
+        './front/R/extensions/**/*.js',
+        './front/R/apps/**/*.js',
+        './front/Game/**/*.js'])
         .pipe(sourcemaps.init())
         .pipe(concat('game.js'))
         .pipe(uglify({

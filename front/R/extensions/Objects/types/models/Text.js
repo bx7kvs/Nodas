@@ -3,7 +3,7 @@
  */
 $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
         function TextObjectModel(extend, ModelHelper, ColorHelper, Debug) {
-            extend(this, 'DefaultObjectModel');
+            extend(this, '$DefaultObjectModel');
 
             var style = this.extension('Style'),
                 text = this.extension('Text'),

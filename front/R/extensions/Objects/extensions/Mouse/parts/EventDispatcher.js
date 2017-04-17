@@ -24,19 +24,19 @@ $R.part('Objects', ['Canvas', '@app', '$MouseObjectFinder', function MouseEventD
         focused = false;
 
     Canvas.on('mousedown', function () {
-        if(!active || !focused) return;
+        if (!active || !focused) return;
         mousedown.previous = mousedown.current;
         mousedown.current = true;
         checked = false;
     });
     Canvas.on('mouseup', function () {
-        if(!active || !focused) return;
+        if (!active || !focused) return;
         mousedown.previous = mousedown.current;
         mousedown.current = false;
         checked = false;
     });
     Canvas.on('mousemove', function (e) {
-        if(!active || !focused) return;
+        if (!active || !focused) return;
         cursor.current[0] = e.mouse.position[0];
         cursor.current[1] = e.mouse.position[1];
         checked = false;
@@ -75,11 +75,11 @@ $R.part('Objects', ['Canvas', '@app', '$MouseObjectFinder', function MouseEventD
         };
         this.originalTarget = function () {
             if (this.$$MOUSEPROPAGATIONSETTER) {
-                var event = getEventByType(_type,_target);
-                event.originalTarget.call({$$RESETTARGET : this.$$MOUSEPROPAGATIONSETTER});
+                var event = getEventByType(_type, _target);
+                event.originalTarget.call({$$RESETTARGET: this.$$MOUSEPROPAGATIONSETTER});
                 return event;
             }
-            if(this.$$RESETTARGET) {
+            if (this.$$RESETTARGET) {
                 _target = this.$$RESETTARGET;
             }
             return _originalTarget;
@@ -100,14 +100,14 @@ $R.part('Objects', ['Canvas', '@app', '$MouseObjectFinder', function MouseEventD
         };
     }
 
-    function getEventByType(type,target) {
+    function getEventByType(type, target) {
         if (type == 'mousemove' || type == 'mouseleave'
             || type == 'mouseenter' || type == 'mousedown'
             || type == 'mouseup') {
-            return new MouseEvent(type,target);
+            return new MouseEvent(type, target);
         }
         if (type == 'dragstart' || type == 'dragend' || type == 'dragmove') {
-            return new DragEvent(type,target);
+            return new DragEvent(type, target);
         }
     }
 
@@ -198,20 +198,25 @@ $R.part('Objects', ['Canvas', '@app', '$MouseObjectFinder', function MouseEventD
     }
 
     var tick = false;
-    function onAppTick(){
+
+    function onAppTick() {
         tick = !tick;
-        if(tick) {
+        if (tick) {
             if (checked) return;
             UpdateTargets();
             DispatchEvents();
         }
     }
 
-    app.on('tick', onAppTick);
-    app.on('run', function () {
+    app.$('tick', onAppTick);
+
+    app.on('start' , function () {
         active = true;
     });
     app.on('stop', function () {
+        active = false;
+    });
+    app.on('error', function () {
         active = false;
     });
 }]);

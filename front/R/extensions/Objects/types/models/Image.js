@@ -3,8 +3,8 @@
  */
 $R.part('Objects', ['@extend', 'Debug', function ImageObjectModel(extend, Debug) {
 
-    extend(this, 'DefaultObjectModel');
-    extend(this, 'GlobalSizeModel');
+    extend(this, '$DefaultObjectModel');
+    extend(this, '$GlobalSizeModel');
 
     var style = this.extension('Style');
 
