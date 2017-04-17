@@ -1,17 +1,11 @@
 /**
  * Created by bx7kv_000 on 12/17/2016.
  */
-$R.app(['@app', 'State', 'Objects', 'Sound', function Loader(app, State, Objetcs, Sound) {
+$R.app(['@app', 'State', 'Objects', function Loader(app, State, Objetcs) {
 
     var sprite = Objetcs.sprite(),
         group = Objetcs.group(),
         text = Objetcs.text();
-
-    var sample = Sound.sample('sample', '/audio/blink.mp3').delay(.5,.8).play();
-
-    var channel = Sound.channel('default');
-
-    channel.volume(.1);
 
     text.style({
         str : 'String\nstring String    string string \n some other string \n and string \n stringifier ',
@@ -27,10 +21,6 @@ $R.app(['@app', 'State', 'Objects', 'Sound', function Loader(app, State, Objetcs
 
     group.layer(1);
 
-
-    text.on('mousedown', function () {
-        sample.play();
-    });
 
     text.on('mouseenter', function () {
         this.style('color', 'rgba(255,0,0,1)');
@@ -69,7 +59,5 @@ $R.app(['@app', 'State', 'Objects', 'Sound', function Loader(app, State, Objetcs
         }
         e.stopPropagation();
     });
-
-    console.log(sprite);
 
 }]);
