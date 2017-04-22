@@ -7,6 +7,7 @@ $R.part('Sound', ['Debug', function Event(Debug) {
         state = false,
         name = 'default',
         stateval = false,
+        self = this;
         argFunct = function () {
             return [];
         };
@@ -50,7 +51,7 @@ $R.part('Sound', ['Debug', function Event(Debug) {
 
     this.callback = function (func) {
         if (typeof func !== "function") return this;
-        if(this.active()) {
+        if(self.active()) {
             var args = argFunct();
             if(typeof args !== "object" || args.constructor !== Array) args = [];
             func.apply(this, args);

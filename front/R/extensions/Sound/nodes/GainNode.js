@@ -3,17 +3,27 @@
  */
 $R.part('Sound', ['@audio', '@extend', function GainNode(context, extend) {
 
-    extend(this,'AudioNode');
+    extend(this, 'AudioNode');
 
-    this.build(function (sound, out) {
-        if(out) {
-            var gain = context.createGain();
-            out.connect(gain);
-            return gain;
+    var volume = 1,
+        gain = context.createGain();
+
+    gain.gain.value = volume;
+
+    this.build('gain',gain,gain);
+
+    this.wrap(
+        {
+            volume: function (value) {
+                if (typeof value == "number") {
+                    if (value > 1) value = 1;
+                    if (value < 0) value = 0;
+                    volume = value;
+                    gain.gain.value = volume;
+                }
+                return this;
+            }
         }
-        else {
-            return false;
-        }
-    });
+    );
 
 }]);

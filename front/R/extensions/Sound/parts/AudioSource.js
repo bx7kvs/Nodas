@@ -8,7 +8,8 @@ $R.part('Sound', ['@audio', '@inject', 'Resource', 'Debug', function AudioSource
         buffer = null,
         output = null,
         events = inject('EventProvider'),
-        self = this;
+        self = this,
+        sounds = [];
 
     function args() {
         return [resource, buffer, output];
@@ -46,10 +47,12 @@ $R.part('Sound', ['@audio', '@inject', 'Resource', 'Debug', function AudioSource
             events.resolve(error)
         });
         delete this.build;
+
+        return this;
     };
 
     this.disconnect = function () {
-        if(output) {
+        if (output) {
             output = null;
             events.resolve('disconnect');
         }
@@ -64,11 +67,21 @@ $R.part('Sound', ['@audio', '@inject', 'Resource', 'Debug', function AudioSource
     };
 
     this.play = function () {
-        if(output && this.status('load')) {
-            var source =  context.createBufferSource();
+        if (output && this.status('load')) {
+            var source = context.createBufferSource();
             source.buffer = buffer;
-            output.play(source);
+            sounds.push(source);
+            output.play(source, false);
+            source.start(0);
         }
+        return this;
+    };
+
+    this.stop = function () {
+        for (var i = 0; i < sounds.length; i++) {
+            sounds[i].stop(0);
+        }
+        sounds = [];
         return this;
     };
 

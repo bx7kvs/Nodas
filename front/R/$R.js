@@ -597,6 +597,11 @@
                         _result.push(ext_config.extract(injection.name()));
                         continue;
                     }
+                    else if(type == 'part') {
+                        var _ext = registered.exts[injection.ext()];
+                        _result.push(ext_config.extract(_ext.name()));
+                        continue;
+                    }
                     else {
                         _result.push(undefined);
                         error('Unable to inject config into injection type[' + injection.type() + '] only type[ext] allowed');
