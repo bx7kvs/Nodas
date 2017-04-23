@@ -3,57 +3,77 @@
  */
 $R.ext(['@audio', '@inject', 'Debug', function Sound(context, inject, Debug) {
 
-    var output = inject('UserAudioMixer').build('$$DESTINATION', 'destination'),
+    var destination = inject('Audio').build('$$DESTINATION', 'destination'),
+        sounds = {},
+        soundcount = 0,
+        channelcount = 0,
         channels = {
-            $$DESTINATION: output
+            $$DESTINATION: destination
         };
 
-    this.sample = function (src, channel) {
-        if (typeof src == "string" && src.length > 0) {
-            var sound = inject('UserAudioSource').build(src);
-            if (typeof channel == "string" && channel.length > 0 && channel !== '$$DESTINATION') {
-                if (channels[channel]) {
-                    sound.connect(channels[channel]);
-                }
-                else {
-                    var output = this.channel(channel);
-                    sound.connect(output);
-                }
-            }
-            else {
-                sound.connect(channels.$$DESTINATION);
-            }
-            return sound;
+    this.sample = function (url, channel, name) {
+        if (typeof url == "string" && url.length > 0) {
+            if (sounds[url]) return sounds[url];
+            if (typeof name !== "string" || name.length == 0) name = 'UserSound[' + soundcount + ']';
+            soundcount++;
+            var result = inject('Audio').build(name, url);
+            if (typeof channel !== "string" || channel.length == 0) channel = '$$DESTINATION';
+            var out = this.channel(channel);
+            console.log(out);
+            result.connect(out);
+            sounds[result.url()] = result;
+            return result;
         }
         else {
-            Debug.warn({src: src}, '[{src}] is not a string ot empty.');
+            Debug.warn({url: url}, '[{url}] is not valid audio url or empty.');
         }
     };
 
     this.channel = function (name) {
-        if (typeof name == "string" && name.length > 0 && name !== '$$DESTINATION') {
-            if (channels[name]) {
-                return channels[name];
-            }
-            else {
-                var channel = inject('UserAudioMixer').build(name, channels.$$DESTINATION);
-                channels[name] = channel;
-                return channel;
-            }
-        }
-        else {
-            Debug.warn({name: name}, '[{name}] is not a valid channel name');
-        }
+        if (typeof name == "string" && name.length > 0) {
+            if (channels[name]) return channels[name];
 
+            var result = inject('Audio').build(name);
+
+            result.connect(destination);
+            channels[name] = result;
+            channelcount ++;
+            return result;
+        }
     };
 
-    this.list = function () {
-        var list = {};
+    this.channels = function (byurl) {
+        var list = {},
+            byurl = !!byurl;
 
         for (var channel in channels) {
             if (channels.hasOwnProperty(channel)) {
                 if (channel !== '$$DESTINATION') {
-                    list[channel] = channels[channel];
+                    if (byurl) {
+                        list[channel.url()] = channel[channel];
+                    }
+                    else {
+                        list[channel] = channels[channel];
+                    }
+
+                }
+            }
+        }
+
+        return list;
+    };
+
+    this.sounds = function (byurl) {
+        var list = {},
+            byurl = !!byurl;
+
+        for (var prop in sounds) {
+            if (sounds.hasOwnProperty(prop)) {
+                if (byurl) {
+                    list[prop] = sounds[prop];
+                }
+                else {
+                    list[sounds[prop].name()] = sounds[prop];
                 }
             }
         }

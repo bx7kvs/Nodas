@@ -8,22 +8,21 @@ $R.app(['@app', 'State', 'Objects', 'Sound', function Loader(app, State, Objetcs
         text = Objetcs.text();
 
     var channel = Sound.channel('test'),
-        sample = Sound.sample('/audio/sample.mp3','test');
+        sample = Sound.sample('/audio/sample.mp3', 'test');
+    
 
-    text.on('mousedown', function () {
-        sample.play();
-    });
+    sample.play();
 
     text.style({
-        str : 'String\nstring String    string string \n some other string \n and string \n stringifier ',
-        position : [100,100],
-        style : 'normal',
-        weight : 100,
-        font : 'Arial, sans-serif',
+        str: 'String\nstring String    string string \n some other string \n and string \n stringifier ',
+        position: [100, 100],
+        style: 'normal',
+        weight: 100,
+        font: 'Arial, sans-serif',
         lineHeight: 25,
-        fontSize : 14,
-        align : 'center',
-        anchor : ['center','middle']
+        fontSize: 14,
+        align: 'center',
+        anchor: ['center', 'middle']
     });
 
     group.layer(1);
@@ -33,7 +32,7 @@ $R.app(['@app', 'State', 'Objects', 'Sound', function Loader(app, State, Objetcs
         this.style('weight', 400);
     });
     text.on('mouseleave', function () {
-        this.style('color','rgba(100,150,50,1)');
+        this.style('color', 'rgba(100,150,50,1)');
         this.style('weight', 600);
     });
 

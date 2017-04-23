@@ -1,7 +1,7 @@
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
-$R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject, Debug) {
+$R.part('Sound', ['@inject', 'Debug', function AnimationProvider(inject, Debug) {
 
     var animations = [],
         animated = false,
@@ -9,7 +9,7 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
 
     this.morph = function (name, ordering, setter, applier) {
         var morph = inject('Morph');
-        morph.config(name, this.object(), ordering, setter, applier);
+        morph.config(name, this, ordering, setter, applier);
         if (morph.valid()) {
             morphs[name] = morph;
         }
@@ -83,8 +83,6 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
 
 
     function CreateAnimationType1(property, value, duration, easing) {
-        var style = this.extension('Style');
-
         var pair = {};
 
         pair[property] = value;
@@ -92,7 +90,7 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
         if (morphs[property]) {
             var stack = [
                     {
-                        ordering: style.ordering(property),
+                        ordering: morphs[property].ordering(),
                         morph: morphs[property],
                         value: value
                     }
@@ -112,8 +110,7 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
     }
 
     function CreateAnimationType2(pairs,arg2,arg3) {
-        var style = this.extension('Style'),
-            config = {};
+        var config = {};
 
         if(typeof arg2 == "object") {
             config = arg2;
@@ -141,11 +138,10 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
                     type: this.type(),
                     property: property
                 }, 'Property {property} of {type} can not be animated!');
-                continue;
             }
             else {
                 result[property] = {
-                    ordering: style.ordering(property),
+                    ordering: morphs[property].ordering(),
                     morph: morphs[property],
                     value: pairs[property]
                 }
@@ -158,12 +154,12 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
             morph_stack.push(result[item]);
         }
 
-        morph_stack.sort(function (a, b) {
-            return a.ordering - b.ordering;
-        });
-
         if (morph_stack.length) {
-            var animation = inject('animation');
+            morph_stack.sort(function (a, b) {
+                return a.ordering - b.ordering;
+            });
+
+            var animation = inject('Animation');
             animation.config(this, morph_stack, config, CheckAnimationQueue);
             animations.push(animation);
         }
@@ -172,7 +168,7 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
         }
     }
 
-    this.register('animate', function (arg1, arg2, arg3, arg4) {
+    this.animate = function (arg1, arg2, arg3, arg4) {
         if (typeof arg1 == 'string' && arg2) {
             CreateAnimationType1.apply(this, arguments);
         }
@@ -183,16 +179,17 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
             Debug.warn('Unable to create animation. Wrong arguments');
         }
         CheckAnimationQueue();
-    });
+    };
 
-    this.register('animated', function () {
+    this.animated = function () {
         return animated;
-    });
+    };
 
-    this.register('stop', function (property) {
+    this.stop = function (property) {
+        if(typeof property !== "string" || property.length == 0) return;
         for (var i = 0; i < animations.length; i++) {
             animations[i].stop(property);
         }
-    });
+    };
 
 }]);

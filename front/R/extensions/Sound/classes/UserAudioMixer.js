@@ -21,10 +21,14 @@ $R.part('Sound', ['@audio', '@inject', '@config', 'Debug', function UserAudioMix
     events.event('error', argF, true);
 
     this.build = function (n, channel) {
-        var fcfg = config.filters && typeof config.filters == "object" && config.filters.constructor == Array && config.filters.length > 0 ? config.filters : ['Delay', 'Gain'];
+
+        var fcfg = config.filters &&
+        typeof config.filters == "object"
+        && config.filters.constructor == Array
+        && config.filters.length > 0 ? config.filters : ['Delay', 'Gain'];
+
         for (var i = 0; i < fcfg.length; i++) {
             var node = inject(fcfg[i] + 'Node');
-            node.wrap(this);
             if (filters[filters.length - 1]) {
                 filters[filters.length - 1].connect(node);
             }
@@ -65,7 +69,7 @@ $R.part('Sound', ['@audio', '@inject', '@config', 'Debug', function UserAudioMix
         }
         else {
             var input = out.connect({$$AUDIONODE: true});
-            console.log(filters[filters.length-1],input);
+            console.log(filters[filters.length - 1], input);
             filters[filters.length - 1].connect(input);
             output = out;
             Debug.warn({name: name, outname: out.name()}, '[{name}] connected to [{outname}]');
@@ -76,6 +80,10 @@ $R.part('Sound', ['@audio', '@inject', '@config', 'Debug', function UserAudioMix
 
     this.output = function () {
         return output;
+    };
+
+    this.filters = function () {
+        return filters;
     };
 
     this.name = function () {

@@ -72,8 +72,7 @@ $R.part('Sound', ['@audio', '@inject', 'Debug', function AudioNode(context, inje
 
     this.play = function (sound, output) {
         sounds.push(sound);
-        sound.addEventListener('end', function () {
-            console.log('sound deleted...');
+        sound.addEventListener('ended', function () {
             var result = [];
             sound.$$SEARCH = true;
             for (var i = 0; i < sounds.length; i++) {
@@ -91,37 +90,82 @@ $R.part('Sound', ['@audio', '@inject', 'Debug', function AudioNode(context, inje
 
     };
 
-    var wrapProps = null;
+    var model = {};
 
-    function getResultF(cfg,prop) {
-        return function () {
-            cfg[prop].apply(this, arguments);
-            events.resolve('property');
-            return this;
-        }
-    }
+    this.property = function (name, defVal, setter, getter, normlizer) {
+        if (typeof name == "string") {
+            var property = {
+                name: name,
+                value: null,
+                getter: null,
+                setter: null,
+                normalizer : normlizer,
+                animated : typeof normlizer == "function" ? true : false
+            };
 
-    this.wrap = function (cfg) {
-        if (cfg && typeof cfg == "object") {
-            for (var prop in cfg) {
-                if (cfg.hasOwnProperty(prop) && typeof cfg[prop] == "function") {
-                    if (!wrapProps) wrapProps = {};
-                    wrapProps[prop] = getResultF(cfg,prop);
+            if (typeof getter === "function") {
+                property.getter = getter;
+            }
+            if (typeof setter === "function") {
+                property.setter = setter;
+            }
+
+            property.value = defVal;
+
+            if (defVal && typeof property.getter && property.setter) {
+                if (!model[property.name]) {
+                    model[property.name] = property;
+                }
+                else {
+                    Debug.warn({property: property}, 'Duplicated property [{property}]');
                 }
             }
         }
-
-        this.wrap = function (target) {
-            if (wrapProps) {
-                for (var prop in wrapProps) {
-                    if (wrapProps.hasOwnProperty(prop)) {
-                        if (!target[prop]) {
-                            target[prop] = wrapProps[prop].bind(target);
-                        }
-                    }
-                }
-            }
-            delete this.wrap;
+        else {
+            Debug.warn({name: name}, 'Property name [{name}] is not valid!');
         }
     };
+
+    this.set = function (name, value) {
+        if (typeof name == "string" && name.length > 0) {
+            var result = model[name].setter(value);
+            if (result !== undefined) {
+                model[name].value = result;
+            }
+            else {
+                Debug.warn({prop: name, val: value}, '[{val}] is not a valid valuen for [{prop}].');
+            }
+        }
+    };
+
+    this.get = function (name) {
+        if (typeof name == "string" && name.length > 0) {
+            if (model[name]) {
+                return model[name].value;
+            }
+            else {
+                Debug.warn({name: name}, 'Object has no property [{name}]. Unable to get value.');
+            }
+        }
+        else {
+            Debug.warn('Property name has to be a string');
+        }
+    };
+
+    this.props = function () {
+        var result = [];
+
+        for (var prop in model) {
+            if (model.hasOwnProperty(prop)) {
+                result.push(model[prop]);
+            }
+        }
+
+        return result;
+    };
+
+    this.has = function (name) {
+        return !!model[name];
+    };
+
 }]);

@@ -7,5 +7,4 @@ $R.part('Sound', ['@audio', '@extend', function DestinationNode(context, extend)
 
     this.build('destination', context.destination, false);
 
-    this.wrap(false);
 }]);

@@ -38,7 +38,7 @@ $R.part('Sound', ['@audio', '@extend', '@inject', 'Debug', function UserAudioSou
         events.resolve('error');
     });
 
-    this.build = function (src, channel) {
+    this.build = function (src) {
 
         if (typeof src == "string" && src.length > 0) {
             url = src;
@@ -58,6 +58,13 @@ $R.part('Sound', ['@audio', '@extend', '@inject', 'Debug', function UserAudioSou
 
 
         return this;
+    };
+
+    this.filters = function () {
+        if(mixer) {
+            return mixer.filters();
+        }
+        return [];
     };
 
 
