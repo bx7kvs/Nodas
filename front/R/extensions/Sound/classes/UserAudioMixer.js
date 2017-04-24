@@ -69,7 +69,6 @@ $R.part('Sound', ['@audio', '@inject', '@config', 'Debug', function UserAudioMix
         }
         else {
             var input = out.connect({$$AUDIONODE: true});
-            console.log(filters[filters.length - 1], input);
             filters[filters.length - 1].connect(input);
             output = out;
             Debug.warn({name: name, outname: out.name()}, '[{name}] connected to [{outname}]');

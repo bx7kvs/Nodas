@@ -21,18 +21,7 @@ $R.part('Sound', ['@audio', '@extend', function DelayNode(context, extend) {
     bq.connect(delay);
     feedback.connect(globalGain);
 
-    this.build('delay', globalGain, globalGain, function (sound, out) {
-        if (!out) {
-            sound.connect(globalGain);
-            sound.connect(feedback);
-        }
-        else {
-            out.connect(globalGain);
-            out.connect(feedback);
-        }
-
-        return this.output();
-    });
+    this.build('delay', [globalGain, feedback], globalGain);
 
     this.property('delay', [0, 0],
         function (value) {
@@ -45,6 +34,7 @@ $R.part('Sound', ['@audio', '@extend', function DelayNode(context, extend) {
                 if (time < 0) time = 0;
                 if (force > .8) force = .8;
                 if (force < 0) force = 0;
+                console.log('delay value changed!');
                 timeCFG = time;
                 forceCFG = force;
                 delay.delayTime.value = timeCFG;

@@ -8,10 +8,12 @@ $R.app(['@app', 'State', 'Objects', 'Sound', function Loader(app, State, Objetcs
         text = Objetcs.text();
 
     var channel = Sound.channel('test'),
-        sample = Sound.sample('/audio/sample.mp3', 'test');
-    
+        sample = Sound.sample('/audio/blink.ogg', 'test');
 
-    sample.play();
+    sample.animate({'delay': [.5,.5]}, 10000);
+    text.on('mousedown' , function () {
+        sample.play();
+    });
 
     text.style({
         str: 'String\nstring String    string string \n some other string \n and string \n stringifier ',

@@ -19,7 +19,6 @@ $R.ext(['@audio', '@inject', 'Debug', function Sound(context, inject, Debug) {
             var result = inject('Audio').build(name, url);
             if (typeof channel !== "string" || channel.length == 0) channel = '$$DESTINATION';
             var out = this.channel(channel);
-            console.log(out);
             result.connect(out);
             sounds[result.url()] = result;
             return result;

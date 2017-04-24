@@ -7,8 +7,11 @@ $R.part('Sound', ['@audio', '@inject', 'Debug', function AudioNode(context, inje
         input = null,
         nextNode = null,
         buildF = function (sound, output) {
-            if (!output) {
-                sound.connect(this.input());
+            if(!output) {
+                var input = this.input();
+                for(var i = 0; i < input.length; i++) {
+                    sound.connect(input[i]);
+                }
             }
             return this.output();
         },
@@ -31,7 +34,12 @@ $R.part('Sound', ['@audio', '@inject', 'Debug', function AudioNode(context, inje
 
     this.disconnect = function () {
         if (nextNode && output) {
-            output.disconnect(nextNode.input());
+            var _inpArray = nextNode.input();
+            for(var i = 0 ; i < output.length; i++) {
+                for(var n = 0; n <_inpArray.length; n++) {
+                    output[i].disconnect(_inpArray[n]);
+                }
+            }
             nextNode = null;
             events.resolve('disconnect');
         }
@@ -42,15 +50,20 @@ $R.part('Sound', ['@audio', '@inject', 'Debug', function AudioNode(context, inje
         this.disconnect();
         nextNode = out;
         if (nextNode && output) {
-            output.connect(nextNode.input());
+            var _inpArr = nextNode.input();
+            for(var i = 0 ; i < output.length; i++) {
+                for(var n = 0 ; n < _inpArr.length; n++) {
+                    output[i].connect(_inpArr[i]);
+                }
+            }
         }
         events.resolve('connect');
         return this;
     };
 
     this.build = function (name, inp, out, f) {
-        input = inp;
-        output = out;
+        input = typeof inp == "object" && inp.constructor === Array ? inp : [inp];
+        output = typeof out == "object" && out.constructor === Array ? out : [out];
         nodename = name;
         if (typeof f == "function") buildF = f;
         delete this.build;
