@@ -103,7 +103,7 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
             if (easing && typeof easing == "string") config.easing = easing;
 
 
-            var animation = inject('animation');
+            var animation = inject('Animation');
 
             animation.config(this, stack, config, CheckAnimationQueue);
             animations.push(animation);
@@ -163,7 +163,7 @@ $R.part('Objects', ['@inject', 'Debug', function AnimationObjectExtension(inject
         });
 
         if (morph_stack.length) {
-            var animation = inject('animation');
+            var animation = inject('Animation');
             animation.config(this, morph_stack, config, CheckAnimationQueue);
             animations.push(animation);
         }
