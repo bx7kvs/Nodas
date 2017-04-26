@@ -8,8 +8,7 @@
             injections = {},
             resolved = {},
             properties = {},
-            reflect = this,
-            buildCB = [];
+            reflect = this;
 
         function CoreInjection () {
             var dependencies = [],
@@ -45,13 +44,7 @@
                 this.instance = null;
 
                 this.build = function () {
-                    var args = [];
-
-                    for(var i = 0 ; i < arguments.length; i++) {
-                        args.push(arguments[i]);
-                    }
-                    args.unshift(null);
-                    this.instance = new (Function.prototype.bind.apply(constructor, args));
+                    this.instance = new (Function.prototype.bind.apply(constructor, arguments));
                     resolved[this.name()] = this;
                     return this;
                 }
@@ -95,7 +88,7 @@
                         args.push(resolved[argname].instance);
                     }
                     else if(injections[argname]) {
-                        args.push(resolve(injections[argname]).instance);
+                        args.push(resolve(injections[argname]));
                     }
                     else {
                         args.push(undefined);
@@ -113,13 +106,8 @@
 
         function buildCore() {
             for(var module in config) {
-                if(!resolved[module]) {
-                    resolved[module] = resolve(injections[module]);
-                }
-            }
-            for(var prop in properties) {
-                if(properties.hasOwnProperty(prop)) {
-                    properties[prop].wrap();
+                if(!resolved[resolved[module]]) {
+                    resolve(injections[module]);
                 }
             }
         }
@@ -140,17 +128,7 @@
         }
 
         this.$ = function () {
-            var args = [];
-            if(typeof arguments[0] == "object" && arguments[0].constructor == Array) {
-                for(var i = 0 ; i < arguments[0].length; i++) {
-                    args.push(arguments[0][i]);
-                }
-            }
-            else if (typeof arguments[0] == "function" && arguments[0].name) {
-                args.push(arguments[0]);
-            }
-            args.unshift(null);
-            new (Function.prototype.bind.apply(CoreInjection, args));
+            new (Function.prototype.bind.apply(CoreInjection, arguments));
             check();
             return this;
         };
@@ -163,32 +141,6 @@
             }
             check();
         };
-
-        document.addEventListener('DOMContentLoaded', function () {
-            for(var i = 0; i < buildCB.length; i++) {
-                buildCB[i].call(this);
-            }
-        });
-
-        this.on = function (event,func) {
-            if(event && typeof event == "string") {
-                if(typeof func == "function") {
-                    if(event == 'build') {
-                        buildCB.push(func);
-                    }
-                    else {
-                        throw new Error('Unable to add event listener. Unknown event');
-                    }
-                }
-                else {
-                    throw new Error('Unable to add event listener. func is not a function')
-                }
-            }
-            else {
-                throw new Error('Unable to add event listener. unknown event name type.');
-            }
-
-        }
     }
 
     window.$R = new Reflect();
