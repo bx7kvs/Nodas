@@ -3,18 +3,10 @@
  */
 $R.$(['@define', 'InjectionContainerProvider', function Injector(define, provider) {
 
-    var extensions = {},
-        parts = {},
-        services = provider.container();
+    //TODO: onInit event handling for providers requiring core to be built for some functionality
 
-    this.service = function (construcor) {
-        if (typeof construcor == "function" && construcor.name) {
-            services.injection(construcor);
-        }
-        else {
-            throw new Error('Unable to create service. Constructor is not a named function');
-        }
-    };
+    var extensions = {},
+        parts = {};
 
     this.extensions = function () {
         var result = {};
@@ -30,7 +22,6 @@ $R.$(['@define', 'InjectionContainerProvider', function Injector(define, provide
     function createExtensionContainer(name) {
         if (!extensions[name]) {
             extensions[name] = provider.container();
-            extensions[name].source(services, '@');
             extensions[name].source(extensions[name]);
             return extensions[name];
         }
@@ -42,7 +33,6 @@ $R.$(['@define', 'InjectionContainerProvider', function Injector(define, provide
     function createPartContainer(extension) {
         if (!parts[extension]) {
             parts[extension] = provider.container();
-            parts[extension].source(services, '@');
             createExtensionContainer(extension).source(parts[extension],'$');
             return parts[extension];
         }
