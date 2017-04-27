@@ -43,7 +43,7 @@ $R.$([function InjectionContainerProvider() {
         }
     }
 
-    function SourceContainer(prefix, container) {
+    function SourceContainer(prefix, container, loop) {
         var pfx = prefix ? prefix : '';
 
         function stripPrefix(name) {
@@ -79,16 +79,20 @@ $R.$([function InjectionContainerProvider() {
         };
 
         this.args = function (deep) {
-            if(deep) {
-                return [prefix,container.clone()];
+            if (deep) {
+                return [prefix, container.clone()];
             }
             else {
-                return [prefix,container];
+                return [prefix, container];
             }
         };
 
+        this.loop = function () {
+            return loop;
+        };
+
         this.clone = function () {
-            var containerClone = container.clone();
+            var containerClone = container.clone(loop);
             return new SourceContainer(prefix, containerClone);
         }
 
@@ -140,7 +144,10 @@ $R.$([function InjectionContainerProvider() {
                 else if (typeof prefixkey !== "string" || !prefixkey.length) {
                     throw new Error('Index is undefined or string with non zero length.');
                 }
-                sources.push(new SourceContainer(prefixkey, container));
+                container.$$LOOOP = true;
+                var loop = !!this.$$LOOP;
+                delete  container.$$LOOP;
+                sources.push(new SourceContainer(prefixkey, container, loop));
             }
             else {
                 throw new Error('Container is not an instance of InjectionContainer.');
@@ -171,7 +178,7 @@ $R.$([function InjectionContainerProvider() {
                         args.push(source.container().resolve(source.stripPrefix(dependencies[i])));
                     }
                     else {
-                        throw new Error('Injection [' + dependencies[i] + '] is not valid.');
+                        throw new Error('Injection [' + dependencies[i] + '] source was not found.');
                     }
                 }
 
@@ -183,20 +190,32 @@ $R.$([function InjectionContainerProvider() {
             }
         };
 
-        this.clone = function (deep) {
+        this.resolveAll = function (direct) {
+            for (var injection in library) {
+                this.resolve(injection, direct);
+            }
+            return this;
+        };
+
+        this.clone = function () {
             var clone = new InjectionContainer();
-            for(var injection in library) {
-                if(library.hasOwnProperty(injection)) {
-                    clone.injection.apply(clone,library[injection].args());
+            for (var injection in library) {
+                if (library.hasOwnProperty(injection)) {
+                    clone.injection.apply(clone, library[injection].args());
                 }
             }
-            for(var source in sources) {
-                if(sources.hasOwnProperty(source)) {
-                    clone.source.apply(clone,sources[source].args(deep));
+            for (var source in sources) {
+                if (sources.hasOwnProperty(source)) {
+                    if(sources[source].loop()) {
+                        clone.source.apply(clone,[sources[source].args()[0],clone]);
+                    }
+                    else {
+                        clone.source.apply(clone, sources[source].args());
+                    }
                 }
             }
             return clone;
-        }
+        };
     }
 
     this.container = function () {
