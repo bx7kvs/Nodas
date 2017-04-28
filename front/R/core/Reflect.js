@@ -107,8 +107,8 @@
 
         function buildCore() {
             for(var module in config) {
-                if(!resolved[resolved[module]]) {
-                    resolve(injections[module]);
+                if(!resolved[module]) {
+                    resolved[module] = resolve(injections[module]);
                 }
             }
         }
@@ -142,7 +142,8 @@
             }
             check();
         };
-        document.addEventListener('ready', function () {
+
+        document.addEventListener('DOMContentLoaded', function () {
             for(var i = 0; i < buildCB.length; i++) {
                 buildCB[i].call(this);
             }
@@ -163,7 +164,7 @@
                 }
             }
             else {
-                throw new Error('Unablee to add event listener. unknown event name type.');
+                throw new Error('Unable to add event listener. unknown event name type.');
             }
 
         }

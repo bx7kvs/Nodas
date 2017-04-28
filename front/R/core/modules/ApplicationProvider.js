@@ -1,12 +1,11 @@
 /**
  * Created by Viktor Khodosevich on 4/26/2017.
  */
-$R.$(['@define', 'Injector', 'InjectionContainerProvider', 'CanvasProvider', 'HTMLRootProvider', 'ApplicationTickerProvider',
-        function ApplicationProvider(define, Injector, Provider, CanvasProvider, HTMLRootProvider, TickerProvider) {
+$R.$(['@define', 'Injector',
+        'InjectionContainerProvider', 'ApplicationCanvasProvider',
+        'ApplicationHTMLRootProvider', 'ApplicationTickerProvider',
 
-            /*
-             TODO: App function should create injection and return constructor/dependencies defining function
-             */
+        function ApplicationProvider(define, Injector, Provider, CanvasProvider, HTMLRootProvider, TickerProvider) {
             var apps = {},
                 modules = {},
                 autorun = [],
@@ -14,55 +13,62 @@ $R.$(['@define', 'Injector', 'InjectionContainerProvider', 'CanvasProvider', 'HT
 
             apps.source(apps, '.');
 
-            function getAppSources() {
+            function getAppSources(appname) {
                 var container = Injector.container();
 
-                container.injection(CanvasProvider.canvasInjectionConstructor());
-                container.injection(HTMLRootProvider.HTMLRootContructor());
+                container.injection(CanvasProvider.canvasInjectionConstructor(appname));
 
-                container.source(container,false);
+                container.injection(
+                    HTMLRootProvider.HTMLRootConstructor(
+                        CanvasProvider.getApplicationCanvas(appname),
+                        appname
+                    )
+                );
+
+                container.source(container, false);
 
                 return container;
             }
 
             function getAppConstructor(constructor) {
                 return function Application(args) {
-                    var ticker = TickerProvider.createTicker(constructor.name),
+                    var ticker = TickerProvider.createTicker(constructor.name, CanvasProvider.getApplicationCanvas(constructor.name)),
                         fps = 58.8,
                         methods = {
-                            start : {
-                                target : ticker,
-                                func : 'start'
+                            start: {
+                                target: ticker,
+                                func: 'start'
                             },
-                            stop : {
-                                target : ticker,
-                                func : 'stop'
+                            stop: {
+                                target: ticker,
+                                func: 'stop'
                             },
-                            fps : {
-                                target : ticker,
-                                func : 'fps'
+                            fps: {
+                                target: ticker,
+                                func: 'fps'
                             },
-                            tick : {
-                                target :ticker,
-                                func : 'callback'
+                            tick: {
+                                target: ticker,
+                                func: 'callback'
                             }
                         };
 
-                    this.$ = function (func,args) {
-                        if(typeof func == "string" && func.length) {
-                            if(methods[func]) {
-                                if(typeof args === undefined) {
+                    this.$ = function (func, args) {
+                        if (typeof func == "string" && func.length) {
+                            if (methods[func]) {
+                                if (typeof args === undefined) {
                                     args = []
                                 }
                                 else if (typeof args !== "object" || args.constructor !== Array) {
                                     args = [args];
                                 }
-                                return methods[func].target[methods[func].func].apply(methods[func].target,args);
+                                return methods[func].target[methods[func].func].apply(methods[func].target, args);
                             }
                         }
                     };
 
-                    constructor.apply(this,args);
+                    instances[constructor.name] = this;
+                    constructor.apply(this, args);
                 }
             }
 
@@ -154,31 +160,30 @@ $R.$(['@define', 'Injector', 'InjectionContainerProvider', 'CanvasProvider', 'HT
             });
 
             define('get', function (appname) {
-                if(typeof appname == "string" && appname.length) {
-                    if(instances[appname]) {
+                if (typeof appname == "string" && appname.length) {
+                    if (instances[appname]) {
                         return instances[appname];
                     }
                     else if (apps[appname]) {
                         var extensions = Injector.extensions(),
-                            sources = getAppSources();
+                            sources = getAppSources(appname);
 
-                        if(modules[appname]) {
+                        if (modules[appname]) {
                             apps[appname].source(modules[appname], '$');
-                            modules[appname].source(appSources, '@');
+                            modules[appname].source(sources, '@');
                             modules[appname].source(extensions, false);
                         }
 
                         apps[appname].source(sources, '@');
                         apps[appname].source(extensions, false);
-                        instances[appname] = apps[appname].resolve('Application');
-                        return instances[appname];
+                        return apps[appname].resolve('Application');
                     }
                     else {
-                        throw new Error('Unable to run app ['+appname+']. No such app registered');
+                        throw new Error('Unable to run app [' + appname + ']. No such app registered.');
                     }
                 }
                 else {
-                    throw new Error('Inable to run app. App name (id) is not a string or empty.');
+                    throw new Error('Unable to run app. App name (id) is not a string or empty.');
                 }
             });
 
@@ -195,7 +200,7 @@ $R.$(['@define', 'Injector', 'InjectionContainerProvider', 'CanvasProvider', 'HT
                 }
 
                 for (var i = 0; i < runapps; i++) {
-                   $R.get(runapps[i]);
+                    $R.get(runapps[i]);
                 }
             });
         }

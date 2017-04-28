@@ -1,7 +1,7 @@
 /**
  * Created by Viktor Khodosevich on 4/26/2017.
  */
-$R.$(['@define', 'InjectionContainerProvider', function Injector(define, provider) {
+$R.$(['@define', 'InjectionContainerProvider','ApplicationProvider', function Injector(define, provider, applications) {
 
     //TODO: onInit event handling for providers requiring core to be built for some functionality
 

@@ -5,16 +5,20 @@ $R.$(function ApplicationTickerProvider() {
 
     var tickers = {};
 
-    function Ticker() {
+    function Ticker(canvas) {
         var ticktime = (1000 / 58.8).toFixed(2),
             callbacks = {},
+            context = canvas.getContext('2d'),
             frame = 0,
             target = null,
-            startTime = new Date().getTime(),
+            startTime = new Date(),
             runnning = false,
+            args = [null, canvas, context, 0],
             tickfunction = function () {
-                var time = new Date(),
-                    arguments = [time, frame];
+                var time = new Date();
+
+                args[0] = new Date();
+                args[3] = frame;
 
                 for (var ordering in callbacks) {
                     for (var i = 0; i < callbacks[ordering].length; i++) {
@@ -42,12 +46,12 @@ $R.$(function ApplicationTickerProvider() {
             if (typeof number == "number") {
                 if (number > 60) number = 60;
                 if (number <= 0) number = 1;
-                ticktime = (1000/number).toFixed(2);
+                ticktime = (1000 / number).toFixed(2);
                 this.stop();
                 this.start();
             }
             else {
-                return (1000/ticktime).toFixed(2);
+                return (1000 / ticktime).toFixed(2);
             }
         };
 
@@ -71,10 +75,10 @@ $R.$(function ApplicationTickerProvider() {
         }
     }
 
-    this.createTicker = function (app) {
-        if(tickers[app]) tickers[app].stop();
+    this.createTicker = function (app, canvas) {
+        if (tickers[app]) tickers[app].stop();
 
-        tickers[app] = new Ticker();
+        tickers[app] = new Ticker(canvas);
 
         return tickers[app];
     }
