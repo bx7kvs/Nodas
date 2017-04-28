@@ -8,21 +8,20 @@ $R.$(['@define', 'InjectionContainerProvider', function Injector(define, provide
     var extensions = {},
         parts = {};
 
-    this.extensions = function () {
-        var result = {};
 
-        for(var ext in extensions) {
-            if(extensions.hasOwnProperty(ext)) {
-                result[ext] = extensions[ext];
-            }
-        }
+
+    this.extensions = function () {
+        var container = provider.container(),
+            library = {};
+
+
+
         return result;
     };
 
     function createExtensionContainer(name) {
         if (!extensions[name]) {
             extensions[name] = provider.container();
-            extensions[name].source(extensions[name]);
             return extensions[name];
         }
         else {

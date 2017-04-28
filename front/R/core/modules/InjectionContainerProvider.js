@@ -77,7 +77,33 @@ $R.$([function InjectionContainerProvider() {
     }
 
     function SourceContainer(prefix, container, loop) {
-        var pfx = prefix ? prefix : '';
+        var pfx = prefix ? prefix : false,
+            containers = [];
+
+        if (typeof container == "object") {
+            if (container.constructor === InjectionContainer) {
+                containers = [container]
+            }
+            else if (container.constructor == Array) {
+                var valid = true;
+                for (var i = 0; i < container.length; i++) {
+                    if (container[i].constructor === InjectionContainer) {
+                        containers.push(container[i]);
+                    }
+                    else {
+                        valid = false;
+                        break;
+                    }
+                }
+                if (container.length == 0) valid = false;
+
+                if (!valid) throw new Error('Container array is empty!');
+            }
+            else {
+                throw new Error('Invalid type if container!');
+            }
+        }
+
 
         function stripPrefix(name) {
             var string = '';
@@ -92,48 +118,61 @@ $R.$([function InjectionContainerProvider() {
 
         this.check = function (name) {
             var result = true;
-            for (var i = 0; i < prefix.length; i++) {
-                if (!name[i] || name[i] !== prefix[i]) {
-                    result = false;
+            if(prefix) {
+                for (var i = 0; i < prefix.length; i++) {
+                    if (!name[i] || name[i] !== prefix[i]) {
+                        result = false;
+                    }
                 }
             }
             return result;
-        }
-
-        this.container = function () {
-            return container;
         };
 
-        this.args = function (deep) {
-            if (deep) {
-                return [prefix, container.clone()];
+        this.has = function (name) {
+            var result = false;
+            if (this.check(name)) {
+                for (var i = 0; i < containers.length; i++) {
+                    var stripName = stripPrefix(name);
+                    if (container.has(stripName)) {
+                        result = true;
+                        break;
+                    }
+                }
             }
-            else {
-                return [prefix, container];
-            }
+            return result;
         };
 
         this.loop = function () {
             return loop;
         };
 
-        this.prefix = function (str) {
-            if (typeof str == "string") {
-                return prefix === str;
-            }
-            return prefix;
+        this.containers = function () {
+            return containers;
         };
 
-        this.clone = function () {
-            var containerClone = container.clone(loop);
-            return new SourceContainer(prefix, containerClone);
+        this.prefix = function () {
+            return pfx;
+        };
+
+        this.resolve = function (name, direct) {
+            var result = null;
+            if (this.has(name)) {
+                var source = null;
+                var stripName = stripPrefix(name);
+                for (var i = 0; i < containers.length; i++) {
+                    if (containers[i].has(stripName)) {
+                        source = containers[i];
+                    }
+                }
+                if (source) result = source.resolve(stripName, direct);
+            }
+            return result;
         };
 
     }
 
-    function InjectionContainer() {
-
-        var library = {},
+    function InjectionContainer(lib) {
+        var library = typeof lib == "object" ? lib : {},
             sources = {};
 
         this.injection = function (config) {
@@ -153,7 +192,7 @@ $R.$([function InjectionContainerProvider() {
                     if (typeof config[i] == "string" && config[i].length) {
                         dependencies.push(config[i])
                     }
-                    else if (typeof config[i] == "function") {
+                    else if (typeof config[i] == "function" && config[i].name) {
                         constructor = config[i];
                         break;
                     }
@@ -170,38 +209,96 @@ $R.$([function InjectionContainerProvider() {
         };
 
         this.source = function (container, prefixkey) {
-            if (container && container.constructor === InjectionContainer) {
-                if (!prefixkey) {
-                    prefixkey = false;
+            if (container && typeof container == "object") {
+                if (container.constructor === InjectionContainer) {
+                    if (!prefixkey) prefixkey = false;
+                    if ((typeof prefixkey == "string" && prefixkey.length) || prefixkey === false) {
+                        container.$$LOOP = true;
+                        var loop = false;
+                        if (this.$LOOP) loop = true;
+                        delete container.$$LOOOP;
+                        sources[prefixkey ? prefixkey : '$$noprefix'] =
+                            new SourceContainer(prefixkey, [container], [loop]);
+                    }
                 }
-                else if (typeof prefixkey !== "string" || !prefixkey.length) {
-                    throw new Error('Index is undefined or string with non zero length.');
+                else if (container.constructor === Array) {
+                    var valid = true,
+                        loop = [];
+
+                    for (var i = 0; i < container.length; i++) {
+                        if (typeof container[i] == "object" && container[i].constructor == InjectionContainer) {
+                            container[i].$$LOOOP = true;
+                            if (this.$$LOOOP) {
+                                loop.push(true);
+                            }
+                            else {
+                                loop.push(false);
+                            }
+                            delete  container[i].$$LOOOP;
+                        }
+                        else {
+                            valid = false
+                        }
+                    }
+
+                    if (valid) {
+                        if (!prefixkey) prefixkey = false;
+
+                        if ((typeof prefixkey == "string" && prefixkey.length) || prefixkey === false) {
+                            var source = new SourceContainer(prefixkey, container, loop);
+                            sources[prefixkey ? prefixkey : '$$noprefix'] = source;
+                        }
+                    }
+                    else {
+                        throw new Error('Source container config is not valid. One of the containers provided is not an InjectionContainer instance');
+                    }
                 }
-                container.$$LOOOP = true;
-                var loop = !!this.$$LOOP;
-                delete  container.$$LOOP;
-                sources.push(new SourceContainer(prefixkey, container, loop));
-            }
-            else {
-                throw new Error('Container is not an instance of InjectionContainer.');
             }
         };
 
-        this.getSourceByPrefix = function (prefix) {
-            var result = null;
+        this.clone = function () {
+            var newLibrary = {};
+            for (var injection in library) {
+                newLibrary[injection] = library[injection].clone()
+            }
+            var newContainer = new InjectionContainer(newLibrary);
+
             for (var i = 0; i < sources.length; i++) {
-                if (sources[i].prefix(prefix)) result = prefix;
+                var containers = sources[i].containers(),
+                    sourceloop = sources[i].loop(),
+                    sourceprefix = sources[i].prefix(),
+                    newcontainers = [];
+
+                for(var i = 0 ; i < containers.length; i++) {
+                    if(sourceloop[i]) {
+                        newcontainers.push(newContainer);
+                    }
+                    else {
+                        newcontainers.push(containers[i].clone());
+                    }
+                }
+
+                newContainer.source(newcontainers,sourceprefix);
             }
-            return result;
+            return newContainer;
         };
 
-        this.has = function (name) {
-            if (typeof name == "string") {
-                return !!library[name];
+        this.findSourceByInjectionName = function (injectionName) {
+            var source = null;
+
+            for(var prefix in sources) {
+                if(sources.hasOwnProperty(prefix)) {
+                    if(sources[prefix].prefix()) {
+                        if(sources[prefix].has(injectionName)) {
+                            source = sources[prefix];
+                        }
+                    }
+                }
             }
-            else {
-                return null;
-            }
+
+            if(!source && sources.$$noprefix && sources.$$noprefix.has(injectionName)) source = sources.$$noprefix;
+
+            return source;
         };
 
         this.resolve = function (name, direct) {
@@ -214,12 +311,12 @@ $R.$([function InjectionContainerProvider() {
                     };
 
                 for (var i = 0; i < deps.length; i++) {
-                    var src = this.find(deps[i]);
-                    if(src) {
-                        result.dependencies.push(src.container().resolve(src.stripPrefix(deps[i])));
+                    var src = this.findSourceByInjectionName(deps[i]);
+                    if (src) {
+                        result.dependencies.push(src.resolve(deps[i]));
                     }
                     else {
-                        return new Error('Unable to inject ['+deps[i]+'] while direct injection process.');
+                        return new Error('Unable to inject [' + deps[i] + '] while direct injection process.');
                     }
                 }
 
@@ -240,9 +337,9 @@ $R.$([function InjectionContainerProvider() {
                             args.push(library[name].extend(this));
                         }
                         else {
-                            var source = this.find(dependencies[i]);
+                            var source = this.findSourceByInjectionName(dependencies[i]);
                             if (source) {
-                                args.push(source.container().resolve(source.stripPrefix(dependencies[i])));
+                                args.push(source.resolve(dependencies[i]));
                             }
                             else {
                                 throw new Error('Injection [' + dependencies[i] + '] source was not found.');
@@ -259,49 +356,13 @@ $R.$([function InjectionContainerProvider() {
             }
         };
 
-        this.resolveAll = function (direct) {
-            for (var injection in library) {
-                this.resolve(injection, direct);
-            }
-            return this;
-        };
-
-        this.find = function (name) {
-            var source = null;
-            for (var s = 0; s < sources.length; s++) {
-                if (sources[i].check(name)) source = sources[i];
-            }
-            if (source) {
-                return source.container().get(source.stripPrefix(name));
-            }
-            else {
-                throw new Error('Injection [' + name + '] source was not found.');
-            }
+        this.has = function (name) {
+            return !!library[name];
         };
 
         this.get = function (name) {
-            if (library[name]) return name;
+            if (library[name]) return library[name];
             return null;
-        };
-
-        this.clone = function () {
-            var clone = new InjectionContainer();
-            for (var injection in library) {
-                if (library.hasOwnProperty(injection)) {
-                    clone.injection.apply(clone, library[injection].args());
-                }
-            }
-            for (var source in sources) {
-                if (sources.hasOwnProperty(source)) {
-                    if (sources[source].loop()) {
-                        clone.source.apply(clone, [sources[source].args()[0], clone]);
-                    }
-                    else {
-                        clone.source.apply(clone, sources[source].args());
-                    }
-                }
-            }
-            return clone;
         };
     }
 
