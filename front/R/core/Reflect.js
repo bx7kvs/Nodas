@@ -8,7 +8,8 @@
             injections = {},
             resolved = {},
             properties = {},
-            reflect = this;
+            reflect = this,
+            buildCB = [];
 
         function CoreInjection () {
             var dependencies = [],
@@ -141,6 +142,31 @@
             }
             check();
         };
+        document.addEventListener('ready', function () {
+            for(var i = 0; i < buildCB.length; i++) {
+                buildCB[i].call(this);
+            }
+        });
+
+        this.on = function (event,func) {
+            if(event && typeof event == "string") {
+                if(typeof func == "function") {
+                    if(event == 'build') {
+                        buildCB.push(func);
+                    }
+                    else {
+                        throw new Error('Unable to add event listener. Unknown event');
+                    }
+                }
+                else {
+                    throw new Error('Unable to add event listener. func is not a function')
+                }
+            }
+            else {
+                throw new Error('Unablee to add event listener. unknown event name type.');
+            }
+
+        }
     }
 
     window.$R = new Reflect();

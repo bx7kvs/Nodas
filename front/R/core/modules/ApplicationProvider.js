@@ -1,78 +1,76 @@
 /**
  * Created by Viktor Khodosevich on 4/26/2017.
  */
-$R.$(['@define', 'Injector', 'InjectionContainerProvider', 'CanvasProvider', 'HTMLRootProvider',
-        function ApplicationProvider(define, Injector, Provider, CanvasProvider, HTMLRootProvider) {
+$R.$(['@define', 'Injector', 'InjectionContainerProvider', 'CanvasProvider', 'HTMLRootProvider', 'ApplicationTickerProvider',
+        function ApplicationProvider(define, Injector, Provider, CanvasProvider, HTMLRootProvider, TickerProvider) {
 
             /*
-                TODO: Injector.extensions() returns object, not container.
-                TODO: Extensions cloning only before constructor call. (All extensions defined.
-                TODO: App function should create injection and return constructor/dependencies defining function
+             TODO: App function should create injection and return constructor/dependencies defining function
              */
-            var extensions = Injector.extensions(),
-                apps = Provider.container(),
-                modules = {};
+            var apps = {},
+                modules = {},
+                autorun = [],
+                instances = {};
 
             apps.source(apps, '.');
 
+            function getAppSources() {
+                var container = Injector.container();
+
+                container.injection(CanvasProvider.canvasInjectionConstructor());
+                container.injection(HTMLRootProvider.HTMLRootContructor());
+
+                container.source(container,false);
+
+                return container;
+            }
+
             function getAppConstructor(constructor) {
-                return function Application(arguments) {
-                    var appExts = extensions.clone(),
-                        appsources = Provider.container(),
-                        appmodules = Provider.container();
-
-                    appsources.injection(CanvasProvider.canvasInjectionConstructor());
-                    appsources.injection(HTMLRootProvider.HTMLRootContructor());
-                    appExts.source(appsources, '@');
-                    appmodules.source(appmodules, '$');
-
-                    var ready = false,
-                        resolved = false,
-                        running = false,
-                        config = {};
-
-                    this.module = function () {
-                        appmodules.injection.apply(appmodules, arguments);
-                    };
-
-                    this.config = function (cfg) {
-                        if (typeof cfg == "object" && cfg.constructor !== Array) {
-                            if (cfg.target && typeof cfg.target == "string" && cfg.target.length) {
-                                config.target = cfg.target;
-                                if (cfg.size && typeof cfg.size == "object"
-                                    && cfg.size.constructor == Array && cfg.size.length == 2
-                                    && (typeof cfg[0] == "number" || typeof cfg[0] == "string") &&
-                                    (typeof cfg[1] == "number" || typeof cfg[1] == "string")
-                                ) {
-                                    config.size = [cfg.size[0], cfg.size[1]];
-                                }
-                                else {
-                                    config.size = ['100%', '100$']
-                                }
-                                if (cfg.fps && typeof cfg.fps == "number" && cfg.fps > 0) {
-                                    var fps = cfg.fps;
-                                    if (fps > 60) fps = 60;
-                                    if (fps <= 0) fps = 1;
-                                    config.fps = fps;
-                                }
-                                else {
-                                    config.fps = 58.2
-                                }
-                                ready = true;
+                return function Application(args) {
+                    var ticker = TickerProvider.createTicker(constructor.name),
+                        fps = 58.8,
+                        methods = {
+                            start : {
+                                target : ticker,
+                                func : 'start'
+                            },
+                            stop : {
+                                target : ticker,
+                                func : 'stop'
+                            },
+                            fps : {
+                                target : ticker,
+                                func : 'fps'
+                            },
+                            tick : {
+                                target :ticker,
+                                func : 'callback'
                             }
-                            else {
-                                throw new Error('No target html element!');
+                        };
+
+                    this.$ = function (func,args) {
+                        if(typeof func == "string" && func.length) {
+                            if(methods[func]) {
+                                if(typeof args === undefined) {
+                                    args = []
+                                }
+                                else if (typeof args !== "object" || args.constructor !== Array) {
+                                    args = [args];
+                                }
+                                return methods[func].target[methods[func].func].apply(methods[func].target,args);
                             }
                         }
                     };
 
+                    constructor.apply(this,args);
                 }
             }
 
 
             define('app', function (config) {
                 if (typeof config == "function" && config.name) {
-                    apps.injection(getAppConstructor(config), []);
+                    apps[config.name] = Provider.container();
+                    apps[config.name].injection(getAppConstructor(config));
                 }
                 else if (typeof config == "object" && config.constructor === Array) {
                     var constructor = null,
@@ -88,7 +86,8 @@ $R.$(['@define', 'Injector', 'InjectionContainerProvider', 'CanvasProvider', 'HT
                     }
                     if (constructor) {
                         dependancies.push(getAppConstructor(constructor));
-                        apps.injection(dependancies);
+                        apps[constructor.name] = Provider.container();
+                        apps[constructor.name].injection(dependancies);
                     }
                     else {
                         throw new Error('Unable to create application. Constructor not found!');
@@ -96,6 +95,107 @@ $R.$(['@define', 'Injector', 'InjectionContainerProvider', 'CanvasProvider', 'HT
                 }
                 else {
                     throw new Error('Invalid application injection config');
+                }
+            });
+
+            define('mod', function (app, constructor) {
+                if (typeof app == "string" && app.length) {
+                    if (!modules[app]) {
+                        modules[app] = Provider.container();
+                        modules[app].source(modules[app], '$');
+                    }
+
+                    if (typeof constructor === "function") {
+                        modules[app].injection(constructor);
+                    }
+                    else if (typeof constructor === "object" && constructor.constructor == Array) {
+                        var cfunc = null,
+                            dependencies = [];
+
+                        for (var i = 0; i < constructor.length; i++) {
+                            if (typeof constructor[i] === "string" && constructor[i].length) {
+                                dependencies.push(constructor[i]);
+                            }
+                            else if (typeof constructor[i] === "function" && constructor[i].name) {
+                                cfunc = constructor[i];
+                                break;
+                            }
+                            else {
+                                throw new Error('Unknown type of module constructor parameter');
+                            }
+                        }
+
+                        if (cfunc) {
+                            dependencies.push(cfunc);
+                            modules[app].injection(dependencies);
+                        }
+                        else {
+                            throw new Error('Unable to create module. No constructor found!');
+                        }
+                    }
+                }
+            });
+
+            define('autorun', function () {
+                for (var i = 0; i < arguments.length; i++) {
+                    if (typeof arguments[i] == "string" && arguments[i].length) {
+                        var present = false;
+                        for (var a = 0; a < autorun.length; a++) {
+                            if (autorun[a] == arguments[i]) {
+                                present = true;
+                                break;
+                            }
+                        }
+                        if (!present) {
+                            autorun.push(arguments[i]);
+                        }
+                    }
+                }
+            });
+
+            define('get', function (appname) {
+                if(typeof appname == "string" && appname.length) {
+                    if(instances[appname]) {
+                        return instances[appname];
+                    }
+                    else if (apps[appname]) {
+                        var extensions = Injector.extensions(),
+                            sources = getAppSources();
+
+                        if(modules[appname]) {
+                            apps[appname].source(modules[appname], '$');
+                            modules[appname].source(appSources, '@');
+                            modules[appname].source(extensions, false);
+                        }
+
+                        apps[appname].source(sources, '@');
+                        apps[appname].source(extensions, false);
+                        instances[appname] = apps[appname].resolve('Application');
+                        return instances[appname];
+                    }
+                    else {
+                        throw new Error('Unable to run app ['+appname+']. No such app registered');
+                    }
+                }
+                else {
+                    throw new Error('Inable to run app. App name (id) is not a string or empty.');
+                }
+            });
+
+            $R.on('build', function () {
+
+                var runapps = [];
+                if (autorun.length) {
+                    runapps = autorun;
+                }
+                else {
+                    for (var app in apps) {
+                        runapps.push(app);
+                    }
+                }
+
+                for (var i = 0; i < runapps; i++) {
+                   $R.get(runapps[i]);
                 }
             });
         }

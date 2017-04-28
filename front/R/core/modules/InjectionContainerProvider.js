@@ -366,8 +366,8 @@ $R.$([function InjectionContainerProvider() {
         };
     }
 
-    this.container = function () {
-        return new InjectionContainer();
+    this.container = function (lib) {
+        return new InjectionContainer(lib);
     };
 
 }]);

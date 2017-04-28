@@ -5,93 +5,36 @@ $R.$(function ApplicationTickerProvider() {
 
     var tickers = {};
 
-    function Ticker(canvas, target) {
+    function Ticker() {
         var ticktime = (1000 / 58.8).toFixed(2),
             callbacks = {},
-            context = canvas.getContext('2d'),
             frame = 0,
-            args = [null, canvas, context, 0],
+            target = null,
+            startTime = new Date().getTime(),
+            runnning = false,
             tickfunction = function () {
-                args[0] = new Date();
-                args[3] = frame;
-                try {
-                    for (var ordering in callbacks) {
-                        for (var i = 0; i < callbacks[ordering].length; i++) {
-                            callbacks[ordering][i].apply(target, arguments);
-                        }
+                var time = new Date(),
+                    arguments = [time, frame];
+
+                for (var ordering in callbacks) {
+                    for (var i = 0; i < callbacks[ordering].length; i++) {
+                        callbacks[ordering][i].apply(target, arguments);
                     }
-                    frame++;
-                }
-                catch (e) {
-                    resolve('error', e);
-                    throw new Error('Unable to run ticker anymore. Error emerged during app ticker progress.');
                 }
 
+                frame++;
             },
-            interval = null,
-            eventCb = {
-                stop: [],
-                start: [],
-                error: []
-            },
-            self = this;
-
-        function resolve(event, args) {
-            var _call_args = [];
-            if (typeof args == "object" && args.constructor == Array) {
-                _call_args = args;
-            }
-            else if (args !== undefined) {
-                _call_args.push(args);
-            }
-
-            if (typeof event == "string" && event.length) {
-                if (eventCb[event]) {
-                    for (var i = 0; i < eventCb.length; i++) {
-                        eventCb[event][i].apply(self, args);
-                    }
-                }
-                else {
-                    throw new Error('Unable to resolve event [' + event + ']. No such event.')
-                }
-            }
-            else {
-                throw new Error('Unable to resolve event. Event parameter is not a string or empty')
-            }
-        }
-
-        this.on = function (event, func) {
-            if(typeof event == "string" && event.length) {
-                if(eventCb[event]) {
-                    if(typeof func == "function") {
-                        eventCb[event].push(func)
-                    }
-                    else {
-                        throw new Error('Unable to set event ['+event+']. Callback is not a function.');
-                    }
-                }
-                else {
-                    throw new Error('Unable to set event ['+event+'] handler. No such event.')
-                }
-            }
-            else {
-                throw new Error('Unable to set event. Event argument is not a string or empty.')
-            }
-        };
+            interval = null;
 
         this.stop = function () {
             if (interval) {
-                frame = 0;
                 clearInterval(interval);
-                interval = null;
-                resolve('stop', this);
             }
         };
 
         this.start = function () {
             if (!interval) {
                 interval = setInterval(tickfunction, ticktime);
-                resolve('start', this);
             }
         };
 
@@ -99,12 +42,12 @@ $R.$(function ApplicationTickerProvider() {
             if (typeof number == "number") {
                 if (number > 60) number = 60;
                 if (number <= 0) number = 1;
-                ticktime = (1000 / number).toFixed(2);
+                ticktime = (1000/number).toFixed(2);
                 this.stop();
                 this.start();
             }
             else {
-                return (1000 / ticktime).toFixed(2);
+                return (1000/ticktime).toFixed(2);
             }
         };
 
@@ -128,10 +71,10 @@ $R.$(function ApplicationTickerProvider() {
         }
     }
 
-    this.createTicker = function (app, canvas, target) {
-        if (tickers[app]) tickers[app].stop();
+    this.createTicker = function (app) {
+        if(tickers[app]) tickers[app].stop();
 
-        tickers[app] = new Ticker(canvas, target);
+        tickers[app] = new Ticker();
 
         return tickers[app];
     }
