@@ -3,13 +3,14 @@
  */
 $R.$(['@define', function ApplicationConfigProvider(define) {
 
-    var configs = {};
+    var configs = {},
+        defs = {};
 
     function createExtensionConfig(value) {
-        return function Config() {
+        return function config() {
             for (var prop in value) {
                 if (value.hasOwnProperty(prop)) {
-                    if (typeof value[prop] == "string" || typeof value[porp] == "number") {
+                    if (typeof value[prop] == "string" || typeof value[prop] == "number" || typeof [prop] == "boolean") {
                         this[prop] = value[prop];
                     }
                 }
@@ -26,9 +27,10 @@ $R.$(['@define', function ApplicationConfigProvider(define) {
                 }
             }
         }
+        return result;
     }
 
-    var defaultConfig = function Config() {};
+    var defaultConfig = function config() {};
 
     define('cfg', function (app, cfg) {
         if (typeof cfg === "object") {

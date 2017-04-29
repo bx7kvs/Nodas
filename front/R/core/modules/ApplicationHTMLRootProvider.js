@@ -73,9 +73,11 @@ $R.$(function ApplicationHTMLRootProvider() {
         };
         elements[appname].element.setAttribute('class', 'reflect-canvas-wrapper');
         elements[appname].element.setAttribute('style', 'position:absolute; left:0;top:0;width:100%;height:100%;');
-        canvas.setAttribute('style', 'position:absolute; left:0;top:0;width:100%;height:100%;');
+        canvas.setAttribute('style', 'position:absolute; left:0;top:0;');
+        canvas.setAttribute('id','reflect-canvas-'+appname);
+        canvas.setAttribute('class', 'reflect-canvas-output');
         elements[appname].element.appendChild(canvas);
-        document.getElementsByName('body').appendChild(elements[appname].element);
+        document.getElementsByTagName('body')[0].appendChild(elements[appname].element);
         return elements[appname].$constructor;
     }
 

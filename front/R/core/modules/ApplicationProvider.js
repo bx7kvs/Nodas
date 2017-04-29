@@ -3,18 +3,17 @@
  */
 $R.$(['@define', 'ExtensionsProvider',
         'InjectionContainerProvider', 'ApplicationCanvasProvider',
-        'ApplicationHTMLRootProvider', 'ApplicationTickerProvider',
+        'ApplicationHTMLRootProvider', 'ApplicationTickerProvider', 'ApplicationConfigProvider',
 
-        function ApplicationProvider(define, Injector, Provider, CanvasProvider, HTMLRootProvider, TickerProvider) {
+        function ApplicationProvider(define, Injector, Provider, CanvasProvider, HTMLRootProvider, TickerProvider, AppConfigProvider) {
             var apps = {},
                 modules = {},
                 autorun = [],
-                instances = {};
-
-            apps.source(apps, '.');
+                instances = {},
+                reflectApps = {};
 
             function getAppSources(appname) {
-                var container = Injector.container();
+                var container = Provider.container({'app': Provider.injection(getRApp(appname))});
 
                 container.injection(CanvasProvider.canvasInjectionConstructor(appname));
 
@@ -30,10 +29,11 @@ $R.$(['@define', 'ExtensionsProvider',
                 return container;
             }
 
-            function getAppConstructor(constructor) {
-                return function Application(args) {
+
+            function getRApp(appname) {
+                return function ReflectApplication() {
                     var self = this,
-                        ticker = TickerProvider.createTicker(constructor.name, CanvasProvider.getApplicationCanvas(constructor.name), self),
+                        ticker = TickerProvider.createTicker(appname, CanvasProvider.getApplicationCanvas(appname), self),
                         fps = 58.8,
                         methods = {
                             start: {
@@ -57,7 +57,7 @@ $R.$(['@define', 'ExtensionsProvider',
                     this.$ = function (func, args) {
                         if (typeof func == "string" && func.length) {
                             if (methods[func]) {
-                                if (typeof args === undefined) {
+                                if (args === undefined) {
                                     args = []
                                 }
                                 else if (typeof args !== "object" || args.constructor !== Array) {
@@ -67,9 +67,7 @@ $R.$(['@define', 'ExtensionsProvider',
                             }
                         }
                     };
-
-                    instances[constructor.name] = this;
-                    constructor.apply(this, args);
+                    reflectApps[appname] = this;
                 }
             }
 
@@ -77,7 +75,7 @@ $R.$(['@define', 'ExtensionsProvider',
             define('app', function (config) {
                 if (typeof config == "function" && config.name) {
                     apps[config.name] = Provider.container();
-                    apps[config.name].injection(getAppConstructor(config));
+                    apps[config.name].injection(config);
                 }
                 else if (typeof config == "object" && config.constructor === Array) {
                     var constructor = null,
@@ -92,7 +90,7 @@ $R.$(['@define', 'ExtensionsProvider',
                         }
                     }
                     if (constructor) {
-                        dependancies.push(getAppConstructor(constructor));
+                        dependancies.push(constructor);
                         apps[constructor.name] = Provider.container();
                         apps[constructor.name].injection(dependancies);
                     }
@@ -143,7 +141,8 @@ $R.$(['@define', 'ExtensionsProvider',
                 }
             });
 
-            define('autorun', function () {
+
+            define('run', function () {
                 for (var i = 0; i < arguments.length; i++) {
                     if (typeof arguments[i] == "string" && arguments[i].length) {
                         var present = false;
@@ -162,10 +161,11 @@ $R.$(['@define', 'ExtensionsProvider',
 
             define('get', function (appname) {
                 if (typeof appname == "string" && appname.length) {
-                    if (instances[appname]) {
-                        return instances[appname];
+                    if (reflectApps[appname]) {
+                        return reflectApps[appname];
                     }
                     else if (apps[appname]) {
+
                         var extensions = Injector.extensions(),
                             sources = getAppSources(appname),
                             extsArray = [];
@@ -175,9 +175,32 @@ $R.$(['@define', 'ExtensionsProvider',
                                 extsArray.push(extensions[extension]);
                                 var cfgConstructor = AppConfigProvider.getExtensionConfig(appname, extension);
                                 var cfgSource = Provider.container();
-
                                 cfgSource.injection(cfgConstructor);
+
+                                var extsSource = [];
+                                for (var _ext in extensions) {
+                                    if (extensions.hasOwnProperty(_ext)) {
+                                        if (_ext !== extension) {
+                                            extsSource.push(extensions[_ext]);
+                                        }
+                                    }
+                                }
+                                extensions[extension].source(extsSource, false);
+                                extensions[extension].source(sources, '@');
                                 extensions[extension].source(cfgSource, '$$');
+
+                                var extensionparts = extensions[extension].findSourceByPrefix('$');
+                                if (extensionparts) {
+                                    extensionparts.source(extsSource, false);
+                                    extensionparts.source(sources, '@');
+                                    extensionparts.source(cfgSource, '$$');
+                                }
+                            }
+                        }
+
+                        for (var extension in extensions) {
+                            if (extensions.hasOwnProperty(extension)) {
+                                extensions[extension].resolve(extension);
                             }
                         }
 
@@ -201,7 +224,6 @@ $R.$(['@define', 'ExtensionsProvider',
             });
 
             $R.on('build', function () {
-
                 var runapps = [];
                 if (autorun.length) {
                     runapps = autorun;
@@ -211,8 +233,7 @@ $R.$(['@define', 'ExtensionsProvider',
                         runapps.push(app);
                     }
                 }
-
-                for (var i = 0; i < runapps; i++) {
+                for (var i = 0; i < runapps.length; i++) {
                     $R.get(runapps[i]);
                 }
             });
