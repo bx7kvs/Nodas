@@ -50,6 +50,7 @@ $R.ext(['@inject', 'Easings', '@app', 'Debug', function Morphine(inject, Easings
 
     };
 
+    console.log(app);
     app.$('tick', function (date) {
         var date = date.getTime(),
             _morphines = [];

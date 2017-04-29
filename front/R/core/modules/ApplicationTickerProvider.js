@@ -5,34 +5,29 @@ $R.$(function ApplicationTickerProvider() {
 
     var tickers = {};
 
-    function Ticker(canvas) {
+    function Ticker(canvas, target) {
         var ticktime = (1000 / 58.8).toFixed(2),
             callbacks = {},
             context = canvas.getContext('2d'),
             frame = 0,
-            target = null,
-            startTime = new Date(),
-            runnning = false,
             args = [null, canvas, context, 0],
             tickfunction = function () {
-                var time = new Date();
-
                 args[0] = new Date();
                 args[3] = frame;
-
                 for (var ordering in callbacks) {
                     for (var i = 0; i < callbacks[ordering].length; i++) {
                         callbacks[ordering][i].apply(target, arguments);
                     }
                 }
-
                 frame++;
             },
             interval = null;
 
         this.stop = function () {
             if (interval) {
+                frame = 0;
                 clearInterval(interval);
+                interval = null;
             }
         };
 
@@ -75,10 +70,10 @@ $R.$(function ApplicationTickerProvider() {
         }
     }
 
-    this.createTicker = function (app, canvas) {
+    this.createTicker = function (app, canvas, target) {
         if (tickers[app]) tickers[app].stop();
 
-        tickers[app] = new Ticker(canvas);
+        tickers[app] = new Ticker(canvas, target);
 
         return tickers[app];
     }

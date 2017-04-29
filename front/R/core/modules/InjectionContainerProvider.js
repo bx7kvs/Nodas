@@ -3,17 +3,29 @@
  */
 $R.$([function InjectionContainerProvider() {
 
-    function Injection(con, dep) {
-
+    function Injection(con) {
         var constructor = con, instance = null,
             dependencies = [];
 
-        for (var i = 0; i < dep.length; i++) {
-            dependencies.push(dep[i]);
+        if (typeof con === "function" && con.name) {
+            constructor = con;
+        }
+        else if (typeof con == "object" && con.constructor === Array) {
+            for (var i = 0; i < con.length; i++) {
+                if (typeof con[i] == "string" && con[i].length) {
+                    dependencies.push(con[i]);
+                }
+                else if (typeof con[i] == "function" && con[i].name) {
+                    constructor = con[i];
+                    break;
+                }
+            }
         }
 
+        if (!constructor) throw new Error('Injection constructor undefined!');
+
         this.name = function () {
-            return con.name;
+            return constructor.name;
         };
 
         this.dependencies = function () {
@@ -71,9 +83,9 @@ $R.$([function InjectionContainerProvider() {
             return constructor;
         };
 
-        this.args = function () {
-            return [con, dep];
-        }
+        this.clone = function () {
+            return new Injection(con);
+        };
     }
 
     function SourceContainer(prefix, container, loop) {
@@ -106,23 +118,23 @@ $R.$([function InjectionContainerProvider() {
 
 
         function stripPrefix(name) {
-            var string = '';
-
-            for (var i = 0; i < name.length; i++) {
-                if (i > pfx.length) {
-                    string += name[i];
+            if (prefix) {
+                var string = '';
+                for (var i = 0; i < name.length; i++) {
+                    if (i >= pfx.length) {
+                        string += name[i];
+                    }
                 }
+                return string;
             }
-            return string;
+            return name;
         }
 
         this.check = function (name) {
             var result = true;
-            if(prefix) {
+            if (prefix) {
                 for (var i = 0; i < prefix.length; i++) {
-                    if (!name[i] || name[i] !== prefix[i]) {
-                        result = false;
-                    }
+                    if (!name[i] || name[i] !== prefix[i]) result = false;
                 }
             }
             return result;
@@ -133,7 +145,7 @@ $R.$([function InjectionContainerProvider() {
             if (this.check(name)) {
                 for (var i = 0; i < containers.length; i++) {
                     var stripName = stripPrefix(name);
-                    if (container.has(stripName)) {
+                    if (containers[i].has(stripName)) {
                         result = true;
                         break;
                     }
@@ -150,7 +162,16 @@ $R.$([function InjectionContainerProvider() {
             return containers;
         };
 
-        this.prefix = function () {
+        this.source = function () {
+            for (var i = 0; i < containers.length; i++) {
+                containers[i].source.apply(containers[i], arguments);
+            }
+        };
+
+        this.prefix = function (str) {
+            if (str !== undefined) {
+                return str === pfx;
+            }
             return pfx;
         };
 
@@ -174,6 +195,10 @@ $R.$([function InjectionContainerProvider() {
     function InjectionContainer(lib) {
         var library = typeof lib == "object" ? lib : {},
             sources = {};
+
+        this.list = function () {
+            return library;
+        };
 
         this.injection = function (config) {
             var constructor = null,
@@ -205,7 +230,9 @@ $R.$([function InjectionContainerProvider() {
                 throw new Error('Unknown type of injection config.');
             }
 
-            library[constructor.name] = new Injection(constructor, dependencies);
+            dependencies.push(constructor);
+
+            library[constructor.name] = new Injection(dependencies);
         };
 
         this.source = function (container, prefixkey) {
@@ -219,6 +246,7 @@ $R.$([function InjectionContainerProvider() {
                         delete container.$$LOOOP;
                         sources[prefixkey ? prefixkey : '$$noprefix'] =
                             new SourceContainer(prefixkey, [container], [loop]);
+
                     }
                 }
                 else if (container.constructor === Array) {
@@ -245,8 +273,8 @@ $R.$([function InjectionContainerProvider() {
                         if (!prefixkey) prefixkey = false;
 
                         if ((typeof prefixkey == "string" && prefixkey.length) || prefixkey === false) {
-                            var source = new SourceContainer(prefixkey, container, loop);
-                            sources[prefixkey ? prefixkey : '$$noprefix'] = source;
+                            sources[prefixkey ? prefixkey : '$$noprefix'] = new SourceContainer(prefixkey, container, loop);
+                            console.log(sources)
                         }
                     }
                     else {
@@ -259,18 +287,19 @@ $R.$([function InjectionContainerProvider() {
         this.clone = function () {
             var newLibrary = {};
             for (var injection in library) {
-                newLibrary[injection] = library[injection].clone()
+                if (library.hasOwnProperty(injection)) {
+                    newLibrary[injection] = library[injection].clone();
+                }
             }
             var newContainer = new InjectionContainer(newLibrary);
-
-            for (var i = 0; i < sources.length; i++) {
-                var containers = sources[i].containers(),
-                    sourceloop = sources[i].loop(),
-                    sourceprefix = sources[i].prefix(),
+            for (var source in sources) {
+                var containers = sources[source].containers(),
+                    sourceloop = sources[source].loop(),
+                    sourceprefix = sources[source].prefix(),
                     newcontainers = [];
 
-                for(var i = 0 ; i < containers.length; i++) {
-                    if(sourceloop[i]) {
+                for (var i = 0; i < containers.length; i++) {
+                    if (sourceloop[i]) {
                         newcontainers.push(newContainer);
                     }
                     else {
@@ -278,25 +307,35 @@ $R.$([function InjectionContainerProvider() {
                     }
                 }
 
-                newContainer.source(newcontainers,sourceprefix);
+                newContainer.source(newcontainers, sourceprefix);
             }
             return newContainer;
+        };
+
+        this.findSourceByPrefix = function (prefix) {
+            if (prefix === false) return sources.$$noprefix;
+
+            if (typeof prefix === "string") {
+                return sources[prefix];
+            }
+
+            return null;
         };
 
         this.findSourceByInjectionName = function (injectionName) {
             var source = null;
 
-            for(var prefix in sources) {
-                if(sources.hasOwnProperty(prefix)) {
-                    if(sources[prefix].prefix()) {
-                        if(sources[prefix].has(injectionName)) {
+            for (var prefix in sources) {
+                if (sources.hasOwnProperty(prefix)) {
+                    if (sources[prefix].prefix()) {
+                        if (sources[prefix].has(injectionName)) {
                             source = sources[prefix];
+                            break;
                         }
                     }
                 }
             }
-
-            if(!source && sources.$$noprefix && sources.$$noprefix.has(injectionName)) source = sources.$$noprefix;
+            if (!source && sources.$$noprefix && sources.$$noprefix.has(injectionName)) source = sources.$$noprefix;
 
             return source;
         };
@@ -337,6 +376,8 @@ $R.$([function InjectionContainerProvider() {
                             args.push(library[name].extend(this));
                         }
                         else {
+                            console.log(library, name, dependencies[i], sources);
+                            console.log(sources['@'].containers()[0].list());
                             var source = this.findSourceByInjectionName(dependencies[i]);
                             if (source) {
                                 args.push(source.resolve(dependencies[i]));
@@ -368,6 +409,10 @@ $R.$([function InjectionContainerProvider() {
 
     this.container = function (lib) {
         return new InjectionContainer(lib);
+    };
+
+    this.injection = function (constuctor) {
+        return new Injection(constuctor);
     };
 
 }]);

@@ -75,6 +75,7 @@ $R.$(function ApplicationHTMLRootProvider() {
         elements[appname].element.setAttribute('style', 'position:absolute; left:0;top:0;width:100%;height:100%;');
         canvas.setAttribute('style', 'position:absolute; left:0;top:0;width:100%;height:100%;');
         elements[appname].element.appendChild(canvas);
+        document.getElementsByName('body').appendChild(elements[appname].element);
         return elements[appname].$constructor;
     }
 

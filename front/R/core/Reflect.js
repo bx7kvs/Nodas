@@ -45,7 +45,13 @@
                 this.instance = null;
 
                 this.build = function () {
-                    this.instance = new (Function.prototype.bind.apply(constructor, arguments));
+                    var args = [];
+
+                    for(var i = 0 ; i < arguments.length; i++) {
+                        args.push(arguments[i]);
+                    }
+                    args.unshift(null);
+                    this.instance = new (Function.prototype.bind.apply(constructor, args));
                     resolved[this.name()] = this;
                     return this;
                 }
@@ -89,7 +95,7 @@
                         args.push(resolved[argname].instance);
                     }
                     else if(injections[argname]) {
-                        args.push(resolve(injections[argname]));
+                        args.push(resolve(injections[argname]).instance);
                     }
                     else {
                         args.push(undefined);
@@ -111,6 +117,11 @@
                     resolved[module] = resolve(injections[module]);
                 }
             }
+            for(var prop in properties) {
+                if(properties.hasOwnProperty(prop)) {
+                    properties[prop].wrap();
+                }
+            }
         }
 
         function check() {
@@ -129,7 +140,17 @@
         }
 
         this.$ = function () {
-            new (Function.prototype.bind.apply(CoreInjection, arguments));
+            var args = [];
+            if(typeof arguments[0] == "object" && arguments[0].constructor == Array) {
+                for(var i = 0 ; i < arguments[0].length; i++) {
+                    args.push(arguments[0][i]);
+                }
+            }
+            else if (typeof arguments[0] == "function" && arguments[0].name) {
+                args.push(arguments[0]);
+            }
+            args.unshift(null);
+            new (Function.prototype.bind.apply(CoreInjection, args));
             check();
             return this;
         };

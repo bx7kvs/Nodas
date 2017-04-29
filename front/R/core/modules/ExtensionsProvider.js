@@ -41,7 +41,12 @@ $R.$(['@define', 'InjectionContainerProvider', function ExtensionsProvider(defin
 
     define('ext', function (config) {
         if (typeof config == "function" && config.name) {
-            createExtensionContainer(config.name).injection(config);
+            if (!extensions[config.name]) {
+                createExtensionContainer(config.name).injection(config);
+            }
+            else {
+                throw new Error('Extension constuctor is not a named function');
+            }
         }
         else if (typeof config == "object" && config.constructor === Array) {
             var name = null;
@@ -52,7 +57,12 @@ $R.$(['@define', 'InjectionContainerProvider', function ExtensionsProvider(defin
                 }
             }
             if (name) {
-                createExtensionContainer(name).injection(config);
+                if (!extensions[name]) {
+                    createExtensionContainer(config.name).injection(config);
+                }
+                else {
+                    throw new Error('Extension constructor was not found!');
+                }
             }
             else {
                 throw new Error('Constructor not found.');
@@ -73,7 +83,7 @@ $R.$(['@define', 'InjectionContainerProvider', function ExtensionsProvider(defin
                 var name = null;
                 for (var i = 0; i < config.length; i++) {
                     if (typeof config[i] == "function" && config[i].name) {
-                        name = config[i].name;
+                        name = config.name;
                         break;
                     }
                 }

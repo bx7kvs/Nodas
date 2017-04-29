@@ -6,6 +6,7 @@ $R.modules(
     'ApplicationHTMLRootProvider',
     'ApplicationProvider',
     'ApplicationTickerProvider',
+    'ApplicationConfigProvider',
     'InjectionContainerProvider',
-    'Injector'
+    'ExtensionsProvider'
 );

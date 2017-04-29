@@ -1,7 +1,7 @@
 /**
  * Created by Viktor Khodosevich on 4/26/2017.
  */
-$R.$(['@define', 'Injector',
+$R.$(['@define', 'ExtensionsProvider',
         'InjectionContainerProvider', 'ApplicationCanvasProvider',
         'ApplicationHTMLRootProvider', 'ApplicationTickerProvider',
 
@@ -32,7 +32,8 @@ $R.$(['@define', 'Injector',
 
             function getAppConstructor(constructor) {
                 return function Application(args) {
-                    var ticker = TickerProvider.createTicker(constructor.name, CanvasProvider.getApplicationCanvas(constructor.name)),
+                    var self = this,
+                        ticker = TickerProvider.createTicker(constructor.name, CanvasProvider.getApplicationCanvas(constructor.name), self),
                         fps = 58.8,
                         methods = {
                             start: {
@@ -166,16 +167,28 @@ $R.$(['@define', 'Injector',
                     }
                     else if (apps[appname]) {
                         var extensions = Injector.extensions(),
-                            sources = getAppSources(appname);
+                            sources = getAppSources(appname),
+                            extsArray = [];
+
+                        for (var extension in extensions) {
+                            if (extensions.hasOwnProperty(extension)) {
+                                extsArray.push(extensions[extension]);
+                                var cfgConstructor = AppConfigProvider.getExtensionConfig(appname, extension);
+                                var cfgSource = Provider.container();
+
+                                cfgSource.injection(cfgConstructor);
+                                extensions[extension].source(cfgSource, '$$');
+                            }
+                        }
 
                         if (modules[appname]) {
                             apps[appname].source(modules[appname], '$');
                             modules[appname].source(sources, '@');
-                            modules[appname].source(extensions, false);
+                            modules[appname].source(extsArray, false);
                         }
 
                         apps[appname].source(sources, '@');
-                        apps[appname].source(extensions, false);
+                        apps[appname].source(extsArray, false);
                         return apps[appname].resolve('Application');
                     }
                     else {
