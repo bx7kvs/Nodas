@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 3/28/2017.
  */
 $R.part('Objects', ['@extend', '$DrawerHelper', function TextSpaceClass(extend, DrawerHelper) {
-    extend(this,'TextElementClass');
+    extend(this,'$TextElementClass');
 
     var string = ' ',
         width = 0,

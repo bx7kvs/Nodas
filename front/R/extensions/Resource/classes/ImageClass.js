@@ -3,7 +3,7 @@
  */
 $R.part('Resource', ['@extend', 'Debug', function Image(extend, Debug) {
 
-    extend(this, 'ResourceClass');
+    extend(this, '$ResourceClass');
 
     var url = null, resolveEventFunc = null, stateFunc = null, image = null, width = 0, height = 0;
 

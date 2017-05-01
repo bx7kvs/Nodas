@@ -8,7 +8,7 @@ $R.part('Sound', ['@inject', 'Debug', function AnimationProvider(inject, Debug) 
         morphs = {};
 
     this.morph = function (name, ordering, setter, applier) {
-        var morph = inject('Morph');
+        var morph = inject('$Morph');
         morph.config(name, this, ordering, setter, applier);
         if (morph.valid()) {
             morphs[name] = morph;
@@ -101,7 +101,7 @@ $R.part('Sound', ['@inject', 'Debug', function AnimationProvider(inject, Debug) 
             if (easing && typeof easing == "string") config.easing = easing;
 
 
-            var animation = inject('animation');
+            var animation = inject('$Animation');
 
             animation.config(this, stack, config, CheckAnimationQueue);
             animations.push(animation);
@@ -159,7 +159,7 @@ $R.part('Sound', ['@inject', 'Debug', function AnimationProvider(inject, Debug) 
                 return a.ordering - b.ordering;
             });
 
-            var animation = inject('Animation');
+            var animation = inject('$Animation');
             animation.config(this, morph_stack, config, CheckAnimationQueue);
             animations.push(animation);
         }

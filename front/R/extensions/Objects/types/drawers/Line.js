@@ -6,7 +6,7 @@ $R.part('Objects', ['@inject', 'Debug', '$DrawerHelper', '$PathHelper',
 
         var box = this.extension('Box'),
             style = this.extension('Style'),
-            canvas = inject('Canvas'),
+            canvas = inject('$Canvas'),
             matrix = this.extension('Matrix'),
             require_update = false, interpolated = false,
             strokefix = 1, interpolationfix = 0;

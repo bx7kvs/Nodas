@@ -1,10 +1,10 @@
 /**
  * Created by Viktor Khodosevich on 4/19/2017.
  */
-$R.part('Sound', ['@audio', '@extend', '@inject', 'Debug', function UserAudioSource(context, extend, inject, Debug) {
+$R.part('Sound', ['@extend', '@inject', 'Debug', function UserAudioSource(extend, inject, Debug) {
 
-    var node = inject('AudioSource'),
-        events = inject('EventProvider'),
+    var node = inject('$AudioSource'),
+        events = inject('$EventProvider'),
         mixer = null,
         output = null,
         url = '';
@@ -43,7 +43,7 @@ $R.part('Sound', ['@audio', '@extend', '@inject', 'Debug', function UserAudioSou
         if (typeof src == "string" && src.length > 0) {
             url = src;
             node.build(src);
-            mixer = inject('UserAudioMixer').build('source-built-in-filter');
+            mixer = inject('$UserAudioMixer').build('source-built-in-filter');
             mixer.on('connect', function () {
                 events.resolve('connect');
             });

@@ -24,7 +24,7 @@ $R.ext(['@inject', function State(inject) {
 
         if(!address) return;
 
-        if(!states[address.state]) states[address.state] = inject('State');
+        if(!states[address.state]) states[address.state] = inject('$State');
 
         states[address.prop].when(address.prop, func);
 
@@ -36,7 +36,7 @@ $R.ext(['@inject', function State(inject) {
 
         if(!address) return;
 
-        if(!states[address.state]) states[address.state] = inject('State');
+        if(!states[address.state]) states[address.state] = inject('$State');
 
         states[address.state].define(address.prop, value);
     };

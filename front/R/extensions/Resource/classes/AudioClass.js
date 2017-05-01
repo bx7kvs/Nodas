@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 4/10/2017.
  */
 $R.part('Resource', ['@extend', 'Debug', function Audio (extend, Debug) {
-    extend(this,'ResourceClass');
+    extend(this,'$ResourceClass');
 
 
     this.type = 'Audio';

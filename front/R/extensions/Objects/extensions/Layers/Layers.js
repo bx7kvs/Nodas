@@ -1,7 +1,7 @@
 /**
  * Created by bx7kv_000 on 12/26/2016.
  */
-$R.part('Objects' ,['@extend','Debug', function LayersObjectExtension(Debug) {
+$R.part('Objects' ,['Debug', function LayersObjectExtension(Debug) {
     var layers = {
             0 : []
         },

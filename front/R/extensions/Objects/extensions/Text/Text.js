@@ -78,9 +78,9 @@ $R.part('Objects', ['Debug', '$ModelHelper', '@inject', '$DrawerHelper', functio
 
                 var usernewline = pieces[i].match(/\n/g),
                     str = pieces[i].match(/\S+/g),
-                    word = inject('TextWordClass').string(str[0]);
+                    word = inject('$TextWordClass').string(str[0]);
 
-                if (!lines[l]) lines[l] = inject('TextLineClass')
+                if (!lines[l]) lines[l] = inject('$TextLineClass')
                     .font(font)
                     .size(fontSize)
                     .height(lineHeight)

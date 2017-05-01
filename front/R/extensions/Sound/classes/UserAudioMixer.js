@@ -1,9 +1,9 @@
 /**
  * Created by Viktor Khodosevich on 4/21/2017.
  */
-$R.part('Sound', ['@audio', '@inject', '@config', 'Debug', function UserAudioMixer(context, inject, config, Debug) {
+$R.part('Sound', ['@inject', '$$config', 'Debug', function UserAudioMixer(inject, config, Debug) {
 
-    var events = inject('EventProvider'),
+    var events = inject('$EventProvider'),
         filters = [],
         output = null,
         name = '';
@@ -28,7 +28,7 @@ $R.part('Sound', ['@audio', '@inject', '@config', 'Debug', function UserAudioMix
         && config.filters.length > 0 ? config.filters : ['Delay', 'Gain'];
 
         for (var i = 0; i < fcfg.length; i++) {
-            var node = inject(fcfg[i] + 'Node');
+            var node = inject('$' + fcfg[i] + 'Node');
             if (filters[filters.length - 1]) {
                 filters[filters.length - 1].connect(node);
             }
@@ -47,7 +47,7 @@ $R.part('Sound', ['@audio', '@inject', '@config', 'Debug', function UserAudioMix
             this.connect(channel);
         }
         else if (channel === 'destination') {
-            var destination = inject('DestinationNode');
+            var destination = inject('$DestinationNode');
             filters[filters.length - 1].connect(destination);
 
             this.connect = function (out) {

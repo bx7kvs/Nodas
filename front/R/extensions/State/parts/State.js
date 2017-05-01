@@ -23,7 +23,7 @@ $R.part('State' , ['@inject', function State (inject) {
             return;
         }
 
-        props[name] = inject('Property');
+        props[name] = inject('$Property');
         props[name].onset(GetPropertyCallback(name));
         props[name].set(val);
 

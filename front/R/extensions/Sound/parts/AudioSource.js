@@ -1,13 +1,13 @@
 /**
  * Created by Viktor Khodosevich on 4/16/2017.
  */
-$R.part('Sound', ['@audio', '@inject', 'Resource', 'Debug', function AudioSource(context, inject, Resource, Debug) {
+$R.part('Sound', ['@audio', '@inject', 'Resource', 'Debug', function AudioSource(audio, inject, Resource, Debug) {
 
     var url = null,
         resource = null,
         buffer = null,
         output = null,
-        events = inject('EventProvider'),
+        events = inject('$EventProvider'),
         self = this,
         sounds = [];
 
@@ -29,7 +29,7 @@ $R.part('Sound', ['@audio', '@inject', 'Resource', 'Debug', function AudioSource
         resource = Resource.audio(src);
 
         resource.on('load', function (response) {
-            context.decodeAudioData(
+            audio.context().decodeAudioData(
                 response,
                 function (result) {
                     buffer = result;
@@ -68,7 +68,7 @@ $R.part('Sound', ['@audio', '@inject', 'Resource', 'Debug', function AudioSource
 
     this.play = function () {
         if (output && this.status('load')) {
-            var source = context.createBufferSource();
+            var source = audio.context().createBufferSource();
             source.buffer = buffer;
             sounds.push(source);
             output.play(source, false);

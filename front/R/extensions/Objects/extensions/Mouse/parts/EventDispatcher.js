@@ -211,12 +211,15 @@ $R.part('Objects', ['Canvas', '@app', '$MouseObjectFinder', function MouseEventD
     app.$('tick', onAppTick);
 
     app.on('start' , function () {
+        console.log('started and active!');
         active = true;
     });
     app.on('stop', function () {
+        console.log('stopped. not active');
         active = false;
     });
     app.on('error', function () {
+        console.log('shit happens');
         active = false;
     });
 }]);

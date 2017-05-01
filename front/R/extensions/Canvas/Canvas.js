@@ -221,7 +221,6 @@ $R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
             this.size[1] = pH * (height / 100);
         }
     }
-
     canvas.element().addEventListener('mousemove', function (e) {
         ResolveCanvasEventArray('mousemove', [new RCanvasMouseEvent(e)]);
     });

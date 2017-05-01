@@ -13,6 +13,16 @@ $R.$(['@define', function ApplicationConfigProvider(define) {
                     if (typeof value[prop] == "string" || typeof value[prop] == "number" || typeof [prop] == "boolean") {
                         this[prop] = value[prop];
                     }
+                    else if (typeof value[prop] == "object" && value[prop].constructor === Array) {
+                        var pvalue = [];
+
+                        for (var i = 0; i < value[prop].length; i++) {
+                            if (typeof value[prop][i] == "boolean" || typeof value[prop][i] == "string" || typeof value[prop][i] == "number") {
+                                pvalue.push(value[prop][i]);
+                            }
+                        }
+                        this[prop] = pvalue;
+                    }
                 }
             }
         }
@@ -30,7 +40,8 @@ $R.$(['@define', function ApplicationConfigProvider(define) {
         return result;
     }
 
-    var defaultConfig = function config() {};
+    var defaultConfig = function config() {
+    };
 
     define('cfg', function (app, cfg) {
         if (typeof cfg === "object") {

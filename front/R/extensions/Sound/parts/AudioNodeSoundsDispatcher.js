@@ -1,7 +1,7 @@
 /**
  * Created by Viktor Khodosevich on 4/22/2017.
  */
-$R.part('Sound', ['@audio', function AudioNodeSoundDispatcher() {
+$R.part('Sound', function AudioNodeSoundDispatcher() {
 
     var sounds = [];
 
@@ -28,4 +28,4 @@ $R.part('Sound', ['@audio', function AudioNodeSoundDispatcher() {
             sounds[i].connect(destination);
         }
     };
-}]);
+});

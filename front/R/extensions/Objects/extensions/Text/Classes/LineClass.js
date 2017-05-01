@@ -2,11 +2,11 @@
  * Created by Viktor Khodosevich on 3/28/2017.
  */
 $R.part('Objects', ['@extend', '@inject', '$DrawerHelper', function TextLineClass(extend, inject,DrawerHelper) {
-    extend(this, 'TextElementClass');
+    extend(this, '$TextElementClass');
 
     var width = 0,
         words = [],
-        space = inject('TextSpaceClass'),
+        space = inject('$TextSpaceClass'),
         length = 0,
         widthUpdated = false;
 

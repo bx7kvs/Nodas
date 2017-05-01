@@ -1,12 +1,12 @@
 /**
  * Created by Viktor Khodosevich on 4/16/2017.
  */
-$R.part('Sound', ['@audio', '@extend', function GainNode(context, extend) {
+$R.part('Sound', ['@audio', '@extend', function GainNode(audio, extend) {
 
-    extend(this, 'AudioNode');
+    extend(this, '$AudioNode');
 
     var volume = 1,
-        gain = context.createGain();
+        gain = audio.context().createGain();
 
     gain.gain.value = volume;
 

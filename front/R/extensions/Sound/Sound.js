@@ -3,7 +3,7 @@
  */
 $R.ext(['@audio', '@inject', 'Debug', function Sound(context, inject, Debug) {
 
-    var destination = inject('Audio').build('$$DESTINATION', 'destination'),
+    var destination = inject('$Audio').build('$$DESTINATION', 'destination'),
         sounds = {},
         soundcount = 0,
         channelcount = 0,
@@ -16,7 +16,7 @@ $R.ext(['@audio', '@inject', 'Debug', function Sound(context, inject, Debug) {
             if (sounds[url]) return sounds[url];
             if (typeof name !== "string" || name.length == 0) name = 'UserSound[' + soundcount + ']';
             soundcount++;
-            var result = inject('Audio').build(name, url);
+            var result = inject('$Audio').build(name, url);
             if (typeof channel !== "string" || channel.length == 0) channel = '$$DESTINATION';
             var out = this.channel(channel);
             result.connect(out);
@@ -32,7 +32,7 @@ $R.ext(['@audio', '@inject', 'Debug', function Sound(context, inject, Debug) {
         if (typeof name == "string" && name.length > 0) {
             if (channels[name]) return channels[name];
 
-            var result = inject('Audio').build(name);
+            var result = inject('$Audio').build(name);
 
             result.connect(destination);
             channels[name] = result;

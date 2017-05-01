@@ -33,7 +33,7 @@ $R.ext(['@inject', 'Easings', '@app', 'Debug', function Morphine(inject, Easings
         }
 
 
-        var morphine = inject('Morphine');
+        var morphine = inject('$Morphine');
 
         var tickF = morphine.config(start, end, func, duration, efunc, rpt);
 

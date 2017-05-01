@@ -1,7 +1,7 @@
 /**
  * Created by bx7kv_000 on 12/17/2016.
  */
-$R.app(['@app', 'State', 'Objects', function Loader(app, State, Objetcs) {
+$R.app(['@app', 'State', 'Objects', 'Sound', function Loader(app, State, Objetcs, Sound) {
 
     var sprite = Objetcs.sprite(),
         group = Objetcs.group(),
@@ -10,8 +10,8 @@ $R.app(['@app', 'State', 'Objects', function Loader(app, State, Objetcs) {
     var channel = Sound.channel('test'),
         sample = Sound.sample('/audio/blink.ogg', 'test');
 
-    sample.animate({'delay': [.5,.5]}, 10000);
-    text.on('mousedown' , function () {
+    sample.animate({'delay': [.5, .5]}, 10000);
+    text.on('mousedown', function () {
         sample.play();
     });
 
@@ -67,6 +67,6 @@ $R.app(['@app', 'State', 'Objects', function Loader(app, State, Objetcs) {
         e.stopPropagation();
     });
 
-    console.log(sprite);
+    app.$('start');
 
 }]);

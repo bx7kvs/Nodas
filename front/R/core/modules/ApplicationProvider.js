@@ -4,8 +4,9 @@
 $R.$(['@define', 'ExtensionsProvider',
         'InjectionContainerProvider', 'ApplicationCanvasProvider',
         'ApplicationHTMLRootProvider', 'ApplicationTickerProvider', 'ApplicationConfigProvider',
+        'ApplicationAudioContextProvider',
 
-        function ApplicationProvider(define, Injector, Provider, CanvasProvider, HTMLRootProvider, TickerProvider, AppConfigProvider) {
+        function ApplicationProvider(define, Injector, Provider, CanvasProvider, HTMLRootProvider, TickerProvider, AppConfigProvider, AudioProvider) {
             var apps = {},
                 modules = {},
                 autorun = [],
@@ -22,6 +23,8 @@ $R.$(['@define', 'ExtensionsProvider',
                         appname
                     )
                 );
+
+                container.injection(AudioProvider.getApplicationAudioContext(appname));
 
                 container.source(container, false);
 
@@ -74,8 +77,11 @@ $R.$(['@define', 'ExtensionsProvider',
                     };
 
                     function resolve(event,args) {
+                        console.log('cb!');
                         if(typeof event == "string" && event.length ) {
                             if(cb[event]) {
+                                console.log('resolve app '+ event);
+                                console.log(cb[event]);
                                 var passArgs = [];
                                 if(typeof args == "object" && args.constructor == Array){
                                     passArgs = args;
@@ -83,6 +89,7 @@ $R.$(['@define', 'ExtensionsProvider',
                                 else if (args !== undefined) {
                                     passArgs = [args];
                                 }
+
                                 for(var i = 0 ; i < cb[event].length; i++) {
                                     cb[event][i].apply(self,passArgs);
                                 }
@@ -97,15 +104,15 @@ $R.$(['@define', 'ExtensionsProvider',
                     }
 
                     ticker.on('stop', function () {
-                        resolve('stop', this);
+                        resolve('stop', self);
                     });
 
                     ticker.on('start', function () {
-                        resolve('start', this);
+                        resolve('start', self);
                     });
 
                     ticker.on('error', function () {
-                        resolve('error', this);
+                        resolve('error', self);
                     });
 
                     this.on = function (event, func) {

@@ -6,8 +6,8 @@ $R.part('Sound', ['@inject', 'Debug', function Audio(inject, Debug) {
     var source = null,
         url = null,
         type = null,
-        events = inject('EventProvider'),
-        animations = inject('AnimationProvider'),
+        events = inject('$EventProvider'),
+        animations = inject('$AnimationProvider'),
         self = this,
         output = null,
         nodename = '';
@@ -46,7 +46,7 @@ $R.part('Sound', ['@inject', 'Debug', function Audio(inject, Debug) {
         if (typeof name == "string" && name.length > 0) {
             if (typeof src == "string" && src !== 'destination' && src.length > 0) {
                 url = src;
-                source = inject('UserAudioSource').build(src);
+                source = inject('$UserAudioSource').build(src);
                 type = 'Sample';
                 source.on('load', function () {
                     events.resolve('load');
@@ -63,7 +63,7 @@ $R.part('Sound', ['@inject', 'Debug', function Audio(inject, Debug) {
                 }
             }
             else if (src === 'destination') {
-                source = inject('UserAudioMixer').build(name, src);
+                source = inject('$UserAudioMixer').build(name, src);
                 this.connect = function () {
                     if (arguments[0] && typeof arguments[0] == "object" && arguments[0].$$SOURCE) {
                         return source;
@@ -76,7 +76,7 @@ $R.part('Sound', ['@inject', 'Debug', function Audio(inject, Debug) {
                 events.resolve('load');
             }
             else if (src === undefined) {
-                source = inject('UserAudioMixer').build(name);
+                source = inject('$UserAudioMixer').build(name);
                 url = '[' + name + ']' + 'AudioChannel';
                 type = 'Channel';
                 events.resolve('load');

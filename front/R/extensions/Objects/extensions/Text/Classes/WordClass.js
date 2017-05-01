@@ -3,7 +3,7 @@
  */
 $R.part('Objects', ['$ColorHelper', '@extend', '$DrawerHelper', function TextWordClass(ColorHelper, extend, DrawerHelper) {
 
-    extend(this, 'TextElementClass');
+    extend(this, '$TextElementClass');
 
     var string = '',
         self = this;

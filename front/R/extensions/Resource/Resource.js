@@ -38,7 +38,7 @@ $R.ext(['@app', '@inject', function Resource(app, inject) {
         else {
             var _type = type;
 
-            var result = inject(type.charAt(0).toUpperCase() + type.slice(1));
+            var result = inject('$' + type.charAt(0).toUpperCase() + type.slice(1));
 
             result.on('load', function () {
                 loadCounter--;

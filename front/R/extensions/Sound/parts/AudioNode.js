@@ -1,7 +1,7 @@
 /**
  * Created by Viktor Khodosevich on 4/16/2017.
  */
-$R.part('Sound', ['@audio', '@inject', 'Debug', function AudioNode(context, inject, Debug) {
+$R.part('Sound', ['@inject', 'Debug', function AudioNode(inject, Debug) {
 
     var output = null,
         input = null,
@@ -16,7 +16,7 @@ $R.part('Sound', ['@audio', '@inject', 'Debug', function AudioNode(context, inje
             return this.output();
         },
         sounds = [],
-        events = inject('EventProvider'),
+        events = inject('$EventProvider'),
         nodename = '';
 
     function args() {

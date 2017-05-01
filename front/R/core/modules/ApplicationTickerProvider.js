@@ -17,14 +17,16 @@ $R.$(function ApplicationTickerProvider() {
                 try {
                     for (var ordering in callbacks) {
                         for (var i = 0; i < callbacks[ordering].length; i++) {
-                            callbacks[ordering][i].apply(target, arguments);
+                            callbacks[ordering][i].apply(target, args);
                         }
                     }
                     frame++;
                 }
                 catch (e) {
+                    clearInterval(interval);
                     resolve('error', e);
-                    throw new Error('Unable to run ticker anymore. Error emerged during app ticker progress.');
+                    console.error('Unable to run ticker anymore. Error emerged during app ticker progress.');
+                    throw e;
                 }
 
             },
@@ -47,8 +49,8 @@ $R.$(function ApplicationTickerProvider() {
 
             if (typeof event == "string" && event.length) {
                 if (eventCb[event]) {
-                    for (var i = 0; i < eventCb.length; i++) {
-                        eventCb[event][i].apply(self, args);
+                    for (var i = 0; i < eventCb[event].length; i++) {
+                        eventCb[event][i].apply(self, _call_args);
                     }
                 }
                 else {
@@ -64,6 +66,8 @@ $R.$(function ApplicationTickerProvider() {
             if(typeof event == "string" && event.length) {
                 if(eventCb[event]) {
                     if(typeof func == "function") {
+                        console.log(event + ' added ');
+                        console.log(func);
                         eventCb[event].push(func)
                     }
                     else {

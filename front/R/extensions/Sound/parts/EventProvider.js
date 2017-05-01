@@ -6,7 +6,7 @@ $R.part('Sound', ['@inject', function EventProvider(inject) {
     var events = [];
 
     this.event = function (name, argF, state) {
-        var event = inject('Event');
+        var event = inject('$Event');
         event.build.apply(event, arguments);
         events[name] = event;
         return this;

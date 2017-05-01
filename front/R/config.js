@@ -9,6 +9,9 @@ $R.cfg('Loader',
         Canvas : {
             width : '100%',
             height : '100%'
+        },
+        Sound : {
+            filters: ['Delay','Lowpass','Gain']
         }
     }
 );

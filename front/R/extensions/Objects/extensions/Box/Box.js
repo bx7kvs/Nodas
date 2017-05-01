@@ -3,7 +3,7 @@
  */
 $R.part('Objects', ['Debug', '@inject', function BoxObjectExtension(Debug, inject) {
 
-    var f = null, box = inject('GraphicsBox');
+    var f = null, box = inject('$GraphicsBox');
 
     this.f = function (func) {
 

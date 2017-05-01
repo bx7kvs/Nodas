@@ -1,15 +1,15 @@
 /**
  * Created by Viktor Khodosevich on 4/16/2017.
  */
-$R.part('Sound', ['@audio', '@extend', function DelayNode(context, extend) {
+$R.part('Sound', ['@audio', '@extend', function DelayNode(audio, extend) {
 
-    extend(this, 'AudioNode');
+    extend(this, '$AudioNode');
 
     var timeCFG = 0, forceCFG = 0, killDelay = 10000,
-        globalGain = context.createGain(),
-        delay = context.createDelay(),
-        feedback = context.createGain(),
-        bq = context.createBiquadFilter();
+        globalGain = audio.context().createGain(),
+        delay = audio.context().createDelay(),
+        feedback = audio.context().createGain(),
+        bq = audio.context().createBiquadFilter();
 
     globalGain.gain.value = 1;
     bq.frequency.value = 2000;
