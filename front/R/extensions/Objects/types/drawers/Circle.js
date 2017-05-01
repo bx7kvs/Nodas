@@ -72,18 +72,26 @@ $R.part('Objects', ['$DrawerHelper', 'Debug', '@inject', function CircleObjectDr
     boxExt.f(function (boxContainer) {
         var radius = style.get('radius'),
             position = style.get('position'),
+            anchor = style.get('anchor'),
             d = radius * 2;
 
-        boxContainer.set(
-            position[0],
-            position[1],
-            d,
-            d,
-            strokefix,
-            strokefix,
-            strokefix,
-            strokefix
-        );
+        var x = position[0],
+            y = position[1];
+
+        if (anchor[0] == 'center') {
+            x -= radius
+        }
+        if (anchor[0] == 'right') {
+            x -= d
+        }
+        if (anchor[1] == 'middle') {
+            y -= radius
+        }
+        if (anchor[1] == 'bottom') {
+            y -= d;
+        }
+
+        boxContainer.set(x, y, d, d, strokefix, strokefix, strokefix, strokefix);
     });
 
     this.watch('radius', function () {

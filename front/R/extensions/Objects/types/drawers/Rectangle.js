@@ -19,7 +19,24 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
         boxExtension.f(function (boxContainer) {
 
             var position = style.get('position'),
-                size = style.get('size');
+                size = style.get('size'),
+                anchor = style.get('anchor');
+
+            var x = position[0],
+                y = position[1];
+
+            if (anchor[0] == 'center') {
+                x -= size[0]/2;
+            }
+            if (anchor[0] == 'right') {
+                x -= size[0];
+            }
+            if (anchor[1] == 'middle') {
+                y -= size[1]/2;
+            }
+            if (anchor[1] == 'bottom') {
+                y -= size[1]
+            }
 
             boxContainer.set(
                 position[0], position[1],

@@ -11,10 +11,27 @@ $R.part('Objects', ['$DrawerHelper', '$ModelHelper', 'Resource',
             width = null, height = null, image = null;
 
         box.f(function (boxContainer) {
-            var position = style.get('position');
+            var position = style.get('position'),
+                anchor = style.get('anchor');
+
+            var x = position[0],
+                y = position[1];
+
+            if (anchor[0] == 'center') {
+                x -= width ? width / 2 : 0;
+            }
+            if (anchor[0] == 'right') {
+                x -= width ? width : 0;
+            }
+            if (anchor[1] == 'middle') {
+                y -= height ? height / 2 : 0;
+            }
+            if (anchor[1] == 'bottom') {
+                y -= height ? height : 0
+            }
             boxContainer.set(
-                position[0],
-                position[1],
+                x,
+                y,
                 width ? width : 0,
                 height ? height : 0,
                 0,

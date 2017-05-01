@@ -43,14 +43,25 @@ $R.part('Objects', ['$DrawerHelper', 'Resource', function ImageObjectDrawer(Draw
     });
 
     box.f(function (boxContainer) {
-        var position = style.get('position');
-        boxContainer.set(
-            position[0],
-            position[1],
-            width ? width : 0,
-            height ? height : 0,
-            0, 0, 0, 0
-        );
+        var position = style.get('position'),
+            anchor = style.get('anchor');
+
+        var x = position[0],
+            y = position[1];
+
+        if (anchor[0] == 'center') {
+            x -= width ? width /2 : 0;
+        }
+        if (anchor[0] == 'right') {
+            x -= width ? width : 0;
+        }
+        if (anchor[1] == 'middle') {
+            y -= height ? height /2 : 0;
+        }
+        if (anchor[1] == 'bottom') {
+            y -= height ? height : 0
+        }
+        boxContainer.set(x, y, width ? width : 0, height ? height : 0, 0, 0, 0, 0);
     });
 
     drawer.f(function (context) {

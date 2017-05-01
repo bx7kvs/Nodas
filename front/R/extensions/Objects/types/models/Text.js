@@ -171,29 +171,6 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
                     return value;
                 }
             );
-            style.define(1, 'anchor', ['left','top'],
-                function (value) {
-                    if(typeof value === "object" && value.constructor == Array && value.length == 2) {
-                        if(
-                            (value[0] == 'left' || value[0] == 'center' || value[0] == 'right') &&
-                            (value[1] == 'top' || value[1] == 'middle' || value[1] == 'bottom')
-                        ) {
-                            return [value[0],value[1]];
-                        }
-                        else {
-                            Debug.warn({v:value}, '[{v}] is not a valid value. Array ["left" || "center" || "right" , "top" || "middle" || "bottom" ] is required format.')
-                            return false;
-                        }
-                    }
-                    else {
-                        Debug.warn({v:value},'[{v}] is not a valid anchor value for text element');
-                        return false;
-                    }
-                },
-                function (value) {
-                    return [value[0],value[1]];
-                }
-            );
 
             animation.morph('color', 1,
                 function (start,end,value) {
