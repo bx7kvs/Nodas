@@ -5,5 +5,68 @@ $R.app(['@app', 'State', 'Objects', function Loader(app, State, Objetcs) {
 
     var sprite = Objetcs.sprite(),
         group = Objetcs.group(),
-        text = Objetcs.text()
+        text = Objetcs.text();
+
+    var channel = Sound.channel('test'),
+        sample = Sound.sample('/audio/blink.ogg', 'test');
+
+    sample.animate({'delay': [.5,.5]}, 10000);
+    text.on('mousedown' , function () {
+        sample.play();
+    });
+
+    text.style({
+        str: 'String\nstring String    string string \n some other string \n and string \n stringifier ',
+        position: [100, 100],
+        style: 'normal',
+        weight: 100,
+        font: 'Arial, sans-serif',
+        lineHeight: 25,
+        fontSize: 14,
+        align: 'center',
+        anchor: ['center', 'middle']
+    });
+
+    group.layer(1);
+
+    text.on('mouseenter', function () {
+        this.style('color', 'rgba(255,0,0,1)');
+        this.style('weight', 400);
+    });
+    text.on('mouseleave', function () {
+        this.style('color', 'rgba(100,150,50,1)');
+        this.style('weight', 600);
+    });
+
+    group.append(sprite);
+
+
+    group.style({
+        position: [10, 10],
+        translate: [0, 0],
+        rotate: 0,
+        scale: 1
+    });
+
+    sprite.style({
+        src: '/images/ship_sprite.png[92]',
+        size: [50, 50],
+        position: [0, 0]
+    });
+
+    var sw = false;
+
+    sprite.on('mousedown', function (e) {
+        sw = !sw;
+        if (sw) {
+            this.animate({position: [50, 50], rotate: 180}, 1000, 'easeInOutCubic');
+        }
+        else {
+            this.animate({position: [0, 0], rotate: 0, opacity: 1}, 1000, 'easeInOutCubic');
+        }
+        e.stopPropagation();
+    });
+
+    console.log(sprite);
+
 }]);
