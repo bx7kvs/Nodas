@@ -5,8 +5,5 @@ $R.app(['@app', 'State', 'Objects', function Loader(app, State, Objetcs) {
 
     var sprite = Objetcs.sprite(),
         group = Objetcs.group(),
-        text = Objetcs.text();
-
-    alert('Loader lounched!');
-
+        text = Objetcs.text()
 }]);

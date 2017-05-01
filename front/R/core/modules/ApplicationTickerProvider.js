@@ -14,26 +14,84 @@ $R.$(function ApplicationTickerProvider() {
             tickfunction = function () {
                 args[0] = new Date();
                 args[3] = frame;
-                for (var ordering in callbacks) {
-                    for (var i = 0; i < callbacks[ordering].length; i++) {
-                        callbacks[ordering][i].apply(target, arguments);
+                try {
+                    for (var ordering in callbacks) {
+                        for (var i = 0; i < callbacks[ordering].length; i++) {
+                            callbacks[ordering][i].apply(target, arguments);
+                        }
+                    }
+                    frame++;
+                }
+                catch (e) {
+                    resolve('error', e);
+                    throw new Error('Unable to run ticker anymore. Error emerged during app ticker progress.');
+                }
+
+            },
+            interval = null,
+            eventCb = {
+                stop: [],
+                start: [],
+                error: []
+            },
+            self = this;
+
+        function resolve(event, args) {
+            var _call_args = [];
+            if (typeof args == "object" && args.constructor == Array) {
+                _call_args = args;
+            }
+            else if (args !== undefined) {
+                _call_args.push(args);
+            }
+
+            if (typeof event == "string" && event.length) {
+                if (eventCb[event]) {
+                    for (var i = 0; i < eventCb.length; i++) {
+                        eventCb[event][i].apply(self, args);
                     }
                 }
-                frame++;
-            },
-            interval = null;
+                else {
+                    throw new Error('Unable to resolve event [' + event + ']. No such event.')
+                }
+            }
+            else {
+                throw new Error('Unable to resolve event. Event parameter is not a string or empty')
+            }
+        }
+
+        this.on = function (event, func) {
+            if(typeof event == "string" && event.length) {
+                if(eventCb[event]) {
+                    if(typeof func == "function") {
+                        eventCb[event].push(func)
+                    }
+                    else {
+                        throw new Error('Unable to set event ['+event+']. Callback is not a function.');
+                    }
+                }
+                else {
+                    throw new Error('Unable to set event ['+event+'] handler. No such event.')
+                }
+            }
+            else {
+                throw new Error('Unable to set event. Event argument is not a string or empty.')
+            }
+        };
 
         this.stop = function () {
             if (interval) {
                 frame = 0;
                 clearInterval(interval);
                 interval = null;
+                resolve('stop', this);
             }
         };
 
         this.start = function () {
             if (!interval) {
                 interval = setInterval(tickfunction, ticktime);
+                resolve('start', this);
             }
         };
 

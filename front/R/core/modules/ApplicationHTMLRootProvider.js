@@ -81,7 +81,7 @@ $R.$(function ApplicationHTMLRootProvider() {
         return elements[appname].$constructor;
     }
 
-    this.HTMLRootConstructor = function (canvas) {
-        return getHTmlRootConstructor(canvas);
+    this.HTMLRootConstructor = function (canvas,appname) {
+        return getHTmlRootConstructor(canvas,appname);
     }
 });

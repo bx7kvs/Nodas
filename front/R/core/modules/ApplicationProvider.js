@@ -16,7 +16,6 @@ $R.$(['@define', 'ExtensionsProvider',
                 var container = Provider.container({'app': Provider.injection(getRApp(appname))});
 
                 container.injection(CanvasProvider.canvasInjectionConstructor(appname));
-
                 container.injection(
                     HTMLRootProvider.HTMLRootConstructor(
                         CanvasProvider.getApplicationCanvas(appname),
@@ -67,6 +66,67 @@ $R.$(['@define', 'ExtensionsProvider',
                             }
                         }
                     };
+
+                    var cb = {
+                        stop: [],
+                        start: [],
+                        error: []
+                    };
+
+                    function resolve(event,args) {
+                        if(typeof event == "string" && event.length ) {
+                            if(cb[event]) {
+                                var passArgs = [];
+                                if(typeof args == "object" && args.constructor == Array){
+                                    passArgs = args;
+                                }
+                                else if (args !== undefined) {
+                                    passArgs = [args];
+                                }
+                                for(var i = 0 ; i < cb[event].length; i++) {
+                                    cb[event][i].apply(self,passArgs);
+                                }
+                            }
+                            else {
+                                throw new Error('Unable to resolve event ['+event+']. No such event.')
+                            }
+                        }
+                        else {
+                            throw new Error('Unable to resolve event. Event argument is not a string.');
+                        }
+                    }
+
+                    ticker.on('stop', function () {
+                        resolve('stop', this);
+                    });
+
+                    ticker.on('start', function () {
+                        resolve('start', this);
+                    });
+
+                    ticker.on('error', function () {
+                        resolve('error', this);
+                    });
+
+                    this.on = function (event, func) {
+                        if (typeof event == "string" && event.length) {
+                            if (cb[event]) {
+                                if (typeof func == "function") {
+                                    cb[event].push(func);
+                                }
+                                else {
+                                    throw new Error('Unable to set event [' + event + ']. Callback func is not a function.');
+                                }
+                            }
+                            else {
+                                throw new Error('Unable to set event [' + event + ']. No such event.');
+                            }
+                        }
+                        else {
+                            throw new Error('Unable to set handler. Event string is undefined or empty.');
+                        }
+                    };
+
                     reflectApps[appname] = this;
                 }
             }
@@ -192,6 +252,7 @@ $R.$(['@define', 'ExtensionsProvider',
                                 var extensionparts = extensions[extension].findSourceByPrefix('$');
                                 if (extensionparts) {
                                     extensionparts.source(extsSource, false);
+                                    extensionparts.source(extensionparts.containers(), '$');
                                     extensionparts.source(sources, '@');
                                     extensionparts.source(cfgSource, '$$');
                                 }
@@ -212,7 +273,9 @@ $R.$(['@define', 'ExtensionsProvider',
 
                         apps[appname].source(sources, '@');
                         apps[appname].source(extsArray, false);
-                        return apps[appname].resolve('Application');
+                        apps[appname].resolve(appname);
+
+                        return reflectApps[appname];
                     }
                     else {
                         throw new Error('Unable to run app [' + appname + ']. No such app registered.');

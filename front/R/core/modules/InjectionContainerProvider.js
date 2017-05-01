@@ -40,10 +40,10 @@ $R.$([function InjectionContainerProvider() {
             return function (target, injectionName) {
                 if (typeof target == "object") {
                     if (typeof injectionName === "string") {
-                        var injection = container.find(injectionName);
-                        if (injection) {
-                            var params = container.resolve(injection);
-                            params.$constructor.apply(target, params.dependencies);
+                        var source = container.findSourceByInjectionName(injectionName);
+                        if (source) {
+                            var config = source.resolveInjectionDependancies(injectionName);
+                            config.$constructor.apply(target, config.dependencies);
                         }
                         else {
                             throw new Error('Unable to find injection [' + injectionName + ']');
@@ -61,7 +61,7 @@ $R.$([function InjectionContainerProvider() {
 
         this.inject = function (container) {
             return function (injectionName) {
-                return container.resolve(injectionName, true);
+                return container.resolveDirectInjection(injectionName);
             }
         };
 
@@ -190,6 +190,21 @@ $R.$([function InjectionContainerProvider() {
             return result;
         };
 
+        this.resolveInjectionDependancies = function (name) {
+            if(this.has(name)) {
+                var source = null;
+                var stripName = stripPrefix(name);
+                for (var i = 0; i < containers.length; i++) {
+                    if (containers[i].has(stripName)) {
+                        source = containers[i];
+                    }
+                }
+                if(source) {
+                    return source.resolve(stripName,'extend')
+                }
+            }
+        };
+
     }
 
     function InjectionContainer(lib) {
@@ -274,7 +289,6 @@ $R.$([function InjectionContainerProvider() {
 
                         if ((typeof prefixkey == "string" && prefixkey.length) || prefixkey === false) {
                             sources[prefixkey ? prefixkey : '$$noprefix'] = new SourceContainer(prefixkey, container, loop);
-                            console.log(sources)
                         }
                     }
                     else {
@@ -341,25 +355,38 @@ $R.$([function InjectionContainerProvider() {
         };
 
         this.resolve = function (name, direct) {
-            if (name && name.constructor === Injection) {
-                var injection = name,
-                    deps = injection.dependencies(),
-                    result = {
-                        dependencies: [],
-                        $constructor: injection.$constructor()
-                    };
+            if (direct === 'extend') {
 
-                for (var i = 0; i < deps.length; i++) {
-                    var src = this.findSourceByInjectionName(deps[i]);
-                    if (src) {
-                        result.dependencies.push(src.resolve(deps[i]));
+                if(library[name]) {
+                    var result = {
+                        dependencies : [],
+                        $constructor : library[name].$constructor()
+                    },
+                        dependencies = library[name].dependencies();
+
+                    for(var d = 0 ; d < dependencies.length; d++) {
+                        if (dependencies[d] == '@extend') {
+                            result.dependencies.push(library[name].extend(this));
+                        }
+                        else if (dependencies[d] == '@inject') {
+                            result.dependencies.push(library[name].inject(this));
+                        }
+                        else {
+                            var src = this.findSourceByInjectionName(dependencies[d]);
+                            if(src) {
+                                result.dependencies.push(src.resolve(dependencies[d]));
+                            }
+                            else {
+                                throw new Error('Unable to inject [' + dependencies[d] + '] while direct injection process.');
+                            }
+                        }
                     }
-                    else {
-                        return new Error('Unable to inject [' + deps[i] + '] while direct injection process.');
-                    }
+                    return result;
+
                 }
-
-                return result;
+                else {
+                    throw new Error('Unable to inject [' + name + '] no such injection found');
+                }
             }
             else {
                 if (this.has(name)) {
@@ -370,14 +397,12 @@ $R.$([function InjectionContainerProvider() {
                     for (var i = 0; i < dependencies.length; i++) {
 
                         if (dependencies[i] == '@extend') {
-                            args.push(library[name].inject(this));
-                        }
-                        else if (dependencies[i] == '@inject') {
                             args.push(library[name].extend(this));
                         }
+                        else if (dependencies[i] == '@inject') {
+                            args.push(library[name].inject(this));
+                        }
                         else {
-                            console.log(library, name, dependencies[i], sources);
-                            console.log(sources['@'].containers()[0].list());
                             var source = this.findSourceByInjectionName(dependencies[i]);
                             if (source) {
                                 args.push(source.resolve(dependencies[i]));
@@ -394,6 +419,16 @@ $R.$([function InjectionContainerProvider() {
                 else {
                     throw new Error('Injection [' + name + '] was not found in library!');
                 }
+            }
+        };
+
+        this.resolveDirectInjection = function (name) {
+            var source = this.findSourceByInjectionName(name);
+            if(source) {
+                return source.resolve(name,true);
+            }
+            else {
+                return source;
             }
         };
 
