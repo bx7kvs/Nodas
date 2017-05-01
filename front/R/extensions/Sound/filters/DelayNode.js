@@ -34,7 +34,6 @@ $R.part('Sound', ['@audio', '@extend', function DelayNode(audio, extend) {
                 if (time < 0) time = 0;
                 if (force > .8) force = .8;
                 if (force < 0) force = 0;
-                console.log('delay value changed!');
                 timeCFG = time;
                 forceCFG = force;
                 delay.delayTime.value = timeCFG;

@@ -1,7 +1,7 @@
 /**
  * Created by bx7kv_000 on 12/26/2016.
  */
-$R.part('Objects', ['Debug', '@app', 'Canvas', function Tree(Debug, app, Canvas) {
+$R.part('Objects', ['Debug', '@app', '$$config', function Tree(Debug, app, config) {
 
     var root = null, context = null, rootDrawer = null, rootStyle = null;
 
@@ -35,12 +35,12 @@ $R.part('Objects', ['Debug', '@app', 'Canvas', function Tree(Debug, app, Canvas)
             return root;
         }
     };
-    app.$('tick' , function (date, canvas) {
+
+    app.$('tick', function (date, canvas) {
         if (!root || !rootDrawer) return;
-
         if (!context) context = canvas.getContext('2d');
-
-        rootDrawer.draw.call(root,context);
+        if (config.clear === true) context.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+        rootDrawer.draw.call(root, context);
 
     });
 

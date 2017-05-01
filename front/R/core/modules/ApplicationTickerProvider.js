@@ -66,8 +66,6 @@ $R.$(function ApplicationTickerProvider() {
             if(typeof event == "string" && event.length) {
                 if(eventCb[event]) {
                     if(typeof func == "function") {
-                        console.log(event + ' added ');
-                        console.log(func);
                         eventCb[event].push(func)
                     }
                     else {

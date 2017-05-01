@@ -10,7 +10,7 @@ $R.$(['@define', function ApplicationConfigProvider(define) {
         return function config() {
             for (var prop in value) {
                 if (value.hasOwnProperty(prop)) {
-                    if (typeof value[prop] == "string" || typeof value[prop] == "number" || typeof [prop] == "boolean") {
+                    if (typeof value[prop] == "string" || typeof value[prop] == "number" || typeof value[prop] == "boolean") {
                         this[prop] = value[prop];
                     }
                     else if (typeof value[prop] == "object" && value[prop].constructor === Array) {

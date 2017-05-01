@@ -59,7 +59,6 @@ $R.part('Sound', ['@inject', '$$config', 'Debug', function UserAudioMixer(inject
 
 
         delete  this.build;
-        Debug.warn({name: name}, 'channel [{name}] created.');
         return this;
     };
 
@@ -71,7 +70,6 @@ $R.part('Sound', ['@inject', '$$config', 'Debug', function UserAudioMixer(inject
             var input = out.connect({$$AUDIONODE: true});
             filters[filters.length - 1].connect(input);
             output = out;
-            Debug.warn({name: name, outname: out.name()}, '[{name}] connected to [{outname}]');
         }
 
         return this;

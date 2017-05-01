@@ -98,7 +98,6 @@ $R.part('Sound', ['@extend', '@inject', 'Debug', function UserAudioSource(extend
         if (out && out.constructor === mixer.constructor) {
             output = out;
             mixer.connect(out);
-            Debug.warn({src:url, outname : out.name()},'[{src}] connected to [{outname}]');
         }
         return this;
     };

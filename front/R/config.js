@@ -12,6 +12,9 @@ $R.cfg('Loader',
         },
         Sound : {
             filters: ['Delay','Lowpass','Gain']
+        },
+        Objects : {
+            clear : true
         }
     }
 );

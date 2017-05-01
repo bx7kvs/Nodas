@@ -77,11 +77,8 @@ $R.$(['@define', 'ExtensionsProvider',
                     };
 
                     function resolve(event,args) {
-                        console.log('cb!');
                         if(typeof event == "string" && event.length ) {
                             if(cb[event]) {
-                                console.log('resolve app '+ event);
-                                console.log(cb[event]);
                                 var passArgs = [];
                                 if(typeof args == "object" && args.constructor == Array){
                                     passArgs = args;
