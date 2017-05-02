@@ -62,9 +62,6 @@ $R.part('Objects', ['@inject', 'Debug', '$DrawerHelper', '$PathHelper',
 
             var fix = strokefix + interpolationfix;
 
-            console.log(xshift,yshift);
-            console.log(x + xshift, y + yshift);
-
             boxContainer.set(
                 x + xshift,
                 y + yshift,
