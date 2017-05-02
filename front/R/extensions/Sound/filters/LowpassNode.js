@@ -7,17 +7,17 @@ $R.part('Sound', ['@audio', '@extend', function LowpassNode(audio, extend) {
 
     var bqf  = audio.context().createBiquadFilter(),
 
-        frequency = 24000;
+        frequency = 22050;
 
     bqf.type = 'lowpass';
     bqf.frequency.value = frequency;
 
     this.build('lowpass', bqf, bqf);
 
-    this.property('lowpass', 24000,
+    this.property('lowpass', 22050,
         function (value) {
             if (value < 0) value = 0;
-            if (value > 24000) value = 24000;
+            if (value > 22050) value = 22050;
             frequency = value;
             bqf.frequency.value = value;
             return value;
@@ -27,7 +27,7 @@ $R.part('Sound', ['@audio', '@extend', function LowpassNode(audio, extend) {
         },
         function (value) {
             if (value < 0) value = 0;
-            if (value > 24000) value = 24000;
+            if (value > 22050) value = 22050;
             return value;
         }
     );
