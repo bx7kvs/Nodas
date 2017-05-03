@@ -22,11 +22,17 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObje
 
     function UpdateFill(context) {
         var sprite = this.extension('Box').sprite(),
-            style = this.extension('Style');
+            style = this.extension('Style'),
+            path = style.get('path');
 
         context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
 
         var interpolation = style.get('interpolation');
+
+        if(!interpolated) {
+            PathHelper.interpolate(path, interpolation);
+            interpolated = true;
+        }
 
         if (interpolation) {
             DrawerHelper.drawBezierPathFill(context, style.get('path'), style);
@@ -40,9 +46,16 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObje
         var sprite = this.extension('Box').sprite(),
             style = this.extension('Style');
 
+        if(!interpolated) {
+            PathHelper.interpolate(path, interpolation);
+            interpolated = true;
+        }
+
         context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
 
         var interpolation = style.get('interpolation');
+
+        if(!interpolated) PathHelper.interpolate(path, interpolation);
 
         if (interpolation) {
             DrawerHelper.drawLinePath(context, style.get('path'), style);
@@ -60,6 +73,11 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObje
 
         var interpolation = style.get('interpolation');
 
+        if(!interpolated) {
+            PathHelper.interpolate(path, interpolation);
+            interpolated = true;
+        }
+
         if (interpolation) DrawerHelper.drawLineBgClipPath(context, style.get('path'), style, assembler, sprite);
         else DrawerHelper.drawBezierBgClipPath(context, style.get('path'), style, assembler, sprite);
     }
@@ -67,6 +85,7 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObje
 
     this.watch('path', function () {
         var interpolation = style.get('interpolation');
+        interpolated = false;
         box.purge();
         matrix.purge();
         assembler.update('fill');
@@ -75,6 +94,7 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObje
     });
 
     this.watch('interpolation', function () {
+        interpolated = false;
         assembler.update('fill');
         assembler.update('stoke');
         assembler.update('bg');
