@@ -134,6 +134,7 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', '$ModelHelper', f
     box.f(function (boxContainer) {
         var position = style.get('position'),
             path = style.get('path'),
+            anchor = style.get('anchor'),
             x = position[0],
             y = position[1],
             minx = Infinity,
@@ -176,13 +177,27 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', '$ModelHelper', f
         xshift = minx;
         yshift = miny;
 
-        var fix = strokefix + interpolationfix;
+        var fix = strokefix + interpolationfix,
+            width = Math.abs(maxx - minx),
+            height = Math.abs(maxy - miny);
 
+        if (anchor[0] == 'center') {
+            x -= width ? width / 2 : 0;
+        }
+        if (anchor[0] == 'right') {
+            x -= width ? width : 0;
+        }
+        if (anchor[1] == 'middle') {
+            y -= height ? height / 2 : 0;
+        }
+        if (anchor[1] == 'bottom') {
+            y -= height ? height : 0
+        }
         boxContainer.set(
             x + xshift,
             y + yshift,
-            Math.abs(maxx - minx),
-            Math.abs(maxy - miny),
+            width,
+            height,
             fix,
             fix,
             fix,

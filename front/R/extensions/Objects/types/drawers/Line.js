@@ -88,8 +88,6 @@ $R.part('Objects', ['@inject', 'Debug', '$DrawerHelper', '$PathHelper',
                 fix
             );
 
-            console.log(boxContainer.get());
-
         });
 
         this.watch('path', function () {
