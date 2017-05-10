@@ -1,7 +1,7 @@
 /**
  * Created by Viktor Khodosevich on 5/1/2017.
  */
-$R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObjectDrawer(inject, DrawerHelper, PathHelper) {
+$R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', '$ModelHelper', function AreaObjectDrawer(inject, DrawerHelper, PathHelper, ModelHelper) {
 
     var assembler = inject('$GraphicsAssembler'),
         box = this.extension('Box'),
@@ -21,65 +21,60 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObje
     assembler.box(box);
 
     function UpdateFill(context) {
-        var sprite = this.extension('Box').sprite(),
+        var sprite = this.extension('Box').box().sprite(),
             style = this.extension('Style'),
             path = style.get('path');
 
+        context.save();
         context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
 
         var interpolation = style.get('interpolation');
 
-        if(!interpolated) {
-            PathHelper.interpolate(path, interpolation);
+        if (!interpolated) {
+            PathHelper.interpolate(path, interpolation, true);
             interpolated = true;
         }
 
-        if (interpolation) {
-            DrawerHelper.drawBezierPathFill(context, style.get('path'), style);
-        }
-        else {
-            DrawerHelper.drawLinePathFill(context, style.get('path'), style);
-        }
+        if (interpolation) DrawerHelper.drawBezierPathFill(context, path, style);
+        else DrawerHelper.drawLinePathFill(context, path, style);
+
+        context.restore();
     }
 
     function UpdateStroke(context) {
-        var sprite = this.extension('Box').sprite(),
-            style = this.extension('Style');
+        var sprite = this.extension('Box').box().sprite(),
+            style = this.extension('Style'),
+            path = ModelHelper.cloneArray(style.get('path')),
+            interpolation = style.get('interpolation');
 
-        if(!interpolated) {
-            PathHelper.interpolate(path, interpolation);
-            interpolated = true;
-        }
 
         context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
 
-        var interpolation = style.get('interpolation');
-
-        if(!interpolated) PathHelper.interpolate(path, interpolation);
-
-        if (interpolation) {
-            DrawerHelper.drawLinePath(context, style.get('path'), style);
+        if (!interpolated) {
+            PathHelper.interpolate(path, interpolation, true);
+            interpolated = true;
         }
-        else {
-            DrawerHelper.drawBezierPath(context, style.get('path'), style);
-        }
+
+        if (interpolation) DrawerHelper.drawLinePath(context, path, style);
+        DrawerHelper.drawBezierPath(context, path, style);
     }
 
     function UpdateBg(context) {
         var style = this.extension('Style'),
-            sprite = this.extension('Box').sprite();
+            sprite = this.extension('Box').box().sprite(),
+            path = ModelHelper.cloneArray(style.get('path')),
+            interpolation = style.get('interpolation');
+
 
         context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
 
-        var interpolation = style.get('interpolation');
-
-        if(!interpolated) {
-            PathHelper.interpolate(path, interpolation);
+        if (!interpolated) {
+            PathHelper.interpolate(path, interpolation, true);
             interpolated = true;
         }
 
-        if (interpolation) DrawerHelper.drawLineBgClipPath(context, style.get('path'), style, assembler, sprite);
-        else DrawerHelper.drawBezierBgClipPath(context, style.get('path'), style, assembler, sprite);
+        if (interpolation) DrawerHelper.drawLineBgClipPath(context, path, style, assembler, sprite);
+        else DrawerHelper.drawBezierBgClipPath(context, path, style, assembler, sprite);
     }
 
 
@@ -88,24 +83,29 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObje
         interpolated = false;
         box.purge();
         matrix.purge();
+        assembler.resize();
         assembler.update('fill');
-        assembler.update('stoke');
+        assembler.update('stroke');
         assembler.update('bg');
     });
 
-    this.watch('interpolation', function () {
+    this.watch('interpolation', function (o, n) {
         interpolated = false;
+        interpolationfix = Math.round(40 * n);
         assembler.update('fill');
-        assembler.update('stoke');
+        assembler.update('stroke');
         assembler.update('bg');
+        assembler.resize();
     });
 
     this.watch('position', function () {
         box.purge();
+        matrix.purge();
     });
 
     this.watch(['strokeStyle', 'strokeColor'], function () {
-        assembler.update('stoke');
+        assembler.update('stroke');
+        assembler.resize();
     });
 
     this.watch('fill', function () {
@@ -127,6 +127,7 @@ $R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', function AreaObje
         assembler.update('stroke');
         box.purge();
         matrix.purge();
+        assembler.resize();
 
     });
 

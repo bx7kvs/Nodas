@@ -23,6 +23,9 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
 
         context.save();
 
+        context.beginPath();
+        context.moveTo(path[0][0], path[0][1]);
+
         for (var i = 0; i < path.length; i++) {
             var x1 = path[i][0],
                 y1 = path[i][1],
@@ -34,13 +37,7 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
                 break;
             }
 
-            if (strokeWidth[i] < .1) {
-                context.moveTo(x2, y2);
-            }
-            else {
-                context.moveTo(x1, y1);
-                context.lineTo(x2, y2);
-            }
+            context.lineTo(x2, y2);
         }
 
         context.closePath();
@@ -65,7 +62,6 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
                 context.restore();
             }
         }
-
         context.restore();
     };
 
@@ -76,6 +72,8 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
 
         context.save();
 
+        context.beginPath();
+        context.moveTo(path[0][0], path[0][1]);
         for (var i = 0; i < path.length; i++) {
             var x1 = path[i][0],
                 y1 = path[i][1],
@@ -94,7 +92,6 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
                 Debug.error('Invalid curve!');
                 break;
             }
-            context.moveTo(x1, y1);
             context.bezierCurveTo(ax1, ay1, ax2, ay2, x2, y2);
 
         }
@@ -130,8 +127,12 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
             cap = style.get('cap');
 
         context.save();
-
         context.lineCap = cap;
+        context.moveTo(path[0][0], path[0][1]);
+
+        context.beginPath();
+
+        console.log(path);
 
         for (var i = 0; i < path.length; i++) {
             var x1 = path[i][0],
@@ -143,14 +144,7 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
                 Debug.error('Invalid path!');
                 break;
             }
-
-            if (strokeWidth[i] < .1) {
-                context.moveTo(x2, y2);
-            }
-            else {
-                context.moveTo(x1, y1);
-                context.lineTo(x2, y2);
-            }
+            context.lineTo(x2, y2);
         }
 
         context.closePath();
@@ -169,6 +163,7 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
         context.lineCap = cap;
 
         context.beginPath();
+        context.moveTo(path[0][0], path[0][1]);
 
         for (var i = 0; i < path.length; i++) {
             var x1 = path[i][0],
@@ -188,7 +183,7 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
                 Debug.error('Invalid curve!');
                 break;
             }
-            context.moveTo(x1, y1);
+
             context.bezierCurveTo(ax1, ay1, ax2, ay2, x2, y2);
 
         }
@@ -225,6 +220,7 @@ $R.part('Objects', ['Debug', function DrawerHelper(Debug) {
             }
             else {
                 context.moveTo(x1, y1);
+                context.beginPath();
                 context.strokeStyle = strokeColor[i];
                 context.lineWidth = strokeWidth[i];
                 context.setLineDash(strokeStyle[i]);

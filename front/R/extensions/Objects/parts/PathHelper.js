@@ -71,7 +71,7 @@ $R.part('Objects', ['Debug', function PathHelper(Debug) {
         return result;
     };
 
-    this.interpolate = function (path, smoothing) {
+    this.interpolate = function (path, smoothing, closed) {
 
         for (var i = 0; i < path.length; i++) {
 
@@ -81,7 +81,7 @@ $R.part('Objects', ['Debug', function PathHelper(Debug) {
                 prev = mid;
             }
             else {
-                prev = [path[i-1][0], path[i-1][1]];
+                prev = [path[i - 1][0], path[i - 1][1]];
 
             }
 
@@ -98,7 +98,7 @@ $R.part('Objects', ['Debug', function PathHelper(Debug) {
                 path[i][5] = pts[3];
             }
 
-            if(i == path.length-1) {
+            if (i == path.length - 1) {
 
                 prev = [path[i][0], path[i][1]];
                 mid = [path[i][2], path[i][3]];
@@ -110,6 +110,21 @@ $R.part('Objects', ['Debug', function PathHelper(Debug) {
                 path[i][7] = pts[1];
             }
 
+            if (closed) {
+                var s1 = path[path.length - 1],
+                    s2 = path[0];
+
+                var _segment = [
+                    [s1[0], s1[1], s1[2], s1[3], s1[4], s1[5], s1[6], s1[7]],
+                    [s2[0], s2[1], s2[2], s2[3], s2[4], s2[5], s2[6], s2[7]]];
+
+                this.interpolate(_segment, smoothing);
+
+                path[0][4] = _segment[1][4];
+                path[0][5] = _segment[1][5];
+                path[path.length - 1][6] = _segment[0][6];
+                path[path.length - 1][7] = _segment[0][7];
+            }
 
         }
     };
