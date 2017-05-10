@@ -1,10 +1,10 @@
 /**
  * Created by bx7kv_000 on 1/10/2017.
  */
-$R.part('Objects', [function DrawerHelper() {
+$R.part('Objects', ['Debug', function DrawerHelper(Debug) {
 
     var textDrawerContext = document.createElement('canvas').getContext('2d');
-    
+
     this.measureText = function (func) {
         textDrawerContext.save();
         var width = func(textDrawerContext);
@@ -13,9 +13,186 @@ $R.part('Objects', [function DrawerHelper() {
     };
 
     this.transform = function (object, context) {
-        context.transform.apply(context,object.matrix().extract());
+        context.transform.apply(context, object.matrix().extract());
     };
 
+    this.drawLineBgClipPath = function (context, path, style, assembler, sprite) {
+        var bg = style.get('bg'),
+            bgsize = style.get('bgSize'),
+            bgposition = style.get('bgPosition');
+
+        context.save();
+
+        context.beginPath();
+        context.moveTo(path[0][0], path[0][1]);
+
+        for (var i = 0; i < path.length; i++) {
+            var x1 = path[i][0],
+                y1 = path[i][1],
+                x2 = path[i][2],
+                y2 = path[i][3];
+
+            if (typeof x1 !== "number" || typeof x2 !== "number" || typeof y1 !== "number" || typeof y2 !== "number") {
+                Debug.error('Invalid path!');
+                break;
+            }
+
+            context.lineTo(x2, y2);
+        }
+
+        context.closePath();
+        context.clip();
+
+        for (var b = 0; b < bg.length; b++) {
+
+            if (!bg[b].loaded()) {
+                bg[b].on('load', function () {
+                    assembler.update('bg');
+                });
+            }
+            else {
+                context.save();
+                var bgwidth = box.size[0] * bgsize[b][0],
+                    bgheight = box.size[1] * bgsize[b][1],
+                    bgpositionx = box.size[0] * bgposition[b][0],
+                    bgpositiony = box.size[1] * bgposition[b][1];
+
+                context.translate(sprite.margin[3] + bgpositionx, sprite.margin[0] + bgpositiony);
+                context.drawImage(bg[i].export(), 0, 0, bgwidth, bgheight);
+                context.restore();
+            }
+        }
+        context.restore();
+    };
+
+    this.drawBezierBgClipPath = function (context, path, style, assembler, sprite) {
+        var bg = style.get('bg'),
+            bgsize = style.get('bgSize'),
+            bgposition = style.get('bgPosition');
+
+        context.save();
+
+        context.beginPath();
+        context.moveTo(path[0][0], path[0][1]);
+        for (var i = 0; i < path.length; i++) {
+            var x1 = path[i][0],
+                y1 = path[i][1],
+                x2 = path[i][2],
+                y2 = path[i][3],
+                ax1 = path[i][4],
+                ay1 = path[i][5],
+                ax2 = path[i][6],
+                ay2 = path[i][7];
+
+            if (typeof x1 !== "number" || typeof x2 !== "number" || typeof y1 !== "number" || typeof y2 !== "number") {
+                Debug.error('Invalid path!');
+                break;
+            }
+            if (typeof ax1 !== "number" || typeof  ax2 !== "number" || typeof ay1 !== "number" || typeof  ay2 !== "number") {
+                Debug.error('Invalid curve!');
+                break;
+            }
+            context.bezierCurveTo(ax1, ay1, ax2, ay2, x2, y2);
+
+        }
+        context.closePath();
+        context.clip();
+
+        for (var b = 0; b < bg.length; b++) {
+
+            if (!bg[b].loaded()) {
+                bg[b].on('load', function () {
+                    assembler.update('bg');
+                });
+            }
+            else {
+                context.save();
+                var bgwidth = box.size[0] * bgsize[b][0],
+                    bgheight = box.size[1] * bgsize[b][1],
+                    bgpositionx = box.size[0] * bgposition[b][0],
+                    bgpositiony = box.size[1] * bgposition[b][1];
+
+                context.translate(sprite.margin[3] + bgpositionx, sprite.margin[0] + bgpositiony);
+                context.drawImage(bg[i].export(), 0, 0, bgwidth, bgheight);
+                context.restore();
+            }
+        }
+
+        context.restore();
+
+    };
+
+    this.drawLinePathFill = function (context, path, style) {
+        var fill = style.get('fill'),
+            cap = style.get('cap');
+
+        context.save();
+        context.lineCap = cap;
+        context.moveTo(path[0][0], path[0][1]);
+
+        context.beginPath();
+
+        console.log(path);
+
+        for (var i = 0; i < path.length; i++) {
+            var x1 = path[i][0],
+                y1 = path[i][1],
+                x2 = path[i][2],
+                y2 = path[i][3];
+
+            if (typeof x1 !== "number" || typeof x2 !== "number" || typeof y1 !== "number" || typeof y2 !== "number") {
+                Debug.error('Invalid path!');
+                break;
+            }
+            context.lineTo(x2, y2);
+        }
+
+        context.closePath();
+        context.fillStyle = fill;
+        context.fill();
+        context.restore();
+
+    };
+
+    this.drawBezierPathFill = function (context, path, style) {
+        var fill = style.get('fill'),
+            cap = style.get('cap');
+
+        context.save();
+
+        context.lineCap = cap;
+
+        context.beginPath();
+        context.moveTo(path[0][0], path[0][1]);
+
+        for (var i = 0; i < path.length; i++) {
+            var x1 = path[i][0],
+                y1 = path[i][1],
+                x2 = path[i][2],
+                y2 = path[i][3],
+                ax1 = path[i][4],
+                ay1 = path[i][5],
+                ax2 = path[i][6],
+                ay2 = path[i][7];
+
+            if (typeof x1 !== "number" || typeof x2 !== "number" || typeof y1 !== "number" || typeof y2 !== "number") {
+                Debug.error('Invalid path!');
+                break;
+            }
+            if (typeof ax1 !== "number" || typeof  ax2 !== "number" || typeof ay1 !== "number" || typeof  ay2 !== "number") {
+                Debug.error('Invalid curve!');
+                break;
+            }
+
+            context.bezierCurveTo(ax1, ay1, ax2, ay2, x2, y2);
+
+        }
+        context.closePath();
+        context.fillStyle = fill;
+        context.fill();
+        context.restore();
+
+    };
 
     this.drawLinePath = function (context, path, style) {
         var strokeColor = style.get('strokeColor'),
@@ -43,6 +220,7 @@ $R.part('Objects', [function DrawerHelper() {
             }
             else {
                 context.moveTo(x1, y1);
+                context.beginPath();
                 context.strokeStyle = strokeColor[i];
                 context.lineWidth = strokeWidth[i];
                 context.setLineDash(strokeStyle[i]);

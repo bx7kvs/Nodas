@@ -18,7 +18,7 @@ $R.part('Objects', [function MouseHelper() {
             cx = radius,
             cy = sprite.size[1] / 2;
 
-        if (Math.pow((coords[0] - cx), 2) + Math.pow((coords[1] - cy), 2) < Math.pow(radius, 2)) {
+        if (Math.pow(coords[0] - cx, 2) + Math.pow(coords[1] - cy, 2) <= Math.pow(radius, 2)) {
             return this;
         }
 

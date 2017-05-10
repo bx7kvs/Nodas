@@ -77,7 +77,6 @@ $R.part('Objects', ['@inject', 'Debug', '$DrawerHelper', '$PathHelper',
             if (anchor[1] == 'bottom') {
                 y -= height ? height : 0
             }
-
             boxContainer.set(
                 x + xshift,
                 y + yshift,
@@ -94,7 +93,6 @@ $R.part('Objects', ['@inject', 'Debug', '$DrawerHelper', '$PathHelper',
         });
 
         this.watch('path', function () {
-            console.log('purgebox');
             var interpolation = style.get('interpolation');
             if (interpolation !== 0) interpolated = false;
             box.purge();
