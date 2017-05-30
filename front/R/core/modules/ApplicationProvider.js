@@ -76,23 +76,23 @@ $R.$(['@define', 'ExtensionsProvider',
                         error: []
                     };
 
-                    function resolve(event,args) {
-                        if(typeof event == "string" && event.length ) {
-                            if(cb[event]) {
+                    function resolve(event, args) {
+                        if (typeof event == "string" && event.length) {
+                            if (cb[event]) {
                                 var passArgs = [];
-                                if(typeof args == "object" && args.constructor == Array){
+                                if (typeof args == "object" && args.constructor == Array) {
                                     passArgs = args;
                                 }
                                 else if (args !== undefined) {
                                     passArgs = [args];
                                 }
 
-                                for(var i = 0 ; i < cb[event].length; i++) {
-                                    cb[event][i].apply(self,passArgs);
+                                for (var i = 0; i < cb[event].length; i++) {
+                                    cb[event][i].apply(self, passArgs);
                                 }
                             }
                             else {
-                                throw new Error('Unable to resolve event ['+event+']. No such event.')
+                                throw new Error('Unable to resolve event [' + event + ']. No such event.')
                             }
                         }
                         else {
@@ -112,7 +112,7 @@ $R.$(['@define', 'ExtensionsProvider',
                         resolve('error', self);
                     });
 
-                    this.on = function (event, func) {
+                    this.$on = function (event, func) {
                         if (typeof event == "string" && event.length) {
                             if (cb[event]) {
                                 if (typeof func == "function") {
@@ -128,6 +128,13 @@ $R.$(['@define', 'ExtensionsProvider',
                         }
                         else {
                             throw new Error('Unable to set handler. Event string is undefined or empty.');
+                        }
+                    };
+                    this.$define = function (property, value) {
+                        if(this[property] === undefined) {
+                            if(property.charAt(0) !== '$') {
+                                this[property] = value;
+                            }
                         }
                     };
 
@@ -223,7 +230,7 @@ $R.$(['@define', 'ExtensionsProvider',
                 }
             });
 
-            define('get', function (appname) {
+            define('application', function (appname) {
                 if (typeof appname == "string" && appname.length) {
                     if (reflectApps[appname]) {
                         return reflectApps[appname];
@@ -249,6 +256,8 @@ $R.$(['@define', 'ExtensionsProvider',
                                         }
                                     }
                                 }
+
+
                                 extensions[extension].source(extsSource, false);
                                 extensions[extension].source(sources, '@');
                                 extensions[extension].source(cfgSource, '$$');
@@ -269,12 +278,12 @@ $R.$(['@define', 'ExtensionsProvider',
                             }
                         }
 
+
                         if (modules[appname]) {
                             apps[appname].source(modules[appname], '$');
                             modules[appname].source(sources, '@');
                             modules[appname].source(extsArray, false);
                         }
-
                         apps[appname].source(sources, '@');
                         apps[appname].source(extsArray, false);
                         apps[appname].resolve(appname);
@@ -301,7 +310,7 @@ $R.$(['@define', 'ExtensionsProvider',
                     }
                 }
                 for (var i = 0; i < runapps.length; i++) {
-                    $R.get(runapps[i]);
+                    $R.application(runapps[i]);
                 }
             });
         }

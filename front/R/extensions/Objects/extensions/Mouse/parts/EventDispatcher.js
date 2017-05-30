@@ -210,13 +210,13 @@ $R.part('Objects', ['Canvas', '@app', '$MouseObjectFinder', function MouseEventD
 
     app.$('tick', onAppTick);
 
-    app.on('start' , function () {
+    app.$on('start' , function () {
         active = true;
     });
-    app.on('stop', function () {
+    app.$on('stop', function () {
         active = false;
     });
-    app.on('error', function () {
+    app.$on('error', function () {
         active = false;
     });
 }]);

@@ -1,7 +1,7 @@
 /**
  * Created by bx7kv_000 on 1/12/2017.
  */
-$R.ext(['@app', '@inject', function Resource(app, inject) {
+$R.ext(['@app', '@inject', 'Debug', function Resource(app, inject, Debug) {
 
     var all = [],
         container = {
@@ -80,6 +80,26 @@ $R.ext(['@app', '@inject', function Resource(app, inject) {
         load: [],
         error: [],
         add: []
+    };
+
+    this.on = function (event, func) {
+        if(typeof event == "string"){
+            var array = cBContainer[event];
+            if(array) {
+                if(typeof func == "function") {
+                    array.push(func);
+                }
+                else{
+                    Debug.warn({event : event},'Unable to set event [{event}] callback. func is not a function!');
+                }
+            }
+            else {
+                Debug.warn({event : event}, 'Unable to set event [{event}]. No such event');
+            }
+        }
+        else{
+            Debug.warn('Unable to set event callback. Event name is not a string');
+        }
     };
 
     function ResolveEvent(type, data) {

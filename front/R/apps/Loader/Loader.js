@@ -1,72 +1,107 @@
 /**
  * Created by bx7kv_000 on 12/17/2016.
  */
-$R.app(['@app', 'State', 'Objects', 'Sound', function Loader(app, State, Objetcs, Sound) {
+$R.app(
+    ['@app', 'Objects', 'Canvas', 'Debug',
+        function Loader(app, objects, canvas) {
 
-    var sprite = Objetcs.sprite(),
-        group = Objetcs.group(),
-        text = Objetcs.text();
+            var resourceProviders = [],
+                providersRegistered = [],
+                resourcesCount = 0,
+                loadCount = 0,
+                progress = 0,
+                loader = this;
 
-    var channel = Sound.channel('test'),
-        sample = Sound.sample('/audio/blink.ogg', 'test');
+            var progressLine = objects.line(),
+                counter = objects.text();
 
-    sample.animate({'delay': [.5, .5]}, 10000);
-    text.on('mousedown', function () {
-        sample.play();
-    });
+            function update() {
+                progress = (loadCount/(resourcesCount > 0 ? resourcesCount : 1));
+                counter.style({
+                    text : 'loading' +(progress * 100) + '%',
+                    position : [canvas.width() /2, canvas.height() - 30],
+                    anchor : ['center', 'bottom']
+                });
+                progressLine.style({
+                    path : [[0 ,canvas.height() - 10],[canvas.width() * progress, canvas.height() - 10 ]],
+                    strokeWidth : 10
+                });
 
-    text.style({
-        str: 'String\nstring String    string string \n some other string \n and string \n stringifier ',
-        position: [100, 100],
-        style: 'normal',
-        weight: 100,
-        font: 'Arial, sans-serif',
-        lineHeight: 25,
-        fontSize: 14,
-        align: 'center',
-        anchor: ['center', 'middle']
-    });
+                if(progress >= 1) {
+                    resolve('load');
+                }
+            }
 
-    group.layer(1);
+            canvas.on('canvasresize', update);
 
-    text.on('mouseenter', function () {
-        this.style('color', 'rgba(255,0,0,1)');
-        this.style('weight', 400);
-    });
-    text.on('mouseleave', function () {
-        this.style('color', 'rgba(100,150,50,1)');
-        this.style('weight', 600);
-    });
+            app.$define('register', function (provider) {
+                provider.on('add', function () {
+                    resourcesCount ++;
+                    update();
+                });
+                provider.on('error', function () {
+                    resourcesCount --;
+                    update();
+                });
+                provider.on('load', function () {
+                    resourcesCount --;
+                    update();
+                });
+                providersRegistered.push(provider);
+            });
 
-    group.append(sprite);
+            var cb = {
+                load : [],
+                int : []
+            };
 
+            function resolve(event) {
+                if(cb[event]) {
+                    var args = [progress,resourcesCount,loadCount];
+                    for(var i = 0 ; i < cb[event].length; i++) {
+                        cb[event].apply(loader, args);
+                    }
+                }
+                else {
+                    Debug.warn({event: event},'Unable to resolve event [{event}]. No such event.');
+                }
+            }
 
-    group.style({
-        position: [10, 10],
-        translate: [0, 0],
-        rotate: 0,
-        scale: 1
-    });
+            app.$define('on', function (event,func) {
+                if(typeof event == "string") {
+                    if(cb[event]) {
+                        if(typeof func == "function") {
+                            cb[event].push(func);
+                        }
+                        else {
+                            Debug.warn({event : event}, 'Unable to set callback foe event [{event}]. Callback is not a function.')
+                        }
+                    }
+                    else {
+                        Debug.warn({event : event}, 'Unable to set callback for event [{event}]. No such event.')
+                    }
+                }
+                else {
+                    Debug.warn('Unable to set callback. Wrong arguments.');
+                }
+            });
+            app.$define('reset', function () {
+                progress = 0;
+                providersRegistered = [];
+                loadCount = 0;
+                resourcesCount = 0;
+                return this;
+            });
 
-    sprite.style({
-        src: '/images/ship_sprite.png[92]',
-        size: [50, 50],
-        position: [0, 0]
-    });
+            app.$define('start', function () {
+                app.$('start');
+                return this;
+            });
+            app.$define('stop', function () {
+                app.$('stop');
+                return this;
+            });
 
-    var sw = false;
-
-    sprite.on('mousedown', function (e) {
-        sw = !sw;
-        if (sw) {
-            this.animate({position: [50, 50], rotate: 180}, 1000, 'easeInOutCubic');
         }
-        else {
-            this.animate({position: [0, 0], rotate: 0, opacity: 1}, 1000, 'easeInOutCubic');
-        }
-        e.stopPropagation();
-    });
-
-    app.$('start');
-
-}]);
+    ]
+);
