@@ -58,7 +58,6 @@ $R.part('Objects', ['$DrawerHelper', function GroupObjectDrawer(DrawerHelper) {
         box.purge();
     });
 
-
     drawer.f(function (context) {
 
         context.save();
@@ -84,7 +83,6 @@ $R.part('Objects', ['$DrawerHelper', function GroupObjectDrawer(DrawerHelper) {
                 odrawer.draw.call(this, context);
                 context.restore();
             }
-
 
         });
 

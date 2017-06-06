@@ -4,6 +4,9 @@
 $R
     .cfg('Loader',
         {
+            Container : {
+                z : 100
+            },
             Debug: {
                 warnings: true
             },
@@ -21,6 +24,9 @@ $R
     )
     .cfg('Root',
         {
+            Container : {
+                z : 50
+            },
             Debug: {
                 warnings: true
             },

@@ -1,7 +1,7 @@
 /**
  * Created by Viktor Khodosevich on 5/31/2017.
  */
-$R.ext(['@HTMLRoot', '$$config','Debug', function Container(html, config, Debug) {
+$R.ext(['@HTMLRoot', '$$config', 'Debug', function Container(html, config, Debug) {
     var element = html.element(),
         visible = false,
         blur = false,
@@ -13,6 +13,7 @@ $R.ext(['@HTMLRoot', '$$config','Debug', function Container(html, config, Debug)
             blurout: [],
             blurin: []
         },
+        zindex = config.z && typeof config.z == "number" && config.z > 0 ? config.z : 0,
         container = this,
         displayTo = null;
 
@@ -32,14 +33,16 @@ $R.ext(['@HTMLRoot', '$$config','Debug', function Container(html, config, Debug)
     element.style.transition = 'opacity ' + speed + 's ' + easing + ',' +
         'filter ' + speed + 's';
 
+    element.style.zIndex = zindex;
+
     style({display: 'none', blur: 0, opacity: 0});
 
     function style(source) {
         if (source.display) {
-            if(source.display === true) {
+            if (source.display === true) {
                 html.show();
             }
-            if(source.display === false) {
+            if (source.display === false) {
                 html.hide();
             }
         }
@@ -55,18 +58,18 @@ $R.ext(['@HTMLRoot', '$$config','Debug', function Container(html, config, Debug)
         }
     }
 
-    this.on = function (event,func) {
-        if(typeof event == "string" && event.length > 0) {
-            if(typeof cb[event] == "object" && cb[event].constructor === Array) {
-                if(typeof func === "function") {
+    this.on = function (event, func) {
+        if (typeof event == "string" && event.length > 0) {
+            if (typeof cb[event] == "object" && cb[event].constructor === Array) {
+                if (typeof func === "function") {
                     cb[event].push(func);
                 }
                 else {
-                    Debug.warn({event:event},'Unable to set callback for [{event}]. Func is not a function');
+                    Debug.warn({event: event}, 'Unable to set callback for [{event}]. Func is not a function');
                 }
             }
             else {
-                Debug.warn({event : event},'Unable to set callback for event [{event}]. No such event');
+                Debug.warn({event: event}, 'Unable to set callback for event [{event}]. No such event');
             }
         }
         else {
