@@ -1,7 +1,7 @@
 /**
  * Created by Viktor Khodosevich on 3/28/2017.
  */
-$R.part('Objects', ['$ColorHelper', function TextElementClass (ColorHelper) {
+$R.part('Objects', ['$ColorHelper', function TextElementClass(ColorHelper) {
     var color = 'rgba(0,0,0,1)',
         font = 'sans-serif',
         fontWeight = 400,
@@ -11,9 +11,9 @@ $R.part('Objects', ['$ColorHelper', function TextElementClass (ColorHelper) {
         cb = [],
         self = this;
 
-    function resolve(property,val) {
-        for(var i = 0 ; i < cb.length; i++) {
-            cb[i].apply(self,[property,val]);
+    function resolve(property, val) {
+        for (var i = 0; i < cb.length; i++) {
+            cb[i].apply(self, [property, val]);
         }
     }
 
@@ -21,7 +21,7 @@ $R.part('Objects', ['$ColorHelper', function TextElementClass (ColorHelper) {
         if (typeof val == "number") {
             if (val < 0) val = 0;
             fontSize = val;
-            resolve('size',fontSize);
+            resolve('size', fontSize);
             return this;
         }
         else {
@@ -47,7 +47,7 @@ $R.part('Objects', ['$ColorHelper', function TextElementClass (ColorHelper) {
             if (val > 900) val = 900;
             if (val % 100 !== 0) val = val - (val % 100);
             fontWeight = val;
-            resolve('weight',fontWeight);
+            resolve('weight', fontWeight);
             return this;
         }
         return fontWeight;
@@ -56,17 +56,17 @@ $R.part('Objects', ['$ColorHelper', function TextElementClass (ColorHelper) {
     this.font = function (val) {
         if (typeof val == "string" && val.length > 0) {
             font = val;
-            resolve('font',font);
+            resolve('font', font);
             return this;
         }
         return font;
     };
 
     this.color = function (val) {
-        if(typeof val == "string") {
-            if(ColorHelper.colorToArray(val)) {
+        if (typeof val == "string") {
+            if (ColorHelper.colorToArray(val)) {
                 color = val;
-                resolve('color',color);
+                resolve('color', color);
             }
             return this;
         }
@@ -76,24 +76,24 @@ $R.part('Objects', ['$ColorHelper', function TextElementClass (ColorHelper) {
     this.style = function (val) {
         if (val === 'normal' || val === 'italic' || val === 'oblique') {
             fontStyle = val;
-            resolve('style',fontStyle);
+            resolve('style', fontStyle);
             return this;
         }
         return fontStyle;
     };
 
     this.extractFontString = function () {
-        return fontStyle + ' normal ' + fontWeight + ' ' + fontSize + 'px/' + lineHeight + 'px ' + font;
+        return fontStyle + ' ' + fontSize + 'px "' + font + '-' + fontWeight + '"';
     };
 
     this.onPropertyChange = function (func) {
-        if(typeof func == "function") {
+        if (typeof func == "function") {
             cb.push(func);
         }
     };
-    
-    this.propertyChanged = function (name,val) {
-        resolve(name,val);
+
+    this.propertyChanged = function (name, val) {
+        resolve(name, val);
     }
-    
+
 }]);

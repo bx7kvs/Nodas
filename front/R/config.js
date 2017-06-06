@@ -19,7 +19,7 @@ $R
             }
         }
     )
-    .cfg('GameRoot',
+    .cfg('Root',
         {
             Debug: {
                 warnings: true
@@ -36,4 +36,4 @@ $R
             }
         }
     )
-    .run('GameRoot');
+    .run('Root');

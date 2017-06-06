@@ -54,8 +54,8 @@ $R.part('Objects', ['Debug', '$ModelHelper', '@inject', '$DrawerHelper', functio
         update = true;
     });
 
-    this.update = function () {
-        if (update) {
+    this.update = function (forced) {
+        if (update || forced) {
             var pieces = string.match(wordByWordRegExp),
                 lineWidth = 0,
                 l = 0,

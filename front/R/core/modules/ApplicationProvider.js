@@ -11,7 +11,8 @@ $R.$(['@define', 'ExtensionsProvider',
                 modules = {},
                 autorun = [],
                 instances = {},
-                reflectApps = {};
+                reflectApps = {},
+                classes = {};
 
             function getAppSources(appname) {
                 var container = Provider.container({'app': Provider.injection(getRApp(appname))});
@@ -130,9 +131,10 @@ $R.$(['@define', 'ExtensionsProvider',
                             throw new Error('Unable to set handler. Event string is undefined or empty.');
                         }
                     };
+
                     this.$define = function (property, value) {
-                        if(this[property] === undefined) {
-                            if(property.charAt(0) !== '$') {
+                        if (this[property] === undefined) {
+                            if (property.charAt(0) !== '$') {
                                 this[property] = value;
                             }
                         }
@@ -236,7 +238,6 @@ $R.$(['@define', 'ExtensionsProvider',
                         return reflectApps[appname];
                     }
                     else if (apps[appname]) {
-
                         var extensions = Injector.extensions(),
                             sources = getAppSources(appname),
                             extsArray = [];
@@ -278,12 +279,21 @@ $R.$(['@define', 'ExtensionsProvider',
                             }
                         }
 
+                        var classContainer = Provider.container();
+
+                        for(var name in classes) {
+                            if (classes.hasOwnProperty(name)) {
+                                classContainer.injection(classes[name]);
+                            }
+                        }
 
                         if (modules[appname]) {
                             apps[appname].source(modules[appname], '$');
                             modules[appname].source(sources, '@');
+                            modules[appname].source(classContainer,'.');
                             modules[appname].source(extsArray, false);
                         }
+                        apps[appname].source(classContainer,'.');
                         apps[appname].source(sources, '@');
                         apps[appname].source(extsArray, false);
                         apps[appname].resolve(appname);
@@ -296,6 +306,20 @@ $R.$(['@define', 'ExtensionsProvider',
                 }
                 else {
                     throw new Error('Unable to run app. App name (id) is not a string or empty.');
+                }
+            });
+
+            define('cls', function (func) {
+                if (typeof func === "function" && func.name && func.name.length) {
+                    if (!classes[func.name]) {
+                        classes[func.name] = func;
+                    }
+                    else {
+                        throw new Error('Duplicate or invalid class name [' + func.name + ']');
+                    }
+                }
+                else {
+                    throw new Error('Class func should be a named function');
                 }
             });
 

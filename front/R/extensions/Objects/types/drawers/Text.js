@@ -1,20 +1,25 @@
 /**
  * Created by Viktor Khodosevich on 3/25/2017.
  */
-$R.part('Objects', ['@inject', '$DrawerHelper',
-        function TextObjectDrawer(inject, DrawerHelper) {
+$R.part('Objects', ['@inject', '$DrawerHelper', 'Resource',
+        function TextObjectDrawer(inject, DrawerHelper, Resource) {
             var text = this.extension('Text'),
                 style = this.extension('Style'),
                 box = this.extension('Box'),
                 drawer = this.extension('Drawer'),
                 matrix = this.extension('Matrix'),
                 require_update = false,
+                font = style.get('font'),
+                weight = style.get('weight'),
+                fstyle = style.get('style'),
                 assembler = inject('$GraphicsAssembler'),
                 object = this;
 
             assembler.layer(0, 'text', UpdateTextLayer);
 
             function UpdateTextLayer(context) {
+                text.update();
+
                 var lineHeight = style.get('lineHeight'),
                     color = style.get('color'),
                     fontSize = style.get('fontSize'),
@@ -23,16 +28,17 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
                 context.beginPath();
 
                 var topSpan = lineHeight - (fontSize / 5);
+
                 if (fontSize < lineHeight) {
                     topSpan = topSpan - (lineHeight - fontSize);
                 }
                 else {
                     topSpan = topSpan + (fontSize - lineHeight);
                 }
-
                 text.forEachLine(function (i) {
                     context.beginPath();
                     var y = topSpan + i * lineHeight;
+
                     context.font = this.extractFontString();
                     context.fillStyle = this.color();
                     if (align == 'center') {
@@ -45,6 +51,24 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
                         context.fillText(this.string(), 2, y);
                     }
                 });
+            }
+
+            function getFontFile() {
+                var _style = fstyle === 'oblique' ? 'normal' : fstyle;
+                var f = Resource.font(font, weight, _style);
+                f.on('load', function () {
+                    require_update = true;
+                    box.purge();
+                    matrix.purge();
+                    text.update(true);
+                });
+
+                f.on('error', function () {
+                    require_update = true;
+                    box.purge();
+                    matrix.purge();
+                    text.update(true);
+                })
             }
 
             function drawText(context) {
@@ -61,6 +85,19 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
                 require_update = true;
                 box.purge();
                 matrix.purge();
+            });
+
+            this.watch('font', function (o, n) {
+                font = n;
+                getFontFile();
+            });
+            this.watch('style', function (o, n) {
+                fstyle = n;
+                getFontFile();
+            });
+            this.watch('weight', function (o, n) {
+                weight = n;
+                getFontFile();
             });
 
             this.watch('anchor', function () {

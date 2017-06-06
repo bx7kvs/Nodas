@@ -7,13 +7,15 @@ $R.ext(['@app', '@inject', 'Debug', function Resource(app, inject, Debug) {
         container = {
             images: [],
             sprites: [],
-            fonts : [],
-            audios : []
+            fonts: [],
+            audios: []
         },
         loadCounter = 0,
         self = this;
 
     function GetResourceByURL(type, search) {
+        if (type === 'font') search = search[0];
+
         var result = null,
             array = container[type + 's'];
 
@@ -31,7 +33,6 @@ $R.ext(['@app', '@inject', 'Debug', function Resource(app, inject, Debug) {
 
     function InjectByType(type, src) {
         var existed = GetResourceByURL(type, src);
-
         if (existed) {
             return existed;
         }
@@ -51,6 +52,7 @@ $R.ext(['@app', '@inject', 'Debug', function Resource(app, inject, Debug) {
             });
 
             result.url(src);
+
 
             container[_type + 's'].push(result);
 
@@ -73,7 +75,11 @@ $R.ext(['@app', '@inject', 'Debug', function Resource(app, inject, Debug) {
     };
 
     this.audio = function (src) {
-        return InjectByType('audio',src);
+        return InjectByType('audio', src);
+    };
+
+    this.font = function (src, weight, style) {
+        return InjectByType('font', [src, weight, style]);
     };
 
     var cBContainer = {
@@ -83,23 +89,52 @@ $R.ext(['@app', '@inject', 'Debug', function Resource(app, inject, Debug) {
     };
 
     this.on = function (event, func) {
-        if(typeof event == "string"){
+        if (typeof event == "string") {
             var array = cBContainer[event];
-            if(array) {
-                if(typeof func == "function") {
+            if (array) {
+                if (typeof func == "function") {
                     array.push(func);
                 }
-                else{
-                    Debug.warn({event : event},'Unable to set event [{event}] callback. func is not a function!');
+                else {
+                    Debug.warn({event: event}, 'Unable to set event [{event}] callback. func is not a function!');
                 }
             }
             else {
-                Debug.warn({event : event}, 'Unable to set event [{event}]. No such event');
+                Debug.warn({event: event}, 'Unable to set event [{event}]. No such event');
             }
         }
-        else{
+        else {
             Debug.warn('Unable to set event callback. Event name is not a string');
         }
+    };
+
+    this.off = function (event, func) {
+        if (typeof event === "string") {
+            var array = cBContainer[event];
+            if (array) {
+                if (typeof func == "function") {
+                    var narray = [];
+                    func.$$SEARCH = true;
+                    for (var i = 0; i < array.length; i++) {
+                        if (!array[i].$$SEARCH) {
+                            narray.push(array[i])
+                        }
+                    }
+                    delete func.$$SEARCH;
+                    cBContainer[event] = narray;
+                }
+            }
+            else {
+                Debug.warn({event: event}, 'Unable to unset callback for event [{event}]. No such event');
+            }
+        }
+        else {
+            Debug.warn('Unable to unset event. Event is not a string');
+        }
+    };
+
+    this.list = function () {
+        return [].concat(container.images).concat(container.audios).concat(container.fonts).concat(container.sprites);
     };
 
     function ResolveEvent(type, data) {

@@ -1,10 +1,10 @@
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
-$R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
+$R.ext(['@Canvas', '@HTMLRoot', '$$config', 'Debug', 'Container', function Canvas(canvas, html, config, Debug, Container) {
 
     var callbacks = [], width = 0, height = 0, xunits = 'px', yunits = 'px',
-        parentNode = null, offset = [0, 0], scroll = [0, 0];
+        offset = [0, 0], scroll = [0, 0];
 
     if (config) {
         var size = [config.width ? config.width : 1000, config.height ? config.height : 800];
@@ -46,52 +46,43 @@ $R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
         }
     }
 
-    parentNode = canvas.element().parentElement;
-
     var pW = 0, pH = 0;
 
     function GetParentSize() {
         canvas.element().setAttribute('width', 0);
         canvas.element().setAttribute('height', 0);
-        if (parentNode) {
-            var style = window.getComputedStyle(parentNode, null);
-            pH = parseInt(style.getPropertyValue("height"));
-            pW = parseInt(style.getPropertyValue("width"));
-        }
+        var style = window.getComputedStyle(html.element(), null);
+        pH = parseInt(style.getPropertyValue("height"));
+        pW = parseInt(style.getPropertyValue("width"));
     }
 
     function CompareOnResize() {
-        if (parentNode) {
-            if (xunits == '%' || yunits == '%') {
-                var _pW = pW, _pH = pH,
-                    change = false;
+        if (xunits == '%' || yunits == '%') {
+            var _pW = pW, _pH = pH,
+                change = false;
 
-                GetParentSize();
+            GetParentSize();
 
-                if (xunits == '%') {
-                    canvas.element().setAttribute('width', Math.floor(pW * (width / 100)));
-                    change = true;
-                }
-                if (yunits == '%') {
-                    canvas.element().setAttribute('height', Math.floor(pH * (height / 100)));
-                    change = true;
-                }
-                if (xunits == 'px') {
-                    canvas.element().setAttribute('width', width);
-                }
-                if (yunits == 'px') {
-                    canvas.element().setAttribute('height', height);
-                }
-                return change;
-
+            if (xunits == '%') {
+                canvas.element().setAttribute('width', Math.floor(pW * (width / 100)));
+                change = true;
             }
-            else {
+            if (yunits == '%') {
+                canvas.element().setAttribute('height', Math.floor(pH * (height / 100)));
+                change = true;
+            }
+            if (xunits == 'px') {
                 canvas.element().setAttribute('width', width);
-                canvas.element().setAttribute('height', height);
-                return false;
             }
+            if (yunits == 'px') {
+                canvas.element().setAttribute('height', height);
+            }
+            return change;
+
         }
         else {
+            canvas.element().setAttribute('width', width);
+            canvas.element().setAttribute('height', height);
             return false;
         }
     }
@@ -110,14 +101,14 @@ $R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
         return result;
     }
 
-    function WindowResizeCallback(e) {
+    function WindowResizeCallback() {
         if (CompareOnResize()) {
             offset[0] = GetCanvasOffset(0);
             offset[1] = GetCanvasOffset(1);
             for (var i = 0; i < callbacks.length; i++) {
                 callbacks[i](width, height);
             }
-            ResolveCanvasEventArray('canvasresize', [new RCanvasResizeEvent(e)]);
+            ResolveCanvasEventArray('canvasresize', [new RCanvasResizeEvent()]);
         }
 
     }
@@ -162,14 +153,14 @@ $R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
 
     function ResolveCanvasEventArray(event, data) {
         if (typeof data !== "object" || data.constructor !== Array) {
-            Debug.warn({e: event}, 'Canvas : unable to resolve event array {[e]}. Data is not an array!');
+            Debug.warn({e: event}, 'Canvas : unable to resolve event array [{e}]. Data is not an array!');
             return;
         }
 
         var array = GetCanvasEventArray(event);
 
         if (!array) {
-            Debug.warn({e: event}, 'Unable to resolve event {[e]} no such event!');
+            Debug.warn({e: event}, 'Unable to resolve event [{e}] no such event!');
             return;
         }
         for (var i = 0; i < array.length; i++) {
@@ -180,11 +171,11 @@ $R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
     this.on = function (event, func) {
         var array = GetCanvasEventArray(event);
         if (!array) {
-            Debug.warn({e: event}, 'Canvas : Unable to set event handler for event [e]');
+            Debug.warn({e: event}, 'Canvas : Unable to set event handler for event [{e}]');
             return;
         }
         if (typeof func !== "function") {
-            Debug.warn({f: event}, 'Canvas : Unable to set event handler [f]');
+            Debug.warn({f: event}, 'Canvas : Unable to set event handler [{f}]');
         }
         array.push(func);
     };
@@ -206,8 +197,7 @@ $R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
         this.canvas = canvas.element();
     }
 
-    function RCanvasResizeEvent(e) {
-        this.original = e;
+    function RCanvasResizeEvent() {
         this.type = 'canvasresize';
         this.canvas = canvas.element();
         this.offset = [offset[0], offset[1]];
@@ -221,6 +211,7 @@ $R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
             this.size[1] = pH * (height / 100);
         }
     }
+
     canvas.element().addEventListener('mousemove', function (e) {
         ResolveCanvasEventArray('mousemove', [new RCanvasMouseEvent(e)]);
     });
@@ -244,6 +235,10 @@ $R.ext(['@Canvas', '$$config', 'Debug', function Canvas(canvas, config, Debug) {
     });
 
     window.addEventListener('resize', WindowResizeCallback);
+    Container.on('hide', WindowResizeCallback);
+    Container.on('show', WindowResizeCallback);
 
     WindowResizeCallback();
-}]);
+}
+
+]);

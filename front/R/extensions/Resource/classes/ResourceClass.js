@@ -21,20 +21,24 @@ $R.part('Resource', ['@extend', 'Debug', function ResourceClass(extend, Debug) {
     };
 
     this.url = function (_url) {
-        if (typeof _url !== "string") {
-            return _url;
+        if (_url == undefined) {
+            return url;
         }
         else {
-            url = _url;
-            status = 0;
-            if (resolveFunctionPassed) {
-                ResolveEvent('init', [url]);
+            if (url == undefined) {
+                url = _url;
+                status = 0;
+                if (resolveFunctionPassed) {
+                    ResolveEvent('init', [url]);
+                }
+                else {
+                    ResolveEvent('init', [url, ResolveEvent, setStatus]);
+                    resolveFunctionPassed = true;
+                }
             }
-            else {
-                ResolveEvent('init', [url, ResolveEvent, setStatus]);
-                resolveFunctionPassed = true;
-            }
+
         }
+        return url;
     };
 
     var cbContainer = {

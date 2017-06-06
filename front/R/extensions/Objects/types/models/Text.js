@@ -76,7 +76,7 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
             style.define(1, 'weight', 400,
                 function (value) {
                     if (typeof value === "number") {
-                        if (value < 0) value = 0;
+                        if (value < 100) value = 100;
                         if (value > 900) value = 900;
 
                         if (value % 100 !== 0) value = value - (value % 100);

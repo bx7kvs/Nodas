@@ -6,7 +6,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
     var style = this.extension('Style'),
         animation = this.extension('Animation');
 
-    style.define(0, 'position', [0, 0],
+    style.define(2, 'position', [0, 0],
         function (value) {
             if (ModelHelper.validNumericArray(value) && value.length == 2) {
                 return ModelHelper.cloneArray(value);
@@ -21,7 +21,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
         }
     );
 
-    animation.morph('position', 0,
+    animation.morph('position', 2,
         function (start, end, value) {
             if (ModelHelper.validNumericArray(value) && value.length == 2) {
                 start(this.style('position'));

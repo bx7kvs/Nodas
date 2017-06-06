@@ -39,7 +39,7 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
             }
 
             boxContainer.set(
-                position[0], position[1],
+                x, y,
                 size[0], size[1],
                 strokefix[0], strokefix[1], strokefix[2], strokefix[3]
             );
@@ -71,6 +71,7 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
 
         this.watch(['position', 'size'], function () {
             boxExtension.purge();
+            matrix.purge();
         });
 
         this.watch(['bg', 'bgSize', 'bgPosition'], function () {

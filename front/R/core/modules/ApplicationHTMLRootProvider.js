@@ -4,9 +4,12 @@
 $R.$(function ApplicationHTMLRootProvider() {
 
 
-    var elements = {};
+    var elements = {},
+        hiddendiv = document.createElement('div');
 
     function getHTmlRootConstructor(canvas, appname) {
+        var lastparent = null;
+
         elements[appname] = {
             element: document.createElement('div'),
             $constructor: function HTMLRoot() {
@@ -14,6 +17,7 @@ $R.$(function ApplicationHTMLRootProvider() {
                     cb = {
                         resize: []
                     };
+
                 var width = 0,
                     height = 0;
 
@@ -49,6 +53,18 @@ $R.$(function ApplicationHTMLRootProvider() {
                     }
                     else {
                         throw new Error('Unable to set event. Event name is not a string or empty.');
+                    }
+                };
+
+                this.hide = function () {
+                    lastparent = this.element().parentNode;
+                    hiddendiv.appendChild(this.element());
+                };
+
+                this.show = function () {
+                    if(lastparent) {
+                        lastparent.appendChild(this.element());
+                        lastparent = null;
                     }
                 };
 

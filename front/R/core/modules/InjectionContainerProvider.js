@@ -402,6 +402,9 @@ $R.$([function InjectionContainerProvider() {
                         else if (dependencies[i] == '@inject') {
                             args.push(library[name].inject(this));
                         }
+                        else if(dependencies[i].charAt(0) === '.') {
+                            args.push(library[name].$constructor);
+                        }
                         else {
                             var source = this.findSourceByInjectionName(dependencies[i]);
                             if (source) {

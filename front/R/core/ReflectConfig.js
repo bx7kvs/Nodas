@@ -8,5 +8,6 @@ $R.modules(
     'ApplicationTickerProvider',
     'ApplicationConfigProvider',
     'InjectionContainerProvider',
-    'ExtensionsProvider'
+    'ExtensionsProvider',
+    'FontFamilyManager'
 );

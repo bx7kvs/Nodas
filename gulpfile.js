@@ -14,7 +14,7 @@ gulp.task('compile-js', function () {
         './front/R/core/**/*.js',
         './front/R/*.js',
         './front/R/extensions/**/*.js',
-        './front/R/apps/**/*.js',
+        './front/R/Scenes/**/*.js',
         './front/Game/**/*.js'])
         .pipe(sourcemaps.init())
         .pipe(concat('game.js'))
