@@ -10,12 +10,12 @@ var gulp = require('gulp'),
 
 
 gulp.task('compile-js', function () {
-    return gulp.src([
-        './front/R/core/**/*.js',
-        './front/R/*.js',
-        './front/R/extensions/**/*.js',
-        './front/R/Scenes/**/*.js',
-        './front/Game/**/*.js'])
+    return gulp.src(
+        [
+            './front/R/core/**/*.js',
+            './front/R/extensions/**/*.js'
+        ]
+    )
         .pipe(sourcemaps.init())
         .pipe(concat('game.js'))
         .pipe(uglify({
