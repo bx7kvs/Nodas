@@ -17,7 +17,7 @@ gulp.task('compile-js', function () {
         ]
     )
         .pipe(sourcemaps.init())
-        .pipe(concat('game.js'))
+        .pipe(concat('reflect-engine.js'))
         .pipe(uglify({
             mangle: {keep_fnames: true},
             compress: {keep_fnames: true}
