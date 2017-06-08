@@ -264,6 +264,7 @@ $R.$(['@define', 'ExtensionsProvider',
                                 extensions[extension].source(cfgSource, '$$');
 
                                 var extensionparts = extensions[extension].findSourceByPrefix('$');
+
                                 if (extensionparts) {
                                     extensionparts.source(extsSource, false);
                                     extensionparts.source(extensionparts.containers(), '$');
@@ -281,19 +282,21 @@ $R.$(['@define', 'ExtensionsProvider',
 
                         var classContainer = Provider.container();
 
-                        for(var name in classes) {
+                        for (var name in classes) {
                             if (classes.hasOwnProperty(name)) {
                                 classContainer.injection(classes[name]);
                             }
                         }
 
+                        classContainer.source(classContainer, '.');
+
                         if (modules[appname]) {
                             apps[appname].source(modules[appname], '$');
                             modules[appname].source(sources, '@');
-                            modules[appname].source(classContainer,'.');
+                            modules[appname].source(classContainer, '.');
                             modules[appname].source(extsArray, false);
                         }
-                        apps[appname].source(classContainer,'.');
+                        apps[appname].source(classContainer, '.');
                         apps[appname].source(sources, '@');
                         apps[appname].source(extsArray, false);
                         apps[appname].resolve(appname);
@@ -316,6 +319,44 @@ $R.$(['@define', 'ExtensionsProvider',
                     }
                     else {
                         throw new Error('Duplicate or invalid class name [' + func.name + ']');
+                    }
+                }
+                else if (typeof func == "object" && func.constructor == Array) {
+                    var valid = true, constructor = null;
+
+                    for (var i = 0; i < func.length; i++) {
+                        if (typeof func[i] == 'string') {
+                            if (func[i] !== '@extend' && func[i] !== '@inject') {
+                                valid = false;
+                                break;
+                            }
+                        }
+                        else if (typeof func[i] == "function") {
+                            constructor = func[i];
+                            break;
+                        }
+                    }
+
+                    if (valid) {
+                        if (constructor) {
+                            if (constructor.name) {
+                                if (!classes[constructor.name]) {
+                                    classes[constructor.name] = func;
+                                }
+                                else {
+                                    throw new Error('Duplicate or invalid class name [' + func.name + ']');
+                                }
+                            }
+                            else {
+                                throw new Error('Unable to create class. Constructor is not a named function.');
+                            }
+                        }
+                        else {
+                            throw new Error('Class constructor is undefined');
+                        }
+                    }
+                    else {
+                        throw new Error('Unable to add dependencies. Only @extend and @inject are possible for cls');
                     }
                 }
                 else {
