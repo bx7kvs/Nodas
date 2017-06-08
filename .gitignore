@@ -1,18 +1,18 @@
 
-\.idea/
+.idea/
 
-\node_modules/
+node_modules/
 
-\index.html
+index.html
 
-\front/js/
+front/js/
 
-\front/img/
+front/img/
 
-\front/audio/
+front/audio/
 
-\front/fonts/
+front/fonts/
 
-\front/css/
+front/css/
 
 \cgi-bin/
