@@ -11,7 +11,8 @@ $R.ext(['@app', '@inject', 'Debug', function Resource(app, inject, Debug) {
             audios: []
         },
         loadCounter = 0,
-        self = this;
+        self = this,
+        request = null;
 
     function GetResourceByURL(type, search) {
         if (type === 'font') search = search[0];
@@ -76,6 +77,76 @@ $R.ext(['@app', '@inject', 'Debug', function Resource(app, inject, Debug) {
 
     this.audio = function (src) {
         return InjectByType('audio', src);
+    };
+
+    function preloadRequest(data) {
+        if (data.images && data.images.constructor == Array) {
+            for (var i = 0; i < data.images.length; i++) {
+                if (typeof data.images[i] == "string") {
+                    if (/^([./_\da-zA-Z]+)(\[(\d+)\])$/.test(data.images[i])) {
+                        self.sprite(data.images[i]);
+                    }
+                    else {
+                        self.image(data.images[i]);
+                    }
+                }
+
+            }
+        }
+        if (data.audio && data.constructor == Array) {
+            for (var i = 0; i < data.audio.length; i++) {
+                if (typeof data.audio[i] == "string") {
+                    self.audio(data.audio[i]);
+                }
+            }
+        }
+        if (data.fonts && data.fonts.constructor == Array) {
+            for (var i = 0; i < data.fonts.length; i++) {
+                if (data.fonts[i] && typeof data.fonts[i] == "object"
+                    && typeof data.fonts[i].name == "string" && data.fonts[i].name.length) {
+
+                    var weight = data.fonts[i].weight && typeof data.fonts[i].weight == "number" ?
+                            data.fonts[i].weight : 400,
+                        style = data.fonts[i].style == 'italic' ? data.fonts[i].style : 'normal';
+
+                    self.font(data.fonts[i].name, weight, style);
+                }
+            }
+        }
+    }
+
+    this.preload = function (config) {
+        preloadRequest(config);
+    };
+
+    this.preloadByUrl = function (url) {
+        if (request) request.abort();
+        if (typeof url == "string" && url.length > 0) {
+            request = new XMLHttpRequest();
+            request.addEventListener('load', function () {
+                var result = {};
+
+                try {
+                    result = JSON.parse(response.responseText);
+                }
+                catch (e) {
+                    Debug.error({url: url}, 'Unable to parse JSON from [{url}]. Unknown response format.');
+                }
+                preloadRequest(result);
+            });
+            request.addEventListener('error', function () {
+                Debug.error({url: url}, 'Unable to get resources from [{url}] to preload. Server error.');
+                preloadRequest({});
+            });
+            request.addEventListener('abort', function () {
+                Debug.warn({url: url}, 'Unable to get resources from [{url}] to preload. Request aborted.');
+                preloadRequest({});
+            });
+
+            request.open('GET', url, true);
+            request.setRequestHeader('Content-Type', 'application/json');
+            request.send();
+        }
     };
 
     this.font = function (src, weight, style) {
