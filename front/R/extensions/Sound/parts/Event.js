@@ -7,7 +7,7 @@ $R.part('Sound', ['Debug', function Event(Debug) {
         state = false,
         name = 'default',
         stateval = false,
-        self = this;
+        self = this,
         argFunct = function () {
             return [];
         };
