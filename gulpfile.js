@@ -3,10 +3,9 @@
  */
 var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
-    less = require('gulp-less'),
     concat = require('gulp-concat'),
     sourcemaps = require('gulp-sourcemaps'),
-    cleanCss = require('gulp-clean-css');
+    wrap = require('gulp-wrap');
 
 
 gulp.task('compile-js', function () {
@@ -16,18 +15,32 @@ gulp.task('compile-js', function () {
             './front/R/extensions/**/*.js'
         ]
     )
-        .pipe(sourcemaps.init())
         .pipe(concat('reflect-engine.js'))
-        .pipe(uglify({
+        .pipe(wrap('(function(){<%= contents %> window.$R = $R})()'))
+        /*.pipe(uglify({
             mangle: {keep_fnames: true},
             compress: {keep_fnames: true}
-        }))
-        .pipe(sourcemaps.write())
+        }))*/
         .pipe(gulp.dest('./output'));
 });
 
-var watchClient = gulp.watch('./front/**/*.js', ['compile-js']);
-watchClient.on('change', function () {
-    console.log('Client recompiling...');
+
+gulp.task('compile-es6', function () {
+    return gulp.src(
+        [
+            './front/R/core/**/*.js',
+            './front/R/extensions/**/*.js'
+        ]
+    )
+        .pipe(concat('reflect-engine-es6.js'))
+        .pipe(wrap('<%= contents %> module.exports = $R;'))
+        /*.pipe(uglify({
+            mangle: {keep_fnames: true},
+            compress: {keep_fnames: true}
+        }))*/
+        .pipe(gulp.dest('./output'));
 });
+
+
+var watchClient = gulp.watch('./front/**/*.js', ['compile-js', 'compile-es6']);
 

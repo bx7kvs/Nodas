@@ -1,4 +1,4 @@
-(function(){/**
+/**
  * Created by Viktor Khodosevich on 4/24/2017.
  */
 
@@ -11628,4 +11628,4 @@ $R.ext(['@inject', function State(inject) {
         states[address.state].define(address.prop, value);
     };
 
-}]); window.$R = $R})()
+}]); module.exports = $R;
