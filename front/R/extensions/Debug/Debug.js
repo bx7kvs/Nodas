@@ -5,9 +5,8 @@ $R.ext(['$$config', function Debug(config) {
 
     var string = '$R [Debug] : ',
         regexp = /{[a-zA-Z]+}/g,
-        regexpname = /[a-zA-Z]+/g;
-
-    warnings = config.warnings == undefined ? true : !!config.warnings;
+        regexpname = /[a-zA-Z]+/g,
+        warnings = config.warnings == undefined ? true : !!config.warnings;
 
 
     var errorCb = [], messageCb = [];
