@@ -1853,6 +1853,59 @@ $R.part('Objects', ['Debug', '@app', '$$config', function Tree(Debug, app, confi
 
 }]);
 /**
+ * Created by Viktor Khodosevich on 5/1/2017.
+ */
+$R.part('Objects', [function AreaObjectClass() {
+
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function CircleObjectClass (MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.circleCheckFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects' , ['$Tree', function DefaultObjectType(Tree) {
+    Tree.root(this).append(this);
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects', function GroupObjectClass() {
+
+});
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function ImageObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.part('Objects', function LineObjectClass() {
+
+});
+$R.part('Objects',['$MouseHelper', function RectangleObjectClass (MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+    var mouse = this.extension('Mouse');
+    mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function SpriteObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
+ * Created by Viktor Khodosevich on 3/25/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function TextObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
  * Created by bx7kv_000 on 1/10/2017.
  */
 $R.part('Objects', [function Canvas() {
@@ -3097,59 +3150,6 @@ $R.part('Objects', ['Debug', function PathHelper(Debug) {
     }
 
 
-}]);
-/**
- * Created by Viktor Khodosevich on 5/1/2017.
- */
-$R.part('Objects', [function AreaObjectClass() {
-
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function CircleObjectClass (MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.circleCheckFunction);
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects' , ['$Tree', function DefaultObjectType(Tree) {
-    Tree.root(this).append(this);
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects', function GroupObjectClass() {
-
-});
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function ImageObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.part('Objects', function LineObjectClass() {
-
-});
-$R.part('Objects',['$MouseHelper', function RectangleObjectClass (MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-    var mouse = this.extension('Mouse');
-    mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function SpriteObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
- * Created by Viktor Khodosevich on 3/25/2017.
- */
-$R.part('Objects', ['$MouseHelper',function TextObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
 }]);
 /**
  * Created by Viktor Khodosevich on 4/10/2017.
@@ -4688,7 +4688,6 @@ $R.part('Sound', ['@inject', function EventProvider(inject) {
     };
 
     this.resolve = function (name) {
-        if (typeof args !== "object" || args.constructor !== Array) args = [];
         if (events[name]) events[name].resolve.call(events[name]);
         return this;
     };

@@ -13,7 +13,6 @@ $R.part('Sound', ['@inject', function EventProvider(inject) {
     };
 
     this.resolve = function (name) {
-        if (typeof args !== "object" || args.constructor !== Array) args = [];
         if (events[name]) events[name].resolve.call(events[name]);
         return this;
     };
