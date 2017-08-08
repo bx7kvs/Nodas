@@ -31,7 +31,6 @@ $R.$(function ApplicationHTMLRootProvider() {
 
                     if (arr) {
                         for (var f = 0; f < arr.length; f++) {
-                            var _args = [];
                             arr[f].apply(this, args);
                         }
                     }
@@ -68,6 +67,7 @@ $R.$(function ApplicationHTMLRootProvider() {
                     }
                 };
 
+
                 function checkElementResize(w, h) {
                     if (w !== width || h !== height) {
                         width = w;
@@ -87,6 +87,7 @@ $R.$(function ApplicationHTMLRootProvider() {
                 });
             }
         };
+
         elements[appname].element.setAttribute('class', 'reflect-canvas-wrapper');
         elements[appname].element.setAttribute('style', 'position:absolute; left:0;top:0;width:100%;height:100%;');
         canvas.setAttribute('style', 'position:absolute; left:0;top:0;');
