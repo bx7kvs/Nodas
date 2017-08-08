@@ -86,6 +86,7 @@ $R.part('Objects', ['$AnimationHelper', 'Morphine', function Animation(Animation
     };
 
     this.start = function () {
+        if(active) return;
 
         active = true;
 

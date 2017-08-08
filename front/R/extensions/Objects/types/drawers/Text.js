@@ -105,6 +105,10 @@ $R.part('Objects', ['@inject', '$DrawerHelper', 'Resource',
                 matrix.purge();
             });
 
+            this.watch('position' , function () {
+                box.purge()
+            });
+
             box.f(function (boxContainer) {
                 var position = style.get('position'),
                     anchor = style.get('anchor'),

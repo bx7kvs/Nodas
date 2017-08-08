@@ -5020,6 +5020,60 @@ $R.part('Objects', ['Debug', '@inject', function BoxObjectExtension(Debug, injec
 
 }]);
 /**
+ * Created by bx7kv_000 on 1/5/2017.
+ */
+$R.part('Objects' ,['Debug' , function CacheObjectExtension (Debug) {
+
+    var values = {};
+
+    this.value = function (name , func) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / name is not a string!');
+            return;
+        }
+        if(typeof func !== "function") {
+            Debug.error('Object Value Cache / func is not a function');
+            return;
+        }
+
+        if(!values[name]) {
+            values[name] = {
+                value : func(),
+                func : func,
+                relevant : true
+            }
+        }
+
+        return this.get(name);
+    };
+
+    this.purge = function (name) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / Can not purge cache of non string name');
+            return;
+        }
+        if(values[name]) {
+            values[name].relevant = false;
+        }
+    };
+
+    this.get = function (name) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / Can not get value of non-string name');
+            return;
+        }
+        if(values[name]) {
+            if(!values[name].relevant) {
+                values[name].value = values[name].func();
+                values[name].relevant = true;
+            }
+
+            return values[name].value;
+        }
+    }
+
+}]);
+/**
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.part('Objects', ['Debug', function DrawerObjectExtension(Debug) {
@@ -5074,60 +5128,6 @@ $R.part('Objects', ['Debug', function DrawerObjectExtension(Debug) {
         if (f) f.apply(this, arguments);
         resolve('after', arguments);
     };
-
-}]);
-/**
- * Created by bx7kv_000 on 1/5/2017.
- */
-$R.part('Objects' ,['Debug' , function CacheObjectExtension (Debug) {
-
-    var values = {};
-
-    this.value = function (name , func) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / name is not a string!');
-            return;
-        }
-        if(typeof func !== "function") {
-            Debug.error('Object Value Cache / func is not a function');
-            return;
-        }
-
-        if(!values[name]) {
-            values[name] = {
-                value : func(),
-                func : func,
-                relevant : true
-            }
-        }
-
-        return this.get(name);
-    };
-
-    this.purge = function (name) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / Can not purge cache of non string name');
-            return;
-        }
-        if(values[name]) {
-            values[name].relevant = false;
-        }
-    };
-
-    this.get = function (name) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / Can not get value of non-string name');
-            return;
-        }
-        if(values[name]) {
-            if(!values[name].relevant) {
-                values[name].value = values[name].func();
-                values[name].relevant = true;
-            }
-
-            return values[name].value;
-        }
-    }
 
 }]);
 /**
@@ -5940,1120 +5940,6 @@ $R.part('Objects', ['Debug', function TreeObjectExtension(Debug) {
     };
 
 }]);
-/**
- * Created by Viktor Khodosevich on 5/1/2017.
- */
-$R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', '$ModelHelper', function AreaObjectDrawer(inject, DrawerHelper, PathHelper, ModelHelper) {
-
-    var assembler = inject('$GraphicsAssembler'),
-        box = this.extension('Box'),
-        style = this.extension('Style'),
-        matrix = this.extension('Matrix'),
-        drawer = this.extension('Drawer'),
-        interpolated = false,
-        strokefix = 1, interpolationfix = 0,
-        xshift = 0, yshift = 0;
-
-
-    //TODO : Apply interpolation to path!
-
-    assembler.layer(0, 'fill', UpdateFill.bind(this));
-    assembler.layer(1, 'bg', UpdateBg.bind(this));
-    assembler.layer(2, 'stroke', UpdateStroke.bind(this));
-    assembler.box(box);
-
-    function UpdateFill(context) {
-        var sprite = this.extension('Box').box().sprite(),
-            style = this.extension('Style'),
-            path = style.get('path');
-
-        context.save();
-        context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
-
-        var interpolation = style.get('interpolation');
-
-        if (!interpolated) {
-            PathHelper.interpolate(path, interpolation, true);
-            interpolated = true;
-        }
-
-        if (interpolation) DrawerHelper.drawBezierPathFill(context, path, style);
-        else DrawerHelper.drawLinePathFill(context, path, style);
-
-        context.restore();
-    }
-
-    function UpdateStroke(context) {
-        var sprite = this.extension('Box').box().sprite(),
-            style = this.extension('Style'),
-            path = ModelHelper.cloneArray(style.get('path')),
-            interpolation = style.get('interpolation');
-
-
-        context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
-
-        if (!interpolated) {
-            PathHelper.interpolate(path, interpolation, true);
-            interpolated = true;
-        }
-
-        if (interpolation) DrawerHelper.drawLinePath(context, path, style);
-        DrawerHelper.drawBezierPath(context, path, style);
-    }
-
-    function UpdateBg(context) {
-        var style = this.extension('Style'),
-            sprite = this.extension('Box').box().sprite(),
-            path = ModelHelper.cloneArray(style.get('path')),
-            interpolation = style.get('interpolation');
-
-
-        context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
-
-        if (!interpolated) {
-            PathHelper.interpolate(path, interpolation, true);
-            interpolated = true;
-        }
-
-        if (interpolation) DrawerHelper.drawLineBgClipPath(context, path, style, assembler, sprite);
-        else DrawerHelper.drawBezierBgClipPath(context, path, style, assembler, sprite);
-    }
-
-
-    this.watch('path', function () {
-        var interpolation = style.get('interpolation');
-        interpolated = false;
-        box.purge();
-        matrix.purge();
-        assembler.resize();
-        assembler.update('fill');
-        assembler.update('stroke');
-        assembler.update('bg');
-    });
-
-    this.watch('interpolation', function (o, n) {
-        interpolated = false;
-        interpolationfix = Math.round(40 * n);
-        assembler.update('fill');
-        assembler.update('stroke');
-        assembler.update('bg');
-        assembler.resize();
-    });
-
-    this.watch('position', function () {
-        box.purge();
-        matrix.purge();
-    });
-
-    this.watch(['strokeStyle', 'strokeColor'], function () {
-        assembler.update('stroke');
-        assembler.resize();
-    });
-
-    this.watch('fill', function () {
-        assembler.update('fill');
-    });
-
-    this.watch(['bg', 'bgSize', 'bgPosition'], function () {
-        assembler.update('bg');
-    });
-
-    this.watch('strokeWidth', function (o, n) {
-        var fix = 0;
-
-        for (var i = 0; i < n.length; i++) {
-            if (n[i] > fix) fix = n[i];
-        }
-
-        strokefix = fix / 2;
-        assembler.update('stroke');
-        box.purge();
-        matrix.purge();
-        assembler.resize();
-
-    });
-
-    box.f(function (boxContainer) {
-        var position = style.get('position'),
-            path = style.get('path'),
-            anchor = style.get('anchor'),
-            x = position[0],
-            y = position[1],
-            minx = Infinity,
-            miny = Infinity,
-            maxx = -Infinity,
-            maxy = -Infinity;
-
-        for (var i = 0; i < path.length; i++) {
-            if (path[i][0] < minx) {
-                minx = path[i][0]
-            }
-            if (path[i][2] < minx) {
-                minx = path[i][2]
-            }
-            if (path[i][1] < miny) {
-                miny = path[i][1]
-            }
-            if (path[i][3] < miny) {
-                miny = path[i][3]
-            }
-            if (path[i][0] > maxx) {
-                maxx = path[i][0]
-            }
-            if (path[i][2] > maxx) {
-                maxx = path[i][2]
-            }
-            if (path[i][1] > maxy) {
-                maxy = path[i][1]
-            }
-            if (path[i][3] > maxy) {
-                maxy = path[i][3]
-            }
-        }
-
-        if (minx == Infinity) minx = 0;
-        if (miny == Infinity) miny = 0;
-        if (maxx == -Infinity) maxx = 0;
-        if (maxy == -Infinity) maxx = 0;
-
-        xshift = minx;
-        yshift = miny;
-
-        var fix = strokefix + interpolationfix,
-            width = Math.abs(maxx - minx),
-            height = Math.abs(maxy - miny);
-
-        if (anchor[0] == 'center') {
-            x -= width ? width / 2 : 0;
-        }
-        if (anchor[0] == 'right') {
-            x -= width ? width : 0;
-        }
-        if (anchor[1] == 'middle') {
-            y -= height ? height / 2 : 0;
-        }
-        if (anchor[1] == 'bottom') {
-            y -= height ? height : 0
-        }
-        boxContainer.set(
-            x + xshift,
-            y + yshift,
-            width,
-            height,
-            fix,
-            fix,
-            fix,
-            fix
-        );
-
-    });
-
-    drawer.f(function (context) {
-        DrawerHelper.transform(this, context);
-        assembler.draw(context);
-    });
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$DrawerHelper', 'Debug', '@inject', function CircleObjectDrawer(DrawerHelper, Debug, inject) {
-
-    var assembler = inject('$GraphicsAssembler'),
-        drawer = this.extension('Drawer'),
-        boxExt = this.extension('Box'),
-        style = this.extension('Style'),
-        matrix = this.extension('Matrix'),
-        strokefix = 1;
-
-    assembler.layer(0, 'fill', UpdateFill.bind(this));
-    assembler.layer(1, 'bg', UpdateBg.bind(this));
-    assembler.layer(2, 'stroke', UpdateStroke.bind(this));
-    assembler.box(boxExt);
-
-    function UpdateStroke(context) {
-        var sprite = boxExt.box().sprite();
-
-        context.beginPath();
-        context.strokeStyle = style.get('strokeColor');
-        context.lineWidth = style.get('strokeWidth');
-        context.setLineDash(style.get('strokeStyle'));
-
-        context.arc(sprite.size[0] / 2, sprite.size[1] / 2, style.get('radius'), 0, Math.PI * 2);
-        context.stroke();
-
-    }
-
-    function UpdateFill(context) {
-        var sprite = boxExt.box().sprite();
-
-        context.beginPath();
-        context.fillStyle = style.get('fill');
-        context.arc(sprite.size[0] / 2, sprite.size[1] / 2, style.get('radius'), 0, Math.PI * 2);
-        context.fill();
-    }
-
-    function UpdateBg(context){
-        var sprite = boxExt.box().sprite(),
-            box = boxExt.box().value();
-
-        context.beginPath();
-        context.arc(sprite.size[0] / 2, sprite.size[1] / 2, style.get('radius'), 0, Math.PI / 2);
-        context.clip();
-
-        var bgposition = style.get('bgPosition'),
-            bgsize = style.get('bgSize'),
-            bg = style.get('bg');
-
-        for (var i = 0; i < bg.length; i++) {
-
-            if (!bg[i].loaded()) {
-                bg[i].on('load', function () {assembler.update('bg')});
-            }
-            else {
-                context.save();
-
-                var bgwidth = box.size[0] * bgsize[i][0],
-                    bgheight = box.size[1] * bgsize[i][1],
-                    bgpositionx = box.size[0] * bgposition[i][0],
-                    bgpositiony = box.size[1] * bgposition[i][1];
-
-                context.translate(sprite.margin[3] + bgpositionx, sprite.margin[0] + bgpositiony);
-                context.drawImage(bg[i].export(), 0, 0, bgwidth, bgheight);
-                context.restore();
-            }
-        }
-    }
-
-    boxExt.f(function (boxContainer) {
-        var radius = style.get('radius'),
-            position = style.get('position'),
-            anchor = style.get('anchor'),
-            d = radius * 2;
-
-        var x = position[0],
-            y = position[1];
-
-        if (anchor[0] == 'center') {
-            x -= radius
-        }
-        if (anchor[0] == 'right') {
-            x -= d
-        }
-        if (anchor[1] == 'middle') {
-            y -= radius
-        }
-        if (anchor[1] == 'bottom') {
-            y -= d;
-        }
-
-        boxContainer.set(x, y, d, d, strokefix, strokefix, strokefix, strokefix);
-    });
-
-    this.watch('radius', function () {
-        assembler.update('stroke');
-        assembler.update('bg');
-        assembler.update('fill');
-        boxExt.purge();
-        matrix.purge();
-        assembler.resize();
-    });
-
-    this.watch('fill', function () {
-        assembler.update('fill');
-    });
-
-    this.watch('position', function () {
-        boxExt.purge();
-    });
-
-    this.watch('strokeWidth', function (o, n) {
-        if (n !== o) {
-            strokefix = n;
-            boxExt.purge();
-            assembler.update('stroke');
-            matrix.purge();
-            assembler.resize();
-        }
-    });
-
-    this.watch(['strokeStyle', 'strokeColor'], function () {
-        assembler.update('stoke');
-    });
-
-    this.watch(['bg', 'bgPosition', 'bgSize'], function () {
-        assembler.update('bg');
-    });
-
-    drawer.f(function (context) {
-        DrawerHelper.transform(this, context);
-        assembler.draw(context);
-    });
-}]);
-/**
- * Created by bx7kv_000 on 1/5/2017.
- */
-$R.part('Objects' , ['Debug' , '$MatrixHelper', function DefaultObjectDrawer (Debug,Matrix) {
-    var matrix = this.extension('Matrix');
-
-    matrix.f(function () {
-        return Matrix.objectMatrix(this);
-    });
-
-    this.watch(['position', 'rotate', 'translate', 'scale', 'skew'], function () {
-        matrix.purge();
-    });
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects', ['$DrawerHelper', function GroupObjectDrawer(DrawerHelper) {
-    var drawer = this.extension('Drawer'),
-        layers = this.extension('Layers'),
-        box = this.extension('Box'),
-        style = this.extension('Style');
-
-    box.f(function (boxContainer) {
-
-        var minx = Infinity,
-            miny = Infinity,
-            maxx = -Infinity,
-            maxy = -Infinity;
-
-
-        layers.forEach(function () {
-
-
-            var obox = this.extension('Box').box().value();
-
-            if (obox.position[0] < minx) {
-                minx = obox.position[0];
-            }
-            if (obox.position[1] < miny) {
-                miny = obox.position[1]
-            }
-            if (obox.position[0] + obox.size[0] > maxx) {
-                maxx = obox.position[0] + obox.size[0];
-            }
-            if (obox.position[1] + obox.size[1] > maxy) {
-                maxy = obox.position[1] + obox.size[1];
-            }
-
-        });
-
-        var position = style.get('position');
-
-        if (minx === Infinity) minx = 0;
-        if (maxx === -Infinity) maxx = 0;
-        if (miny === Infinity) miny = 0;
-        if (maxy === -Infinity) maxy = 0;
-
-        boxContainer.set(
-            minx + position[0],
-            miny + position[1],
-            maxx - minx,
-            maxy - miny,
-            0, 0, 0, 0
-        );
-    });
-
-    var position = [0, 0];
-
-    this.watch('position', function (o, n) {
-        position = n;
-        box.purge();
-    });
-
-    drawer.f(function (context) {
-
-        context.save();
-
-        context.globalAlpha *= style.get('opacity');
-
-        DrawerHelper.transform(this, context);
-
-        layers.forEach(function () {
-
-            var odrawer = this.extension('Drawer'),
-                type = this.type();
-
-            if (type == 'Group') {
-                odrawer.draw.call(this, context);
-            }
-            else {
-                var ostyle = this.extension('Style');
-
-                context.save();
-                context.globalCompositeOperation = ostyle.get('blending');
-                context.globalAlpha *= ostyle.get('opacity');
-                odrawer.draw.call(this, context);
-                context.restore();
-            }
-
-        });
-
-        context.restore();
-
-    });
-
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$DrawerHelper', 'Resource', function ImageObjectDrawer(DrawerHelper, Resource) {
-
-    var style = this.extension('Style'),
-        box = this.extension('Box'),
-        drawer = this.extension('Drawer'),
-        matrix = this.extension('Matrix');
-
-    var width = null, height = null,
-        image = null;
-
-
-    this.watch('src', function (o, n) {
-        if (o !== n) {
-            image = Resource.image(n);
-            image.on('load', function () {
-                if(width == null) {
-                    width = image.width();
-                }
-                if(height == null) {
-                    height = image.height();
-                }
-                matrix.purge();
-                box.purge();
-            });
-        }
-    });
-
-    this.watch('size', function (o, n) {
-        if (o[0] !== n[0] || o[1] !== n[1]) {
-            width = n[0];
-            height = n[1];
-            box.purge();
-        }
-    });
-
-    this.watch('position', function (o, n) {
-        if (o[0] !== n[0] || o[1] !== n[1]) {
-            box.purge();
-        }
-    });
-
-    box.f(function (boxContainer) {
-        var position = style.get('position'),
-            anchor = style.get('anchor');
-
-        var x = position[0],
-            y = position[1];
-
-        if (anchor[0] == 'center') {
-            x -= width ? width /2 : 0;
-        }
-        if (anchor[0] == 'right') {
-            x -= width ? width : 0;
-        }
-        if (anchor[1] == 'middle') {
-            y -= height ? height /2 : 0;
-        }
-        if (anchor[1] == 'bottom') {
-            y -= height ? height : 0
-        }
-        boxContainer.set(x, y, width ? width : 0, height ? height : 0, 0, 0, 0, 0);
-    });
-
-    drawer.f(function (context) {
-        if (image && image.loaded() && !image.error() &&
-            width !== null &&
-            height !== null && width > 0 && height > 0) {
-            DrawerHelper.transform(this, context);
-            context.drawImage(image.export(), 0, 0, width, height);
-        }
-    });
-
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects', ['@inject', 'Debug', '$DrawerHelper', '$PathHelper',
-    function LineObjectDrawer(inject, Debug, DrawerHelper, PathHelper) {
-
-        var box = this.extension('Box'),
-            style = this.extension('Style'),
-            canvas = inject('$Canvas'),
-            matrix = this.extension('Matrix'),
-            require_update = false, interpolated = false,
-            strokefix = 1, interpolationfix = 0;
-
-        var drawer = this.extension('Drawer');
-
-        var xshift = 0, yshift = 0;
-
-        box.f(function (boxContainer) {
-            var position = style.get('position'),
-                path = style.get('path'),
-                anchor = style.get('anchor'),
-                x = position[0],
-                y = position[1],
-                minx = Infinity,
-                miny = Infinity,
-                maxx = -Infinity,
-                maxy = -Infinity;
-
-            for (var i = 0; i < path.length; i++) {
-                if (path[i][0] < minx) {
-                    minx = path[i][0]
-                }
-                if (path[i][2] < minx) {
-                    minx = path[i][2]
-                }
-                if (path[i][1] < miny) {
-                    miny = path[i][1]
-                }
-                if (path[i][3] < miny) {
-                    miny = path[i][3]
-                }
-                if (path[i][0] > maxx) {
-                    maxx = path[i][0]
-                }
-                if (path[i][2] > maxx) {
-                    maxx = path[i][2]
-                }
-                if (path[i][1] > maxy) {
-                    maxy = path[i][1]
-                }
-                if (path[i][3] > maxy) {
-                    maxy = path[i][3]
-                }
-            }
-
-            if (minx == Infinity) minx = 0;
-            if (miny == Infinity) miny = 0;
-            if (maxx == -Infinity) maxx = 0;
-            if (maxy == -Infinity) maxx = 0;
-
-            xshift = minx;
-            yshift = miny;
-
-            var fix = strokefix + interpolationfix,
-                width = Math.abs(maxx - minx),
-                height = Math.abs(maxy - miny);
-
-            if (anchor[0] == 'center') {
-                x -= width ? width / 2 : 0;
-            }
-            if (anchor[0] == 'right') {
-                x -= width ? width : 0;
-            }
-            if (anchor[1] == 'middle') {
-                y -= height ? height / 2 : 0;
-            }
-            if (anchor[1] == 'bottom') {
-                y -= height ? height : 0
-            }
-            boxContainer.set(
-                x + xshift,
-                y + yshift,
-                width,
-                height,
-                fix,
-                fix,
-                fix,
-                fix
-            );
-
-        });
-
-        this.watch('path', function () {
-            var interpolation = style.get('interpolation');
-            if (interpolation !== 0) interpolated = false;
-            box.purge();
-            matrix.purge();
-            require_update = true;
-        });
-        this.watch('position', function () {
-            box.purge();
-        });
-
-        this.watch('strokeWidth', function (o, n) {
-            var fix = 0;
-
-            for (var i = 0; i < n.length; i++) {
-                if (n[i] > fix) fix = n[i];
-            }
-
-            strokefix = fix / 2;
-
-            require_update = true;
-
-            box.purge();
-            matrix.purge();
-
-        });
-
-        this.watch('interpolation', function (o, n) {
-            if (o !== n) interpolated = false;
-
-            interpolationfix = Math.round(20 * n);
-            box.purge();
-            matrix.purge();
-            require_update = true;
-
-        });
-
-        this.watch(['strokeStyle', 'strokeColor'], function () {
-            require_update = true;
-        });
-
-
-        var ctx = canvas.context();
-
-        function UpdateCanvas() {
-            var sprite = box.box().sprite(),
-                path = style.get('path'),
-                interpolation = style.get('interpolation');
-
-            if (canvas.width() !== sprite.size[0] || canvas.height() !== sprite.size[1]) {
-
-                var width = sprite.size[0],
-                    height = sprite.size[1];
-
-                canvas.width(width);
-                canvas.height(height);
-            }
-
-            ctx.clearRect(0, 0, sprite.size[0], sprite.size[1]);
-            ctx.save();
-            ctx.fillStyle = 'rgba(255,0,0,.5)';
-            ctx.beginPath();
-            ctx.rect(0, 0, sprite.size[0], sprite.size[1]);
-            ctx.fill();
-            ctx.restore();
-
-            if (!interpolated) {
-                PathHelper.interpolate(path, interpolation);
-                interpolated = true;
-            }
-
-            ctx.save();
-
-            ctx.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
-
-            if (interpolation > 0) {
-                if (path.length > 0) {
-                    DrawerHelper.drawBezierPath(ctx, path, style);
-                }
-            }
-            else {
-                if (path.length > 0) {
-                    DrawerHelper.drawLinePath(ctx, path, style);
-                }
-            }
-
-            ctx.restore();
-
-            require_update = false;
-        }
-
-        drawer.f(function (context) {
-            if (require_update) UpdateCanvas.call(this);
-            DrawerHelper.transform(this, context);
-            context.drawImage(canvas.export(), 0, 0);
-        });
-
-    }]);
-/**
- * Created by bx7kv_000 on 1/11/2017.
- */
-$R.part('Objects', ['@inject', '$DrawerHelper',
-    function RectangleObjectDrawer(inject, DrawerHelper) {
-
-        var assembler = inject('$GraphicsAssembler'),
-            style = this.extension('Style'),
-            drawer = this.extension('Drawer'),
-            boxExtension = this.extension('Box'),
-            matrix = this.extension('Matrix'),
-            strokefix = [2, 2, 2, 2];
-
-        assembler.layer(0, 'fill', UpdateFill.bind(this));
-        assembler.layer(1, 'bg', UpdateBg.bind(this));
-        assembler.layer(2, 'stroke', UpdateStroke.bind(this));
-        assembler.box(boxExtension);
-
-        boxExtension.f(function (boxContainer) {
-
-            var position = style.get('position'),
-                size = style.get('size'),
-                anchor = style.get('anchor');
-
-            var x = position[0],
-                y = position[1];
-
-            if (anchor[0] == 'center') {
-                x -= size[0]/2;
-            }
-            if (anchor[0] == 'right') {
-                x -= size[0];
-            }
-            if (anchor[1] == 'middle') {
-                y -= size[1]/2;
-            }
-            if (anchor[1] == 'bottom') {
-                y -= size[1]
-            }
-
-            boxContainer.set(
-                x, y,
-                size[0], size[1],
-                strokefix[0], strokefix[1], strokefix[2], strokefix[3]
-            );
-        });
-
-        drawer.f(function (context) {
-            DrawerHelper.transform(this, context);
-            assembler.draw(context);
-        });
-
-        this.watch('size', function (o, n) {
-            assembler.update('fill');
-            assembler.update('stroke');
-            assembler.update('bg');
-            assembler.resize();
-            matrix.purge();
-        });
-
-        this.watch('strokeWidth', function (o, n) {
-            strokefix[0] = n[0];
-            strokefix[1] = n[1];
-            strokefix[2] = n[2];
-            strokefix[3] = n[3];
-            boxExtension.purge();
-            assembler.resize();
-            assembler.update('stroke');
-            matrix.purge();
-        });
-
-        this.watch(['position', 'size'], function () {
-            boxExtension.purge();
-            matrix.purge();
-        });
-
-        this.watch(['bg', 'bgSize', 'bgPosition'], function () {
-            assembler.update('bg');
-        });
-
-        this.watch(['strokeStyle', 'strokeColor'], function () {
-            assembler.update('stroke');
-        });
-
-        this.watch(['fill'], function () {
-            assembler.update('fill');
-        });
-
-        function UpdateBg(context) {
-            var boxContainer = boxExtension.box(),
-                box = boxContainer.value(),
-                sprite = boxContainer.sprite();
-
-            context.moveTo(sprite.margin[3], sprite.margin[0]);
-            context.beginPath();
-            context.lineTo(box.size[0] + sprite.margin[3], sprite.margin[0]);
-            context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0]);
-            context.lineTo(sprite.margin[3], box.size[1] + sprite.margin[0]);
-            context.lineTo(sprite.margin[3], sprite.margin[0]);
-            context.clip();
-
-            var bgposition = style.get('bgPosition'),
-                bgsize = style.get('bgSize'),
-                bg = style.get('bg');
-
-            for (var i = 0; i < bg.length; i++) {
-
-                if (!bg[i].loaded()) {
-                    bg[i].on('load', function () {
-                        assembler.update('bg');
-                    });
-                }
-                else {
-                    context.save();
-                    var bgwidth = box.size[0] * bgsize[i][0],
-                        bgheight = box.size[1] * bgsize[i][1],
-                        bgpositionx = box.size[0] * bgposition[i][0],
-                        bgpositiony = box.size[1] * bgposition[i][1];
-
-                    context.translate(sprite.margin[3] + bgpositionx, sprite.margin[0] + bgpositiony);
-                    context.drawImage(bg[i].export(), 0, 0, bgwidth, bgheight);
-                    context.restore();
-                }
-            }
-        }
-
-        function UpdateStroke(context) {
-            var strokeColor = style.get('strokeColor'),
-                strokeWidth = style.get('strokeWidth'),
-                strokeStyle = style.get('strokeStyle'),
-                cap = style.get('cap'),
-                boxContainer = boxExtension.box(),
-                box = boxContainer.value(),
-                sprite = boxContainer.sprite();
-
-            context.moveTo(sprite.margin[3], sprite.margin[0]);
-            context.lineCap = cap;
-            context.strokeStyle = strokeColor[0];
-            context.lineWidth = strokeWidth[0];
-            context.setLineDash(strokeStyle[0]);
-            context.lineTo(box.size[0] + sprite.margin[3], sprite.margin[0]);
-            context.stroke();
-
-            context.strokeStyle = strokeColor[1];
-            context.lineWidth = strokeWidth[1];
-            context.setLineDash(strokeStyle[1]);
-            context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0]);
-            context.stroke();
-
-            context.strokeStyle = strokeColor[2];
-            context.lineWidth = strokeWidth[2];
-            context.setLineDash(strokeStyle[2]);
-            context.lineTo(sprite.margin[3], box.size[1] + sprite.margin[0]);
-            context.stroke();
-
-            context.strokeStyle = strokeColor[3];
-            context.lineWidth = strokeWidth[3];
-            context.setLineDash(strokeStyle[3]);
-            context.lineTo(sprite.margin[3], sprite.margin[0]);
-            context.stroke();
-        }
-
-        function UpdateFill(context) {
-            var fill = style.get('fill'),
-                boxContainer = boxExtension.box(),
-                box = boxContainer.value(),
-                sprite = boxContainer.sprite();
-
-            context.rect(sprite.margin[3], sprite.margin[0], box.size[0], box.size[1]);
-            context.fillStyle = fill;
-            context.fill();
-        }
-    }
-]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$DrawerHelper', '$ModelHelper', 'Resource',
-    function SpriteObjectDrawer(DrawerHelper, ModelHelper, Resource) {
-
-        var style = this.extension('Style'),
-            box = this.extension('Box'),
-            drawer = this.extension('Drawer'),
-            matrix = this.extension('Matrix'),
-            width = null, height = null, image = null;
-
-        box.f(function (boxContainer) {
-            var position = style.get('position'),
-                anchor = style.get('anchor');
-
-            var x = position[0],
-                y = position[1];
-
-            if (anchor[0] == 'center') {
-                x -= width ? width / 2 : 0;
-            }
-            if (anchor[0] == 'right') {
-                x -= width ? width : 0;
-            }
-            if (anchor[1] == 'middle') {
-                y -= height ? height / 2 : 0;
-            }
-            if (anchor[1] == 'bottom') {
-                y -= height ? height : 0
-            }
-            boxContainer.set(
-                x,
-                y,
-                width ? width : 0,
-                height ? height : 0,
-                0,
-                0,
-                0,
-                0
-            );
-        });
-
-        drawer.f(function (context) {
-            if (image && image.loaded() && !image.error()
-                && image.ready()
-                && width !== null && height !== null
-                && width > 0 && height > 0) {
-                DrawerHelper.transform(this, context);
-                context.drawImage(image.export(), 0, 0, width, height);
-            }
-        });
-
-        this.watch('src', function (o, n) {
-            if (n !== o) {
-                var data = ModelHelper.readSpriteString(n);
-                image = Resource.sprite(data.url);
-                image.config(data.frames);
-                image.on('load', function () {
-                    if (width == null) {
-                        width = image.width();
-                    }
-                    if (height == null) {
-                        height = image.height();
-                    }
-                    matrix.purge();
-                    box.purge();
-                });
-            }
-        });
-
-        this.watch('size', function (o, n) {
-            if (o[0] !== n[0] || o[1] !== n[1]) {
-                width = n[0];
-                height = n[1];
-                box.purge();
-            }
-        });
-        this.watch('position', function (o, n) {
-            if (o[0] !== n[0] || o[1] !== n[1]) {
-                box.purge();
-            }
-        });
-    }
-]);
-/**
- * Created by Viktor Khodosevich on 3/25/2017.
- */
-$R.part('Objects', ['@inject', '$DrawerHelper', 'Resource',
-        function TextObjectDrawer(inject, DrawerHelper, Resource) {
-            var text = this.extension('Text'),
-                style = this.extension('Style'),
-                box = this.extension('Box'),
-                drawer = this.extension('Drawer'),
-                matrix = this.extension('Matrix'),
-                require_update = false,
-                font = style.get('font'),
-                weight = style.get('weight'),
-                fstyle = style.get('style'),
-                assembler = inject('$GraphicsAssembler'),
-                object = this;
-
-            assembler.layer(0, 'text', UpdateTextLayer);
-
-            function UpdateTextLayer(context) {
-                text.update();
-
-                var lineHeight = style.get('lineHeight'),
-                    color = style.get('color'),
-                    fontSize = style.get('fontSize'),
-                    align = style.get('align');
-
-                context.beginPath();
-
-                var topSpan = lineHeight - (fontSize / 5);
-
-                if (fontSize < lineHeight) {
-                    topSpan = topSpan - (lineHeight - fontSize);
-                }
-                else {
-                    topSpan = topSpan + (fontSize - lineHeight);
-                }
-                text.forEachLine(function (i) {
-                    context.beginPath();
-                    var y = topSpan + i * lineHeight;
-
-                    context.font = this.extractFontString();
-                    context.fillStyle = this.color();
-                    if (align == 'center') {
-                        context.fillText(this.string(), (text.textBlockWidth() - this.width()) / 2, y);
-                    }
-                    else if (align == 'right') {
-                        context.fillText(this.string(), text.textBlockWidth() - this.width() - 2, y);
-                    }
-                    else {
-                        context.fillText(this.string(), 2, y);
-                    }
-                });
-            }
-
-            function getFontFile() {
-                var _style = fstyle === 'oblique' ? 'normal' : fstyle;
-                var f = Resource.font(font, weight, _style);
-                f.on('load', function () {
-                    require_update = true;
-                    box.purge();
-                    matrix.purge();
-                    text.update(true);
-                });
-
-                f.on('error', function () {
-                    require_update = true;
-                    box.purge();
-                    matrix.purge();
-                    text.update(true);
-                })
-            }
-
-            function drawText(context) {
-                if (require_update) {
-                    assembler.size(text.textBlockWidth(), text.textBlockHeight());
-                    assembler.update('text');
-                    require_update = false;
-                }
-                DrawerHelper.transform(this, context);
-                assembler.draw(context);
-            }
-
-            this.watch(['str', 'style', 'font', 'weight', 'size', 'color', 'fontSize', 'lineHeight'], function () {
-                require_update = true;
-                box.purge();
-                matrix.purge();
-            });
-
-            this.watch('font', function (o, n) {
-                font = n;
-                getFontFile();
-            });
-            this.watch('style', function (o, n) {
-                fstyle = n;
-                getFontFile();
-            });
-            this.watch('weight', function (o, n) {
-                weight = n;
-                getFontFile();
-            });
-
-            this.watch('anchor', function () {
-                box.purge();
-                matrix.purge();
-            });
-
-            box.f(function (boxContainer) {
-                var position = style.get('position'),
-                    anchor = style.get('anchor'),
-                    x = position[0],
-                    y = position[1];
-
-                if (anchor[0] == 'center') {
-                    x -= text.textBlockWidth() / 2
-                }
-                if (anchor[0] == 'right') {
-                    x -= text.textBlockWidth();
-                }
-                if (anchor[1] == 'middle') {
-                    y -= text.textBlockHeight() / 2
-                }
-                if (anchor[1] == 'bottom') {
-                    y -= text.textBlockHeight();
-                }
-                boxContainer.set(x, y, text.textBlockWidth(), text.textBlockHeight(), 0, 0, 0, 0);
-            });
-
-            drawer.f(drawText);
-
-        }
-    ]
-);
 /**
  * Created by Viktor Khodosevich on 5/1/2017.
  */
@@ -9256,6 +8142,1124 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
     ]
 );
 /**
+ * Created by Viktor Khodosevich on 5/1/2017.
+ */
+$R.part('Objects', ['@inject', '$DrawerHelper', '$PathHelper', '$ModelHelper', function AreaObjectDrawer(inject, DrawerHelper, PathHelper, ModelHelper) {
+
+    var assembler = inject('$GraphicsAssembler'),
+        box = this.extension('Box'),
+        style = this.extension('Style'),
+        matrix = this.extension('Matrix'),
+        drawer = this.extension('Drawer'),
+        interpolated = false,
+        strokefix = 1, interpolationfix = 0,
+        xshift = 0, yshift = 0;
+
+
+    //TODO : Apply interpolation to path!
+
+    assembler.layer(0, 'fill', UpdateFill.bind(this));
+    assembler.layer(1, 'bg', UpdateBg.bind(this));
+    assembler.layer(2, 'stroke', UpdateStroke.bind(this));
+    assembler.box(box);
+
+    function UpdateFill(context) {
+        var sprite = this.extension('Box').box().sprite(),
+            style = this.extension('Style'),
+            path = style.get('path');
+
+        context.save();
+        context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
+
+        var interpolation = style.get('interpolation');
+
+        if (!interpolated) {
+            PathHelper.interpolate(path, interpolation, true);
+            interpolated = true;
+        }
+
+        if (interpolation) DrawerHelper.drawBezierPathFill(context, path, style);
+        else DrawerHelper.drawLinePathFill(context, path, style);
+
+        context.restore();
+    }
+
+    function UpdateStroke(context) {
+        var sprite = this.extension('Box').box().sprite(),
+            style = this.extension('Style'),
+            path = ModelHelper.cloneArray(style.get('path')),
+            interpolation = style.get('interpolation');
+
+
+        context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
+
+        if (!interpolated) {
+            PathHelper.interpolate(path, interpolation, true);
+            interpolated = true;
+        }
+
+        if (interpolation) DrawerHelper.drawLinePath(context, path, style);
+        DrawerHelper.drawBezierPath(context, path, style);
+    }
+
+    function UpdateBg(context) {
+        var style = this.extension('Style'),
+            sprite = this.extension('Box').box().sprite(),
+            path = ModelHelper.cloneArray(style.get('path')),
+            interpolation = style.get('interpolation');
+
+
+        context.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
+
+        if (!interpolated) {
+            PathHelper.interpolate(path, interpolation, true);
+            interpolated = true;
+        }
+
+        if (interpolation) DrawerHelper.drawLineBgClipPath(context, path, style, assembler, sprite);
+        else DrawerHelper.drawBezierBgClipPath(context, path, style, assembler, sprite);
+    }
+
+
+    this.watch('path', function () {
+        var interpolation = style.get('interpolation');
+        interpolated = false;
+        box.purge();
+        matrix.purge();
+        assembler.resize();
+        assembler.update('fill');
+        assembler.update('stroke');
+        assembler.update('bg');
+    });
+
+    this.watch('interpolation', function (o, n) {
+        interpolated = false;
+        interpolationfix = Math.round(40 * n);
+        assembler.update('fill');
+        assembler.update('stroke');
+        assembler.update('bg');
+        assembler.resize();
+    });
+
+    this.watch('position', function () {
+        box.purge();
+        matrix.purge();
+    });
+
+    this.watch(['strokeStyle', 'strokeColor'], function () {
+        assembler.update('stroke');
+        assembler.resize();
+    });
+
+    this.watch('fill', function () {
+        assembler.update('fill');
+    });
+
+    this.watch(['bg', 'bgSize', 'bgPosition'], function () {
+        assembler.update('bg');
+    });
+
+    this.watch('strokeWidth', function (o, n) {
+        var fix = 0;
+
+        for (var i = 0; i < n.length; i++) {
+            if (n[i] > fix) fix = n[i];
+        }
+
+        strokefix = fix / 2;
+        assembler.update('stroke');
+        box.purge();
+        matrix.purge();
+        assembler.resize();
+
+    });
+
+    box.f(function (boxContainer) {
+        var position = style.get('position'),
+            path = style.get('path'),
+            anchor = style.get('anchor'),
+            x = position[0],
+            y = position[1],
+            minx = Infinity,
+            miny = Infinity,
+            maxx = -Infinity,
+            maxy = -Infinity;
+
+        for (var i = 0; i < path.length; i++) {
+            if (path[i][0] < minx) {
+                minx = path[i][0]
+            }
+            if (path[i][2] < minx) {
+                minx = path[i][2]
+            }
+            if (path[i][1] < miny) {
+                miny = path[i][1]
+            }
+            if (path[i][3] < miny) {
+                miny = path[i][3]
+            }
+            if (path[i][0] > maxx) {
+                maxx = path[i][0]
+            }
+            if (path[i][2] > maxx) {
+                maxx = path[i][2]
+            }
+            if (path[i][1] > maxy) {
+                maxy = path[i][1]
+            }
+            if (path[i][3] > maxy) {
+                maxy = path[i][3]
+            }
+        }
+
+        if (minx == Infinity) minx = 0;
+        if (miny == Infinity) miny = 0;
+        if (maxx == -Infinity) maxx = 0;
+        if (maxy == -Infinity) maxx = 0;
+
+        xshift = minx;
+        yshift = miny;
+
+        var fix = strokefix + interpolationfix,
+            width = Math.abs(maxx - minx),
+            height = Math.abs(maxy - miny);
+
+        if (anchor[0] == 'center') {
+            x -= width ? width / 2 : 0;
+        }
+        if (anchor[0] == 'right') {
+            x -= width ? width : 0;
+        }
+        if (anchor[1] == 'middle') {
+            y -= height ? height / 2 : 0;
+        }
+        if (anchor[1] == 'bottom') {
+            y -= height ? height : 0
+        }
+        boxContainer.set(
+            x + xshift,
+            y + yshift,
+            width,
+            height,
+            fix,
+            fix,
+            fix,
+            fix
+        );
+
+    });
+
+    drawer.f(function (context) {
+        DrawerHelper.transform(this, context);
+        assembler.draw(context);
+    });
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$DrawerHelper', 'Debug', '@inject', function CircleObjectDrawer(DrawerHelper, Debug, inject) {
+
+    var assembler = inject('$GraphicsAssembler'),
+        drawer = this.extension('Drawer'),
+        boxExt = this.extension('Box'),
+        style = this.extension('Style'),
+        matrix = this.extension('Matrix'),
+        strokefix = 1;
+
+    assembler.layer(0, 'fill', UpdateFill.bind(this));
+    assembler.layer(1, 'bg', UpdateBg.bind(this));
+    assembler.layer(2, 'stroke', UpdateStroke.bind(this));
+    assembler.box(boxExt);
+
+    function UpdateStroke(context) {
+        var sprite = boxExt.box().sprite();
+
+        context.beginPath();
+        context.strokeStyle = style.get('strokeColor');
+        context.lineWidth = style.get('strokeWidth');
+        context.setLineDash(style.get('strokeStyle'));
+
+        context.arc(sprite.size[0] / 2, sprite.size[1] / 2, style.get('radius'), 0, Math.PI * 2);
+        context.stroke();
+
+    }
+
+    function UpdateFill(context) {
+        var sprite = boxExt.box().sprite();
+
+        context.beginPath();
+        context.fillStyle = style.get('fill');
+        context.arc(sprite.size[0] / 2, sprite.size[1] / 2, style.get('radius'), 0, Math.PI * 2);
+        context.fill();
+    }
+
+    function UpdateBg(context){
+        var sprite = boxExt.box().sprite(),
+            box = boxExt.box().value();
+
+        context.beginPath();
+        context.arc(sprite.size[0] / 2, sprite.size[1] / 2, style.get('radius'), 0, Math.PI / 2);
+        context.clip();
+
+        var bgposition = style.get('bgPosition'),
+            bgsize = style.get('bgSize'),
+            bg = style.get('bg');
+
+        for (var i = 0; i < bg.length; i++) {
+
+            if (!bg[i].loaded()) {
+                bg[i].on('load', function () {assembler.update('bg')});
+            }
+            else {
+                context.save();
+
+                var bgwidth = box.size[0] * bgsize[i][0],
+                    bgheight = box.size[1] * bgsize[i][1],
+                    bgpositionx = box.size[0] * bgposition[i][0],
+                    bgpositiony = box.size[1] * bgposition[i][1];
+
+                context.translate(sprite.margin[3] + bgpositionx, sprite.margin[0] + bgpositiony);
+                context.drawImage(bg[i].export(), 0, 0, bgwidth, bgheight);
+                context.restore();
+            }
+        }
+    }
+
+    boxExt.f(function (boxContainer) {
+        var radius = style.get('radius'),
+            position = style.get('position'),
+            anchor = style.get('anchor'),
+            d = radius * 2;
+
+        var x = position[0],
+            y = position[1];
+
+        if (anchor[0] == 'center') {
+            x -= radius
+        }
+        if (anchor[0] == 'right') {
+            x -= d
+        }
+        if (anchor[1] == 'middle') {
+            y -= radius
+        }
+        if (anchor[1] == 'bottom') {
+            y -= d;
+        }
+
+        boxContainer.set(x, y, d, d, strokefix, strokefix, strokefix, strokefix);
+    });
+
+    this.watch('radius', function () {
+        assembler.update('stroke');
+        assembler.update('bg');
+        assembler.update('fill');
+        boxExt.purge();
+        matrix.purge();
+        assembler.resize();
+    });
+
+    this.watch('fill', function () {
+        assembler.update('fill');
+    });
+
+    this.watch('position', function () {
+        boxExt.purge();
+    });
+
+    this.watch('strokeWidth', function (o, n) {
+        if (n !== o) {
+            strokefix = n;
+            boxExt.purge();
+            assembler.update('stroke');
+            matrix.purge();
+            assembler.resize();
+        }
+    });
+
+    this.watch(['strokeStyle', 'strokeColor'], function () {
+        assembler.update('stoke');
+    });
+
+    this.watch(['bg', 'bgPosition', 'bgSize'], function () {
+        assembler.update('bg');
+    });
+
+    drawer.f(function (context) {
+        DrawerHelper.transform(this, context);
+        assembler.draw(context);
+    });
+}]);
+/**
+ * Created by bx7kv_000 on 1/5/2017.
+ */
+$R.part('Objects' , ['Debug' , '$MatrixHelper', function DefaultObjectDrawer (Debug,Matrix) {
+    var matrix = this.extension('Matrix');
+
+    matrix.f(function () {
+        return Matrix.objectMatrix(this);
+    });
+
+    this.watch(['position', 'rotate', 'translate', 'scale', 'skew'], function () {
+        matrix.purge();
+    });
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects', ['$DrawerHelper', function GroupObjectDrawer(DrawerHelper) {
+    var drawer = this.extension('Drawer'),
+        layers = this.extension('Layers'),
+        box = this.extension('Box'),
+        style = this.extension('Style');
+
+    box.f(function (boxContainer) {
+
+        var minx = Infinity,
+            miny = Infinity,
+            maxx = -Infinity,
+            maxy = -Infinity;
+
+
+        layers.forEach(function () {
+
+
+            var obox = this.extension('Box').box().value();
+
+            if (obox.position[0] < minx) {
+                minx = obox.position[0];
+            }
+            if (obox.position[1] < miny) {
+                miny = obox.position[1]
+            }
+            if (obox.position[0] + obox.size[0] > maxx) {
+                maxx = obox.position[0] + obox.size[0];
+            }
+            if (obox.position[1] + obox.size[1] > maxy) {
+                maxy = obox.position[1] + obox.size[1];
+            }
+
+        });
+
+        var position = style.get('position');
+
+        if (minx === Infinity) minx = 0;
+        if (maxx === -Infinity) maxx = 0;
+        if (miny === Infinity) miny = 0;
+        if (maxy === -Infinity) maxy = 0;
+
+        boxContainer.set(
+            minx + position[0],
+            miny + position[1],
+            maxx - minx,
+            maxy - miny,
+            0, 0, 0, 0
+        );
+    });
+
+    var position = [0, 0];
+
+    this.watch('position', function (o, n) {
+        position = n;
+        box.purge();
+    });
+
+    drawer.f(function (context) {
+
+        context.save();
+
+        context.globalAlpha *= style.get('opacity');
+
+        DrawerHelper.transform(this, context);
+
+        layers.forEach(function () {
+
+            var odrawer = this.extension('Drawer'),
+                type = this.type();
+
+            if (type == 'Group') {
+                odrawer.draw.call(this, context);
+            }
+            else {
+                var ostyle = this.extension('Style');
+
+                context.save();
+                context.globalCompositeOperation = ostyle.get('blending');
+                context.globalAlpha *= ostyle.get('opacity');
+                odrawer.draw.call(this, context);
+                context.restore();
+            }
+
+        });
+
+        context.restore();
+
+    });
+
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$DrawerHelper', 'Resource', function ImageObjectDrawer(DrawerHelper, Resource) {
+
+    var style = this.extension('Style'),
+        box = this.extension('Box'),
+        drawer = this.extension('Drawer'),
+        matrix = this.extension('Matrix');
+
+    var width = null, height = null,
+        image = null;
+
+
+    this.watch('src', function (o, n) {
+        if (o !== n) {
+            image = Resource.image(n);
+            image.on('load', function () {
+                if(width == null) {
+                    width = image.width();
+                }
+                if(height == null) {
+                    height = image.height();
+                }
+                matrix.purge();
+                box.purge();
+            });
+        }
+    });
+
+    this.watch('size', function (o, n) {
+        if (o[0] !== n[0] || o[1] !== n[1]) {
+            width = n[0];
+            height = n[1];
+            box.purge();
+        }
+    });
+
+    this.watch('position', function (o, n) {
+        if (o[0] !== n[0] || o[1] !== n[1]) {
+            box.purge();
+        }
+    });
+
+    box.f(function (boxContainer) {
+        var position = style.get('position'),
+            anchor = style.get('anchor');
+
+        var x = position[0],
+            y = position[1];
+
+        if (anchor[0] == 'center') {
+            x -= width ? width /2 : 0;
+        }
+        if (anchor[0] == 'right') {
+            x -= width ? width : 0;
+        }
+        if (anchor[1] == 'middle') {
+            y -= height ? height /2 : 0;
+        }
+        if (anchor[1] == 'bottom') {
+            y -= height ? height : 0
+        }
+        boxContainer.set(x, y, width ? width : 0, height ? height : 0, 0, 0, 0, 0);
+    });
+
+    drawer.f(function (context) {
+        if (image && image.loaded() && !image.error() &&
+            width !== null &&
+            height !== null && width > 0 && height > 0) {
+            DrawerHelper.transform(this, context);
+            context.drawImage(image.export(), 0, 0, width, height);
+        }
+    });
+
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects', ['@inject', 'Debug', '$DrawerHelper', '$PathHelper',
+    function LineObjectDrawer(inject, Debug, DrawerHelper, PathHelper) {
+
+        var box = this.extension('Box'),
+            style = this.extension('Style'),
+            canvas = inject('$Canvas'),
+            matrix = this.extension('Matrix'),
+            require_update = false, interpolated = false,
+            strokefix = 1, interpolationfix = 0;
+
+        var drawer = this.extension('Drawer');
+
+        var xshift = 0, yshift = 0;
+
+        box.f(function (boxContainer) {
+            var position = style.get('position'),
+                path = style.get('path'),
+                anchor = style.get('anchor'),
+                x = position[0],
+                y = position[1],
+                minx = Infinity,
+                miny = Infinity,
+                maxx = -Infinity,
+                maxy = -Infinity;
+
+            for (var i = 0; i < path.length; i++) {
+                if (path[i][0] < minx) {
+                    minx = path[i][0]
+                }
+                if (path[i][2] < minx) {
+                    minx = path[i][2]
+                }
+                if (path[i][1] < miny) {
+                    miny = path[i][1]
+                }
+                if (path[i][3] < miny) {
+                    miny = path[i][3]
+                }
+                if (path[i][0] > maxx) {
+                    maxx = path[i][0]
+                }
+                if (path[i][2] > maxx) {
+                    maxx = path[i][2]
+                }
+                if (path[i][1] > maxy) {
+                    maxy = path[i][1]
+                }
+                if (path[i][3] > maxy) {
+                    maxy = path[i][3]
+                }
+            }
+
+            if (minx == Infinity) minx = 0;
+            if (miny == Infinity) miny = 0;
+            if (maxx == -Infinity) maxx = 0;
+            if (maxy == -Infinity) maxx = 0;
+
+            xshift = minx;
+            yshift = miny;
+
+            var fix = strokefix + interpolationfix,
+                width = Math.abs(maxx - minx),
+                height = Math.abs(maxy - miny);
+
+            if (anchor[0] == 'center') {
+                x -= width ? width / 2 : 0;
+            }
+            if (anchor[0] == 'right') {
+                x -= width ? width : 0;
+            }
+            if (anchor[1] == 'middle') {
+                y -= height ? height / 2 : 0;
+            }
+            if (anchor[1] == 'bottom') {
+                y -= height ? height : 0
+            }
+            boxContainer.set(
+                x + xshift,
+                y + yshift,
+                width,
+                height,
+                fix,
+                fix,
+                fix,
+                fix
+            );
+
+        });
+
+        this.watch('path', function () {
+            var interpolation = style.get('interpolation');
+            if (interpolation !== 0) interpolated = false;
+            box.purge();
+            matrix.purge();
+            require_update = true;
+        });
+        this.watch('position', function () {
+            box.purge();
+        });
+
+        this.watch('strokeWidth', function (o, n) {
+            var fix = 0;
+
+            for (var i = 0; i < n.length; i++) {
+                if (n[i] > fix) fix = n[i];
+            }
+
+            strokefix = fix / 2;
+
+            require_update = true;
+
+            box.purge();
+            matrix.purge();
+
+        });
+
+        this.watch('interpolation', function (o, n) {
+            if (o !== n) interpolated = false;
+
+            interpolationfix = Math.round(20 * n);
+            box.purge();
+            matrix.purge();
+            require_update = true;
+
+        });
+
+        this.watch(['strokeStyle', 'strokeColor'], function () {
+            require_update = true;
+        });
+
+
+        var ctx = canvas.context();
+
+        function UpdateCanvas() {
+            var sprite = box.box().sprite(),
+                path = style.get('path'),
+                interpolation = style.get('interpolation');
+
+            if (canvas.width() !== sprite.size[0] || canvas.height() !== sprite.size[1]) {
+
+                var width = sprite.size[0],
+                    height = sprite.size[1];
+
+                canvas.width(width);
+                canvas.height(height);
+            }
+
+            ctx.clearRect(0, 0, sprite.size[0], sprite.size[1]);
+            ctx.save();
+            ctx.fillStyle = 'rgba(255,0,0,.5)';
+            ctx.beginPath();
+            ctx.rect(0, 0, sprite.size[0], sprite.size[1]);
+            ctx.fill();
+            ctx.restore();
+
+            if (!interpolated) {
+                PathHelper.interpolate(path, interpolation);
+                interpolated = true;
+            }
+
+            ctx.save();
+
+            ctx.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
+
+            if (interpolation > 0) {
+                if (path.length > 0) {
+                    DrawerHelper.drawBezierPath(ctx, path, style);
+                }
+            }
+            else {
+                if (path.length > 0) {
+                    DrawerHelper.drawLinePath(ctx, path, style);
+                }
+            }
+
+            ctx.restore();
+
+            require_update = false;
+        }
+
+        drawer.f(function (context) {
+            if (require_update) UpdateCanvas.call(this);
+            DrawerHelper.transform(this, context);
+            context.drawImage(canvas.export(), 0, 0);
+        });
+
+    }]);
+/**
+ * Created by bx7kv_000 on 1/11/2017.
+ */
+$R.part('Objects', ['@inject', '$DrawerHelper',
+    function RectangleObjectDrawer(inject, DrawerHelper) {
+
+        var assembler = inject('$GraphicsAssembler'),
+            style = this.extension('Style'),
+            drawer = this.extension('Drawer'),
+            boxExtension = this.extension('Box'),
+            matrix = this.extension('Matrix'),
+            strokefix = [2, 2, 2, 2];
+
+        assembler.layer(0, 'fill', UpdateFill.bind(this));
+        assembler.layer(1, 'bg', UpdateBg.bind(this));
+        assembler.layer(2, 'stroke', UpdateStroke.bind(this));
+        assembler.box(boxExtension);
+
+        boxExtension.f(function (boxContainer) {
+
+            var position = style.get('position'),
+                size = style.get('size'),
+                anchor = style.get('anchor');
+
+            var x = position[0],
+                y = position[1];
+
+            if (anchor[0] == 'center') {
+                x -= size[0]/2;
+            }
+            if (anchor[0] == 'right') {
+                x -= size[0];
+            }
+            if (anchor[1] == 'middle') {
+                y -= size[1]/2;
+            }
+            if (anchor[1] == 'bottom') {
+                y -= size[1]
+            }
+
+            boxContainer.set(
+                x, y,
+                size[0], size[1],
+                strokefix[0], strokefix[1], strokefix[2], strokefix[3]
+            );
+        });
+
+        drawer.f(function (context) {
+            DrawerHelper.transform(this, context);
+            assembler.draw(context);
+        });
+
+        this.watch('size', function (o, n) {
+            assembler.update('fill');
+            assembler.update('stroke');
+            assembler.update('bg');
+            assembler.resize();
+            matrix.purge();
+        });
+
+        this.watch('strokeWidth', function (o, n) {
+            strokefix[0] = n[0];
+            strokefix[1] = n[1];
+            strokefix[2] = n[2];
+            strokefix[3] = n[3];
+            boxExtension.purge();
+            assembler.resize();
+            assembler.update('stroke');
+            matrix.purge();
+        });
+
+        this.watch(['position', 'size'], function () {
+            boxExtension.purge();
+            matrix.purge();
+        });
+
+        this.watch(['bg', 'bgSize', 'bgPosition'], function () {
+            assembler.update('bg');
+        });
+
+        this.watch(['strokeStyle', 'strokeColor'], function () {
+            assembler.update('stroke');
+        });
+
+        this.watch(['fill'], function () {
+            assembler.update('fill');
+        });
+
+        function UpdateBg(context) {
+            var boxContainer = boxExtension.box(),
+                box = boxContainer.value(),
+                sprite = boxContainer.sprite();
+
+            context.moveTo(sprite.margin[3], sprite.margin[0]);
+            context.beginPath();
+            context.lineTo(box.size[0] + sprite.margin[3], sprite.margin[0]);
+            context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0]);
+            context.lineTo(sprite.margin[3], box.size[1] + sprite.margin[0]);
+            context.lineTo(sprite.margin[3], sprite.margin[0]);
+            context.clip();
+
+            var bgposition = style.get('bgPosition'),
+                bgsize = style.get('bgSize'),
+                bg = style.get('bg');
+
+            for (var i = 0; i < bg.length; i++) {
+
+                if (!bg[i].loaded()) {
+                    bg[i].on('load', function () {
+                        assembler.update('bg');
+                    });
+                }
+                else {
+                    context.save();
+                    var bgwidth = box.size[0] * bgsize[i][0],
+                        bgheight = box.size[1] * bgsize[i][1],
+                        bgpositionx = box.size[0] * bgposition[i][0],
+                        bgpositiony = box.size[1] * bgposition[i][1];
+
+                    context.translate(sprite.margin[3] + bgpositionx, sprite.margin[0] + bgpositiony);
+                    context.drawImage(bg[i].export(), 0, 0, bgwidth, bgheight);
+                    context.restore();
+                }
+            }
+        }
+
+        function UpdateStroke(context) {
+            var strokeColor = style.get('strokeColor'),
+                strokeWidth = style.get('strokeWidth'),
+                strokeStyle = style.get('strokeStyle'),
+                cap = style.get('cap'),
+                boxContainer = boxExtension.box(),
+                box = boxContainer.value(),
+                sprite = boxContainer.sprite();
+
+            context.moveTo(sprite.margin[3], sprite.margin[0]);
+            context.lineCap = cap;
+            context.strokeStyle = strokeColor[0];
+            context.lineWidth = strokeWidth[0];
+            context.setLineDash(strokeStyle[0]);
+            context.lineTo(box.size[0] + sprite.margin[3], sprite.margin[0]);
+            context.stroke();
+
+            context.strokeStyle = strokeColor[1];
+            context.lineWidth = strokeWidth[1];
+            context.setLineDash(strokeStyle[1]);
+            context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0]);
+            context.stroke();
+
+            context.strokeStyle = strokeColor[2];
+            context.lineWidth = strokeWidth[2];
+            context.setLineDash(strokeStyle[2]);
+            context.lineTo(sprite.margin[3], box.size[1] + sprite.margin[0]);
+            context.stroke();
+
+            context.strokeStyle = strokeColor[3];
+            context.lineWidth = strokeWidth[3];
+            context.setLineDash(strokeStyle[3]);
+            context.lineTo(sprite.margin[3], sprite.margin[0]);
+            context.stroke();
+        }
+
+        function UpdateFill(context) {
+            var fill = style.get('fill'),
+                boxContainer = boxExtension.box(),
+                box = boxContainer.value(),
+                sprite = boxContainer.sprite();
+
+            context.rect(sprite.margin[3], sprite.margin[0], box.size[0], box.size[1]);
+            context.fillStyle = fill;
+            context.fill();
+        }
+    }
+]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$DrawerHelper', '$ModelHelper', 'Resource',
+    function SpriteObjectDrawer(DrawerHelper, ModelHelper, Resource) {
+
+        var style = this.extension('Style'),
+            box = this.extension('Box'),
+            drawer = this.extension('Drawer'),
+            matrix = this.extension('Matrix'),
+            width = null, height = null, image = null;
+
+        box.f(function (boxContainer) {
+            var position = style.get('position'),
+                anchor = style.get('anchor');
+
+            var x = position[0],
+                y = position[1];
+
+            if (anchor[0] == 'center') {
+                x -= width ? width / 2 : 0;
+            }
+            if (anchor[0] == 'right') {
+                x -= width ? width : 0;
+            }
+            if (anchor[1] == 'middle') {
+                y -= height ? height / 2 : 0;
+            }
+            if (anchor[1] == 'bottom') {
+                y -= height ? height : 0
+            }
+            boxContainer.set(
+                x,
+                y,
+                width ? width : 0,
+                height ? height : 0,
+                0,
+                0,
+                0,
+                0
+            );
+        });
+
+        drawer.f(function (context) {
+            if (image && image.loaded() && !image.error()
+                && image.ready()
+                && width !== null && height !== null
+                && width > 0 && height > 0) {
+                DrawerHelper.transform(this, context);
+                context.drawImage(image.export(), 0, 0, width, height);
+            }
+        });
+
+        this.watch('src', function (o, n) {
+            if (n !== o) {
+                var data = ModelHelper.readSpriteString(n);
+                image = Resource.sprite(data.url);
+                image.config(data.frames);
+                image.on('load', function () {
+                    if (width == null) {
+                        width = image.width();
+                    }
+                    if (height == null) {
+                        height = image.height();
+                    }
+                    matrix.purge();
+                    box.purge();
+                });
+            }
+        });
+
+        this.watch('size', function (o, n) {
+            if (o[0] !== n[0] || o[1] !== n[1]) {
+                width = n[0];
+                height = n[1];
+                box.purge();
+            }
+        });
+        this.watch('position', function (o, n) {
+            if (o[0] !== n[0] || o[1] !== n[1]) {
+                box.purge();
+            }
+        });
+    }
+]);
+/**
+ * Created by Viktor Khodosevich on 3/25/2017.
+ */
+$R.part('Objects', ['@inject', '$DrawerHelper', 'Resource',
+        function TextObjectDrawer(inject, DrawerHelper, Resource) {
+            var text = this.extension('Text'),
+                style = this.extension('Style'),
+                box = this.extension('Box'),
+                drawer = this.extension('Drawer'),
+                matrix = this.extension('Matrix'),
+                require_update = false,
+                font = style.get('font'),
+                weight = style.get('weight'),
+                fstyle = style.get('style'),
+                assembler = inject('$GraphicsAssembler'),
+                object = this;
+
+            assembler.layer(0, 'text', UpdateTextLayer);
+
+            function UpdateTextLayer(context) {
+                text.update();
+
+                var lineHeight = style.get('lineHeight'),
+                    color = style.get('color'),
+                    fontSize = style.get('fontSize'),
+                    align = style.get('align');
+
+                context.beginPath();
+
+                var topSpan = lineHeight - (fontSize / 5);
+
+                if (fontSize < lineHeight) {
+                    topSpan = topSpan - (lineHeight - fontSize);
+                }
+                else {
+                    topSpan = topSpan + (fontSize - lineHeight);
+                }
+                text.forEachLine(function (i) {
+                    context.beginPath();
+                    var y = topSpan + i * lineHeight;
+
+                    context.font = this.extractFontString();
+                    context.fillStyle = this.color();
+                    if (align == 'center') {
+                        context.fillText(this.string(), (text.textBlockWidth() - this.width()) / 2, y);
+                    }
+                    else if (align == 'right') {
+                        context.fillText(this.string(), text.textBlockWidth() - this.width() - 2, y);
+                    }
+                    else {
+                        context.fillText(this.string(), 2, y);
+                    }
+                });
+            }
+
+            function getFontFile() {
+                var _style = fstyle === 'oblique' ? 'normal' : fstyle;
+                var f = Resource.font(font, weight, _style);
+                f.on('load', function () {
+                    require_update = true;
+                    box.purge();
+                    matrix.purge();
+                    text.update(true);
+                });
+
+                f.on('error', function () {
+                    require_update = true;
+                    box.purge();
+                    matrix.purge();
+                    text.update(true);
+                })
+            }
+
+            function drawText(context) {
+                if (require_update) {
+                    assembler.size(text.textBlockWidth(), text.textBlockHeight());
+                    assembler.update('text');
+                    require_update = false;
+                }
+                DrawerHelper.transform(this, context);
+                assembler.draw(context);
+            }
+
+            this.watch(['str', 'style', 'font', 'weight', 'size', 'color', 'fontSize', 'lineHeight'], function () {
+                require_update = true;
+                box.purge();
+                matrix.purge();
+            });
+
+            this.watch('font', function (o, n) {
+                font = n;
+                getFontFile();
+            });
+            this.watch('style', function (o, n) {
+                fstyle = n;
+                getFontFile();
+            });
+            this.watch('weight', function (o, n) {
+                weight = n;
+                getFontFile();
+            });
+
+            this.watch('anchor', function () {
+                box.purge();
+                matrix.purge();
+            });
+
+            this.watch('position' , function () {
+                box.purge()
+            });
+
+            box.f(function (boxContainer) {
+                var position = style.get('position'),
+                    anchor = style.get('anchor'),
+                    x = position[0],
+                    y = position[1];
+
+                if (anchor[0] == 'center') {
+                    x -= text.textBlockWidth() / 2
+                }
+                if (anchor[0] == 'right') {
+                    x -= text.textBlockWidth();
+                }
+                if (anchor[1] == 'middle') {
+                    y -= text.textBlockHeight() / 2
+                }
+                if (anchor[1] == 'bottom') {
+                    y -= text.textBlockHeight();
+                }
+                boxContainer.set(x, y, text.textBlockWidth(), text.textBlockHeight(), 0, 0, 0, 0);
+            });
+
+            drawer.f(drawText);
+
+        }
+    ]
+);
+/**
  * Created by bx7kv_000 on 12/25/2016.
  */
 $R.part('Sound', ['$AnimationHelper', 'Morphine', function Animation(AnimationHelper, Morphine) {
@@ -9623,6 +9627,7 @@ $R.part('Objects', ['$AnimationHelper', 'Morphine', function Animation(Animation
     };
 
     this.start = function () {
+        if(active) return;
 
         active = true;
 
