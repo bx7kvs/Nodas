@@ -32,7 +32,7 @@ $R.ext(['@HTMLRoot', '$$config', 'Debug', function Container(html, config, Debug
         displayTo = null;
     }
 
-    element.style.transition = 'opacity ' + speed + 's ' + easing + ',' +
+    element.style.transition = 'opacity ' + speed + 'ms ' + easing + ',' +
         'filter ' + speed + 's';
 
     element.style.zIndex = zindex;
