@@ -15,10 +15,13 @@ $R.$(['@define', function ApplicationConfigProvider(define) {
                     }
                     else if (typeof value[prop] == "object" && value[prop].constructor === Array) {
                         var pvalue = [];
-
                         for (var i = 0; i < value[prop].length; i++) {
                             if (typeof value[prop][i] == "boolean" || typeof value[prop][i] == "string" || typeof value[prop][i] == "number") {
                                 pvalue.push(value[prop][i]);
+                            }
+                            else {
+                                throw new Error
+                                'Incorrect config property value' + prop + ' [' + value + ']';
                             }
                         }
                         this[prop] = pvalue;

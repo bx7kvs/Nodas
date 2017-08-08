@@ -94,7 +94,9 @@ $R.$(function ApplicationHTMLRootProvider() {
         canvas.setAttribute('id','reflect-canvas-'+appname);
         canvas.setAttribute('class', 'reflect-canvas-output');
         elements[appname].element.appendChild(canvas);
-        document.getElementsByTagName('body')[0].appendChild(elements[appname].element);
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementsByTagName('body')[0].appendChild(elements[appname].element);
+        });
         return elements[appname].$constructor;
     }
 

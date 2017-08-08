@@ -7,7 +7,14 @@ $R.ext(['@Canvas', '@HTMLRoot', '$$config', 'Debug', 'Container', function Canva
         offset = [0, 0], scroll = [0, 0];
 
     if (config) {
-        var size = [config.width ? config.width : 1000, config.height ? config.height : 800];
+        var size = [1000, 800];
+        if (config.size || config.size.constructor !== Array) {
+            size[0] =
+                config.size[0] && (typeof config.size[0] == "number" || typeof config.size[0] == 'string') ? config.size[0] : size[0];
+            size[1] =
+                config.size[1] && (typeof config.size[1] == "number" || typeof config.size[1] == 'string') ? config.size[1] : size[1];
+        }
+
         if (typeof size[0] == "number") {
             width = size[0];
         }

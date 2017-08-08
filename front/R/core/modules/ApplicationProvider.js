@@ -247,6 +247,8 @@ $R.$(['@define', 'ExtensionsProvider',
                                 extsArray.push(extensions[extension]);
                                 var cfgConstructor = AppConfigProvider.getExtensionConfig(appname, extension);
                                 var cfgSource = Provider.container();
+                                ;
+
                                 cfgSource.injection(cfgConstructor);
 
                                 var extsSource = [];

@@ -288,10 +288,13 @@ $R.$(['@define', function ApplicationConfigProvider(define) {
                     }
                     else if (typeof value[prop] == "object" && value[prop].constructor === Array) {
                         var pvalue = [];
-
                         for (var i = 0; i < value[prop].length; i++) {
                             if (typeof value[prop][i] == "boolean" || typeof value[prop][i] == "string" || typeof value[prop][i] == "number") {
                                 pvalue.push(value[prop][i]);
+                            }
+                            else {
+                                throw new Error
+                                'Incorrect config property value' + prop + ' [' + value + ']';
                             }
                         }
                         this[prop] = pvalue;
@@ -429,7 +432,9 @@ $R.$(function ApplicationHTMLRootProvider() {
         canvas.setAttribute('id','reflect-canvas-'+appname);
         canvas.setAttribute('class', 'reflect-canvas-output');
         elements[appname].element.appendChild(canvas);
-        document.getElementsByTagName('body')[0].appendChild(elements[appname].element);
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementsByTagName('body')[0].appendChild(elements[appname].element);
+        });
         return elements[appname].$constructor;
     }
 
@@ -686,6 +691,8 @@ $R.$(['@define', 'ExtensionsProvider',
                                 extsArray.push(extensions[extension]);
                                 var cfgConstructor = AppConfigProvider.getExtensionConfig(appname, extension);
                                 var cfgSource = Provider.container();
+                                ;
+
                                 cfgSource.injection(cfgConstructor);
 
                                 var extsSource = [];
@@ -5013,60 +5020,6 @@ $R.part('Objects', ['Debug', '@inject', function BoxObjectExtension(Debug, injec
 
 }]);
 /**
- * Created by bx7kv_000 on 1/5/2017.
- */
-$R.part('Objects' ,['Debug' , function CacheObjectExtension (Debug) {
-
-    var values = {};
-
-    this.value = function (name , func) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / name is not a string!');
-            return;
-        }
-        if(typeof func !== "function") {
-            Debug.error('Object Value Cache / func is not a function');
-            return;
-        }
-
-        if(!values[name]) {
-            values[name] = {
-                value : func(),
-                func : func,
-                relevant : true
-            }
-        }
-
-        return this.get(name);
-    };
-
-    this.purge = function (name) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / Can not purge cache of non string name');
-            return;
-        }
-        if(values[name]) {
-            values[name].relevant = false;
-        }
-    };
-
-    this.get = function (name) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / Can not get value of non-string name');
-            return;
-        }
-        if(values[name]) {
-            if(!values[name].relevant) {
-                values[name].value = values[name].func();
-                values[name].relevant = true;
-            }
-
-            return values[name].value;
-        }
-    }
-
-}]);
-/**
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.part('Objects', ['Debug', function DrawerObjectExtension(Debug) {
@@ -5121,6 +5074,60 @@ $R.part('Objects', ['Debug', function DrawerObjectExtension(Debug) {
         if (f) f.apply(this, arguments);
         resolve('after', arguments);
     };
+
+}]);
+/**
+ * Created by bx7kv_000 on 1/5/2017.
+ */
+$R.part('Objects' ,['Debug' , function CacheObjectExtension (Debug) {
+
+    var values = {};
+
+    this.value = function (name , func) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / name is not a string!');
+            return;
+        }
+        if(typeof func !== "function") {
+            Debug.error('Object Value Cache / func is not a function');
+            return;
+        }
+
+        if(!values[name]) {
+            values[name] = {
+                value : func(),
+                func : func,
+                relevant : true
+            }
+        }
+
+        return this.get(name);
+    };
+
+    this.purge = function (name) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / Can not purge cache of non string name');
+            return;
+        }
+        if(values[name]) {
+            values[name].relevant = false;
+        }
+    };
+
+    this.get = function (name) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / Can not get value of non-string name');
+            return;
+        }
+        if(values[name]) {
+            if(!values[name].relevant) {
+                values[name].value = values[name].func();
+                values[name].relevant = true;
+            }
+
+            return values[name].value;
+        }
+    }
 
 }]);
 /**
@@ -10371,7 +10378,14 @@ $R.ext(['@Canvas', '@HTMLRoot', '$$config', 'Debug', 'Container', function Canva
         offset = [0, 0], scroll = [0, 0];
 
     if (config) {
-        var size = [config.width ? config.width : 1000, config.height ? config.height : 800];
+        var size = [1000, 800];
+        if (config.size || config.size.constructor !== Array) {
+            size[0] =
+                config.size[0] && (typeof config.size[0] == "number" || typeof config.size[0] == 'string') ? config.size[0] : size[0];
+            size[1] =
+                config.size[1] && (typeof config.size[1] == "number" || typeof config.size[1] == 'string') ? config.size[1] : size[1];
+        }
+
         if (typeof size[0] == "number") {
             width = size[0];
         }
