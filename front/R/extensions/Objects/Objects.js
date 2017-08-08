@@ -1,7 +1,7 @@
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
-$R.ext(['@inject', '$Tree', '@app', function Objects(inject, Tree, app) {
+$R.ext(['@inject', '$Tree', '@app', function Objects(inject, Tree) {
 
     function InjectByType(type) {
         var result = inject('$Graphics');

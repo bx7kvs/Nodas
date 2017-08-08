@@ -237,7 +237,6 @@ $R.ext(['@Canvas', '@HTMLRoot', '$$config', 'Debug', 'Container', function Canva
     window.addEventListener('resize', WindowResizeCallback);
     Container.on('hide', WindowResizeCallback);
     Container.on('show', WindowResizeCallback);
-
     WindowResizeCallback();
 }
 

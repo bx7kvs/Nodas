@@ -17,6 +17,8 @@ $R.ext(['@HTMLRoot', '$$config', 'Debug', function Container(html, config, Debug
         container = this,
         displayTo = null;
 
+    html.hide();
+
     function resolve(event) {
         if (cb[event]) {
             for (var i = 0; i < cb[event].length; i++) {

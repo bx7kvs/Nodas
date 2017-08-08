@@ -1853,59 +1853,6 @@ $R.part('Objects', ['Debug', '@app', '$$config', function Tree(Debug, app, confi
 
 }]);
 /**
- * Created by Viktor Khodosevich on 5/1/2017.
- */
-$R.part('Objects', [function AreaObjectClass() {
-
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function CircleObjectClass (MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.circleCheckFunction);
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects' , ['$Tree', function DefaultObjectType(Tree) {
-    Tree.root(this).append(this);
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects', function GroupObjectClass() {
-
-});
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function ImageObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.part('Objects', function LineObjectClass() {
-
-});
-$R.part('Objects',['$MouseHelper', function RectangleObjectClass (MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-    var mouse = this.extension('Mouse');
-    mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function SpriteObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
- * Created by Viktor Khodosevich on 3/25/2017.
- */
-$R.part('Objects', ['$MouseHelper',function TextObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
  * Created by bx7kv_000 on 1/10/2017.
  */
 $R.part('Objects', [function Canvas() {
@@ -3150,6 +3097,59 @@ $R.part('Objects', ['Debug', function PathHelper(Debug) {
     }
 
 
+}]);
+/**
+ * Created by Viktor Khodosevich on 5/1/2017.
+ */
+$R.part('Objects', [function AreaObjectClass() {
+
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function CircleObjectClass (MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.circleCheckFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects' , ['$Tree', function DefaultObjectType(Tree) {
+    Tree.root(this).append(this);
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects', function GroupObjectClass() {
+
+});
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function ImageObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.part('Objects', function LineObjectClass() {
+
+});
+$R.part('Objects',['$MouseHelper', function RectangleObjectClass (MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+    var mouse = this.extension('Mouse');
+    mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function SpriteObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
+ * Created by Viktor Khodosevich on 3/25/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function TextObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
 }]);
 /**
  * Created by Viktor Khodosevich on 4/10/2017.
@@ -10600,7 +10600,6 @@ $R.ext(['@Canvas', '@HTMLRoot', '$$config', 'Debug', 'Container', function Canva
     window.addEventListener('resize', WindowResizeCallback);
     Container.on('hide', WindowResizeCallback);
     Container.on('show', WindowResizeCallback);
-
     WindowResizeCallback();
 }
 
@@ -10623,6 +10622,8 @@ $R.ext(['@HTMLRoot', '$$config', 'Debug', function Container(html, config, Debug
         zindex = config.z && typeof config.z == "number" && config.z > 0 ? config.z : 0,
         container = this,
         displayTo = null;
+
+    html.hide();
 
     function resolve(event) {
         if (cb[event]) {
@@ -11222,7 +11223,7 @@ $R.part('Objects', ['@extend', '@inject', function Graphics(extend, inject) {
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
-$R.ext(['@inject', '$Tree', '@app', function Objects(inject, Tree, app) {
+$R.ext(['@inject', '$Tree', '@app', function Objects(inject, Tree) {
 
     function InjectByType(type) {
         var result = inject('$Graphics');
