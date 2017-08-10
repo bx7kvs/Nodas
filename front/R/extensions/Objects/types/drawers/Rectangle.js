@@ -25,16 +25,16 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
             var x = position[0],
                 y = position[1];
 
-            if (anchor[0] == 'center') {
-                x -= size[0]/2;
+            if (anchor[0] === 'center') {
+                x -= size[0] / 2;
             }
-            if (anchor[0] == 'right') {
+            if (anchor[0] === 'right') {
                 x -= size[0];
             }
-            if (anchor[1] == 'middle') {
-                y -= size[1]/2;
+            if (anchor[1] === 'middle') {
+                y -= size[1] / 2;
             }
-            if (anchor[1] == 'bottom') {
+            if (anchor[1] === 'bottom') {
                 y -= size[1]
             }
 
@@ -56,6 +56,13 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
             assembler.update('bg');
             assembler.resize();
             matrix.purge();
+            boxExtension.purge();
+        });
+
+        this.watch('radius', function (o, n) {
+            assembler.update('fill');
+            assembler.update('stroke');
+            assembler.update('bg');
         });
 
         this.watch('strokeWidth', function (o, n) {
@@ -65,8 +72,10 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
             strokefix[3] = n[3];
             boxExtension.purge();
             assembler.resize();
-            assembler.update('stroke');
             matrix.purge();
+            assembler.update('fill');
+            assembler.update('stroke');
+            assembler.update('bg');
         });
 
         this.watch(['position', 'size'], function () {
@@ -86,22 +95,225 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
             assembler.update('fill');
         });
 
+        function normalizeRadius(radius) {
+
+            var result = [radius[0], radius[1], radius[2], radius[3]],
+                box = boxExtension.box().value(),
+                halfbox = [box.size[0] / 2, box.size[1] / 2];
+
+            for (var i = 0; i < result.length; i++) {
+                if (result[i] > halfbox[0]) {
+                    result[i] = halfbox[0]
+                }
+                if (result[i] > halfbox[1]) {
+                    result[i] = halfbox[1]
+                }
+            }
+
+            return result;
+        }
+
+        function drawRectPath(context, stroke) {
+
+            var radius = normalizeRadius(style.get('radius')),
+                k = 0.5522847498,
+                box = boxExtension.box().value(),
+                sprite = boxExtension.box().sprite();
+
+            if (stroke) {
+                var strokeColor = style.get('strokeColor'),
+                    strokeWidth = style.get('strokeWidth'),
+                    strokeStyle = style.get('strokeStyle'),
+                    cap = style.get('cap');
+
+                context.lineCap = cap;
+            }
+            context.beginPath();
+
+            if (radius[0] > 0) {
+                context.moveTo(sprite.margin[3] + radius[0], sprite.margin[0]);
+            }
+            else {
+                context.moveTo(sprite.margin[3], sprite.margin[0]);
+            }
+
+
+            if (stroke) {
+                context.setLineDash(strokeStyle[0]);
+                context.strokeStyle = strokeColor[0];
+                context.lineWidth = strokeWidth[0];
+            }
+            if (radius[1] > 0) {
+                context.lineTo(box.size[0] + sprite.margin[3] - radius[1], sprite.margin[0]);
+                var curveModifier = k * radius[1];
+                context.bezierCurveTo(
+                    box.size[0] + sprite.margin[3] - radius[1] + curveModifier,
+                    sprite.margin[0],
+                    box.size[0] + sprite.margin[3],
+                    sprite.margin[0] + radius[1] - curveModifier,
+                    box.size[0] + sprite.margin[3],
+                    sprite.margin[0] + radius[1]
+                );
+            }
+            else {
+                context.lineTo(box.size[0] + sprite.margin[3], sprite.margin[0]);
+            }
+
+            if (stroke) context.stroke();
+
+            if (stroke) {
+                context.setLineDash(strokeStyle[1]) ;
+                context.strokeStyle = strokeColor[1];
+                context.lineWidth = strokeWidth[1];
+            }
+            if (radius[2] > 0) {
+                var curveModifier = k * radius[2];
+                context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0] - radius[2]);
+                if (stroke) context.stroke();
+                if (stroke) {
+                    context.setLineDash(strokeStyle[2]);
+                    context.strokeStyle = strokeColor[2];
+                    context.lineWidth = strokeWidth[2];
+                }
+                context.bezierCurveTo(
+                    box.size[0] + sprite.margin[3],
+                    box.size[1] + sprite.margin[0] - radius[2] + curveModifier,
+                    box.size[0] + sprite.margin[3] - radius[2] + curveModifier,
+                    box.size[1] + sprite.margin[0],
+                    box.size[0] + sprite.margin[3] - radius[2],
+                    box.size[1] + sprite.margin[0]
+                );
+                if (stroke) context.stroke();
+            }
+            else {
+                context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0]);
+                if (stroke) context.stroke();
+            }
+
+            if (stroke) {
+                context.setLineDash(strokeStyle[2]);
+                context.strokeStyle = strokeColor[2];
+                context.lineWidth = strokeWidth[2];
+            }
+
+            if (radius[3] > 0) {
+                var curveModifier = k * radius[3];
+                context.lineTo(sprite.margin[3] + radius[3], box.size[1] + sprite.margin[0]);
+
+                context.bezierCurveTo(
+                    sprite.margin[3] + radius[3] - curveModifier,
+                    box.size[1] + sprite.margin[0],
+                    sprite.margin[3],
+                    box.size[1] + sprite.margin[0] - radius[3] + curveModifier,
+                    sprite.margin[3],
+                    box.size[1] + sprite.margin[0] - radius[3]
+                );
+            }
+            else {
+                context.lineTo(sprite.margin[3], box.size[1] + sprite.margin[0]);
+            }
+
+            if (stroke) context.stroke();
+
+            if (stroke) {
+                context.setLineDash(strokeStyle[3]);
+                context.strokeStyle = strokeColor[3];
+                context.lineWidth = strokeWidth[3];
+            }
+
+            if (radius[0] > 0) {
+                var curveModifier = k * radius[0];
+                context.lineTo(sprite.margin[3], sprite.margin[0] + radius[0]);
+                if (stroke) context.stroke();
+
+                if (stroke) {
+                    context.setLineDash(strokeStyle[0]);
+                    context.strokStyle = strokeColor[0];
+                    context.lineWidth = strokeWidth[0];
+                }
+                context.bezierCurveTo(
+                    sprite.margin[3],
+                    sprite.margin[0] + radius[0] - curveModifier,
+                    sprite.margin[0] + radius[0] - curveModifier,
+                    sprite.margin[0],
+                    sprite.margin[3] + radius[0],
+                    sprite.margin[0]
+                );
+                if (stroke) context.stroke();
+            }
+            else {
+                context.lineTo(sprite.margin[3], sprite.margin[0]);
+                if (stroke) context.stroke();
+            }
+
+        }
+
+        function hasRadius() {
+            var result = false,
+                radius = style.get('radius');
+
+            for (var i = 0; i < radius.length; i++) {
+                if (radius[i] > 0) {
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        function hasStroke() {
+            var stroke = style.get('strokeWidth'),
+                result = false;
+
+            for (var i = 0; i < stroke.length; i++) {
+                if (stroke[i] > 0) {
+                    result = true;
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+        function monoStroke() {
+            var strokeColor = style.get('strokeColor'),
+                strokeWidth = style.get('strokeWidth'),
+                strokeStyle = style.get('strokeStyle'),
+                dColor = strokeColor[0],
+                dWidth = strokeWidth[0],
+                dStyle = strokeStyle[0],
+
+                result = true;
+
+            for (var i = 1; i < 4; i++) {
+                if (
+                    dColor !== strokeColor[i] ||
+                    dWidth !== strokeWidth[i] ||
+                    !(strokeStyle[i][0] === dStyle[0] && strokeStyle[i][1] === dStyle[1])
+                ) {
+                    result = false;
+                    break;
+                }
+            }
+            return result;
+        }
+
         function UpdateBg(context) {
             var boxContainer = boxExtension.box(),
                 box = boxContainer.value(),
-                sprite = boxContainer.sprite();
-
-            context.moveTo(sprite.margin[3], sprite.margin[0]);
-            context.beginPath();
-            context.lineTo(box.size[0] + sprite.margin[3], sprite.margin[0]);
-            context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0]);
-            context.lineTo(sprite.margin[3], box.size[1] + sprite.margin[0]);
-            context.lineTo(sprite.margin[3], sprite.margin[0]);
-            context.clip();
-
-            var bgposition = style.get('bgPosition'),
+                sprite = boxContainer.sprite(),
+                bgposition = style.get('bgPosition'),
                 bgsize = style.get('bgSize'),
                 bg = style.get('bg');
+
+            if (hasRadius()) {
+                drawRectPath(context);
+            }
+            else {
+                context.rect(sprite.margin[3], sprite.margin[0], box.size[0], box.size[1]);
+            }
+
+            context.clip();
 
             for (var i = 0; i < bg.length; i++) {
 
@@ -125,39 +337,34 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
         }
 
         function UpdateStroke(context) {
-            var strokeColor = style.get('strokeColor'),
-                strokeWidth = style.get('strokeWidth'),
-                strokeStyle = style.get('strokeStyle'),
-                cap = style.get('cap'),
-                boxContainer = boxExtension.box(),
-                box = boxContainer.value(),
-                sprite = boxContainer.sprite();
+            if (hasStroke()) {
+                var strokeColor = style.get('strokeColor'),
+                    strokeWidth = style.get('strokeWidth'),
+                    strokeStyle = style.get('strokeStyle'),
+                    boxContainer = boxExtension.box(),
+                    box = boxContainer.value(),
+                    sprite = boxContainer.sprite();
 
-            context.moveTo(sprite.margin[3], sprite.margin[0]);
-            context.lineCap = cap;
-            context.strokeStyle = strokeColor[0];
-            context.lineWidth = strokeWidth[0];
-            context.setLineDash(strokeStyle[0]);
-            context.lineTo(box.size[0] + sprite.margin[3], sprite.margin[0]);
-            context.stroke();
-
-            context.strokeStyle = strokeColor[1];
-            context.lineWidth = strokeWidth[1];
-            context.setLineDash(strokeStyle[1]);
-            context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0]);
-            context.stroke();
-
-            context.strokeStyle = strokeColor[2];
-            context.lineWidth = strokeWidth[2];
-            context.setLineDash(strokeStyle[2]);
-            context.lineTo(sprite.margin[3], box.size[1] + sprite.margin[0]);
-            context.stroke();
-
-            context.strokeStyle = strokeColor[3];
-            context.lineWidth = strokeWidth[3];
-            context.setLineDash(strokeStyle[3]);
-            context.lineTo(sprite.margin[3], sprite.margin[0]);
-            context.stroke();
+                if (hasRadius()) {
+                    drawRectPath(context, true);
+                }
+                else {
+                    if (monoStroke()) {
+                        var cap = style.get('cap');
+                        context.lineCap = cap;
+                        context.setLineDash(strokeStyle[0]);
+                        context.strokeStyle = strokeColor[0];
+                        context.lineWidth = strokeWidth[0];
+                        context.beginPath();
+                        context.moveTo(sprite.margin[3],sprite.margin[0]);
+                        context.lineTo(sprite.margin[3] + box.size[0], sprite.margin[0]);
+                        context.lineTo(sprite.margin[3] + box.size[0], sprite.margin[0] + box.size[1]);
+                        context.lineTo(sprite.margin[3], sprite.margin[0] + box.size[1]);
+                        context.lineTo(sprite.margin[3], sprite.margin[0]);
+                        context.stroke();
+                    }
+                }
+            }
         }
 
         function UpdateFill(context) {
@@ -166,7 +373,12 @@ $R.part('Objects', ['@inject', '$DrawerHelper',
                 box = boxContainer.value(),
                 sprite = boxContainer.sprite();
 
-            context.rect(sprite.margin[3], sprite.margin[0], box.size[0], box.size[1]);
+            if (hasRadius()) {
+                drawRectPath(context);
+            }
+            else {
+                context.rect(sprite.margin[3], sprite.margin[0], box.size[0], box.size[1]);
+            }
             context.fillStyle = fill;
             context.fill();
         }

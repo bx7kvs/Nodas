@@ -11,6 +11,101 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
         var style = this.extension('Style'),
             animation = this.extension('Animation');
 
+        style.define(0, 'radius', [0, 0, 0, 0],
+            function (value) {
+                if (typeof value === "number") {
+                    value = Math.round(value);
+                    return [value, value, value, value];
+                }
+                else if (typeof value === "object") {
+                    if (value.constructor === Array) {
+                        var result = [],
+                            valid = true;
+
+                        for (var i = 0; i < value.length; i++) {
+                            if (typeof value[i] === "number") {
+                                if (value[i] < 0) {
+                                    result.push(0)
+                                }
+                                else {
+                                    result.push(Math.round(value[i]));
+                                }
+                            }
+                            else {
+                                valid = false;
+                                break;
+                            }
+                        }
+                        if (valid) {
+                            var val = [], old = this.style('radius');
+                            for (var i = 0; i < old.length; i++) {
+                                if (result[i] !== undefined) {
+                                    val.push(result[i]);
+                                }
+                                else {
+                                    val.push(old[i]);
+                                }
+                            }
+                            return val;
+                        }
+                    }
+                    else {
+                        var old = style.get('radius'),
+                            val = [];
+
+                        for (var i = 0; i < old.length; i++) {
+                            if (typeof value[i] == "number") {
+                                val.push(Math.round(value[i]));
+                            }
+                            else {
+                                val.push(old[i]);
+                            }
+                        }
+                        return val;
+                    }
+                }
+            },
+            function (value) {
+                return ModelHelper.cloneArray(value);
+            }
+        );
+
+        animation.morph('radius', 1,
+            function (start, end, value) {
+                if(typeof value === "number") {
+                    if(value < 0) value = 0;
+                    start(this.style('radius'));
+                    end([value,value,value,value]);
+                }
+                else if (typeof value === "object") {
+                    var old = this.style('radius'),
+                        target = [];
+
+                    start(old);
+                    for(var i = 0 ; i < old.length; i++) {
+                        if(typeof value[i] === "number") {
+                            if(value[i] < 0) {
+                                target.push(0);
+                            }
+                            else {
+                                target.push(Math.round(value[i]));
+                            }
+                        }
+                        else {
+                            target.push(old[i]);
+                        }
+                    }
+                    end(target);
+                }
+                else {
+                    Debug.warn({v: value}, '{v} is not a valid radius value for rectangle');
+                }
+            },
+            function (value) {
+                return value;
+            }
+        );
+
         style.define(0, 'strokeColor', ['rgba(0,0,0,1)', 'rgba(0,0,0,1)', 'rgba(0,0,0,1)', 'rgba(0,0,0,1)'],
             function (value) {
                 if (typeof value == "string") {
@@ -111,13 +206,13 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
         animation.morph('strokeColor', 0,
             function (start, end, value) {
                 if (typeof value == "string") {
-                    var color = ColorHelper.colorToArray(value[i]);
+                    var color = ColorHelper.colorToArray(value);
                     if (color) {
                         end([ModelHelper.cloneArray(color), ModelHelper.cloneArray(color), ModelHelper.cloneArray(color), ModelHelper.cloneArray(color)]);
                         start(this.style('strokeColor'));
                     }
                     else {
-                        Debug.warn({v: value}, '{v} is not a valid color!');
+                        Debug.warn({v: value}, '{v} is not a valid color');
                     }
                 }
                 else if (typeof value == "object" && value.constructor == Array) {
@@ -396,15 +491,15 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
 
         animation.morph('strokeStyle', 0,
             function (start, end, value) {
-                if(typeof value == "object") {
-                    if(value.constructor == Array) {
-                        if(ModelHelper.validNumericArray(value)) {
-                            if(value.length == 2) {
+                if (typeof value == "object") {
+                    if (value.constructor == Array) {
+                        if (ModelHelper.validNumericArray(value)) {
+                            if (value.length == 2) {
                                 start(this.style('strokeStyle'));
-                                end(ModelHelper.cloneArray(value),ModelHelper.cloneArray(value),ModelHelper.cloneArray(value),ModelHelper.cloneArray(value));
+                                end(ModelHelper.cloneArray(value), ModelHelper.cloneArray(value), ModelHelper.cloneArray(value), ModelHelper.cloneArray(value));
                             }
                             else {
-                                Debug.warn({v:value}, ' [{v}] is not a valid strokeStyle value!');
+                                Debug.warn({v: value}, ' [{v}] is not a valid strokeStyle value!');
                             }
                         }
                         else {
@@ -412,8 +507,8 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
                                 result = [],
                                 valid = false;
 
-                            for(var i = 0 ; i < current.length ; i++) {
-                                if(value[i] && ModelHelper.validNumericArray(value[i]) && value[i].length == 2) {
+                            for (var i = 0; i < current.length; i++) {
+                                if (value[i] && ModelHelper.validNumericArray(value[i]) && value[i].length == 2) {
                                     result.push(ModelHelper.cloneArray(value[i]))
                                     valid = true;
                                 }
@@ -422,12 +517,12 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
                                 }
                             }
 
-                            if(valid) {
+                            if (valid) {
                                 start(current);
                                 end(result);
                             }
                             else {
-                                Debug.warn({v:value}, '[{v}] is not a valid strokeStyle value');
+                                Debug.warn({v: value}, '[{v}] is not a valid strokeStyle value');
                             }
                         }
                     }
@@ -436,8 +531,8 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
                             result = [],
                             valid = false;
 
-                        for(var i = 0 ; i < current.length; i++) {
-                            if(value[i] && ModelHelper.validNumericArray(value[i]) && value[i].length == 2) {
+                        for (var i = 0; i < current.length; i++) {
+                            if (value[i] && ModelHelper.validNumericArray(value[i]) && value[i].length == 2) {
                                 result.push(ModelHelper.cloneArray(value[o]));
                                 valid = true;
                             }
@@ -445,17 +540,17 @@ $R.part('Objects', ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
                                 result.push(current[i]);
                             }
                         }
-                        if(valid) {
+                        if (valid) {
                             start(current);
                             end(result);
                         }
                         else {
-                            Debug.warn({v:value}, '[{v}] is not a valid strokeStyleValue');
+                            Debug.warn({v: value}, '[{v}] is not a valid strokeStyleValue');
                         }
                     }
                 }
                 else {
-                    Debug.warn({v:value}, '[{v}] is not a valid strokeStyleValue');
+                    Debug.warn({v: value}, '[{v}] is not a valid strokeStyleValue');
                 }
             },
             function (value) {

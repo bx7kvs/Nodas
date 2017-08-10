@@ -12,8 +12,8 @@ $R.part('Objects', ['@inject', 'Debug', function GraphicsAssemblerLayer(inject, 
 
     function updateCanvas(ctx) {
         if (!ready) {
-            context.save();
             context.clearRect(0, 0, width, height);
+            context.save();
             if (func) func(context);
             ready = true;
             context.restore();
@@ -22,7 +22,7 @@ $R.part('Objects', ['@inject', 'Debug', function GraphicsAssemblerLayer(inject, 
     }
 
     this.f = function (f) {
-        if (typeof f == "function") {
+        if (typeof f === "function") {
             func = f;
             delete this.f;
         }
@@ -42,7 +42,7 @@ $R.part('Objects', ['@inject', 'Debug', function GraphicsAssemblerLayer(inject, 
     };
 
     this.ordering = function (value) {
-        if (value && typeof value == "number") {
+        if (value && typeof value === "number") {
             ordering = value;
         }
         return ordering;
