@@ -169,8 +169,8 @@ $R.part('Objects', function MatrixHelper() {
                     sprite.position[1] + translate[1]
                 ],
             _origin = [
-                origin[0] * sprite.size[0] + sprite.margin[3],
-                origin[1] * sprite.size[1] + sprite.margin[0]
+                origin[0] * sprite.size[0],
+                origin[1] * sprite.size[1]
             ];
 
 

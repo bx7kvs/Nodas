@@ -6,7 +6,7 @@ $R.part('Objects', ['Debug', function MatrixObjectExtension(Debug) {
     var f = null, object = this.object();
 
     this.f = function (func) {
-        if (typeof func == "function") {
+        if (typeof func === "function") {
             f = func;
             delete this.f;
         }
@@ -22,7 +22,7 @@ $R.part('Objects', ['Debug', function MatrixObjectExtension(Debug) {
 
     this.purge = function () {
         object.extension('Cache').purge('transformMatrix');
-        if(object.type() == 'Group') {
+        if(object.type() === 'Group') {
             var layers = object.extension('Layers');
             layers.forEach(function () {
                 this.extension('Cache').purge('transformMatrix');

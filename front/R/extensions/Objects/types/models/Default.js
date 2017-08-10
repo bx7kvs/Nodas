@@ -8,7 +8,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(2, 'position', [0, 0],
         function (value) {
-            if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 return ModelHelper.cloneArray(value);
             }
             else {
@@ -23,7 +23,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('position', 2,
         function (start, end, value) {
-            if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('position'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -38,7 +38,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'rotate', 0,
         function (value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 if (value < -360) {
                     value = value + 360;
                 }
@@ -58,7 +58,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('rotate', 0,
         function (start, end, value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 start(this.style('rotate'));
                 end(value);
             }
@@ -73,7 +73,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'translate', [0, 0],
         function (value) {
-            if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 return ModelHelper.cloneArray(value);
             }
             else {
@@ -88,7 +88,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('translate', 0,
         function (start, end, value) {
-            if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('translate'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -104,7 +104,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'opacity', 1,
         function (value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 if (value < 0) {
                     value = 0;
                 }
@@ -124,7 +124,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
     );
     animation.morph('opacity', 0,
         function (start, end, value) {
-            if (typeof  value == "number") {
+            if (typeof  value === "number") {
                 if (value < 0) value = 0;
                 if (value > 1) value = 1;
                 start(this.style('opacity'));
@@ -143,7 +143,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'scale', [1, 1],
         function (value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 if (value > 0) {
                     return [value, value];
                 }
@@ -151,7 +151,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
                     return [0, 0];
                 }
             }
-            else if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 return ModelHelper.cloneArray(value);
             }
             else {
@@ -166,13 +166,13 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('scale', 0,
         function (start, end, value) {
-            if (typeof  value == "number") {
+            if (typeof  value === "number") {
                 if (value < 0) value = 0;
                 if (value > 1) value = 1;
                 start(this.style('scale'));
                 end([value, value]);
             }
-            else if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('scale'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -189,7 +189,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'skew', [0, 0],
         function (value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 if (value > 360) {
                     value = value - 360;
                 }
@@ -202,7 +202,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
                 return [rad, rad];
             }
-            else if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 if (value[0] > 360) {
                     value[0] = value[1] - 360;
                 }
@@ -225,11 +225,11 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('skew', 0,
         function (start, end, value) {
-            if (typeof  value == "number") {
+            if (typeof  value === "number") {
                 start(this.style('skew'));
                 end([value, value]);
             }
-            else if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('skew'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -244,8 +244,8 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'origin', [.5, .5],
         function (value) {
-            if (typeof value == "object" && value.constructor == Array) {
-                if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (typeof value === "object" && value.constructor === Array) {
+                if (ModelHelper.validNumericArray(value) && value.length === 2) {
                     return [value[0], value[1]]
                 }
                 else {
@@ -265,7 +265,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('origin', 0,
         function (start, end, value) {
-           if (ModelHelper.validNumericArray(value) && value.length == 2) {
+           if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('origin'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -280,8 +280,8 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(2, 'cap', 'round',
         function (value) {
-            if (typeof value == "string") {
-                if (value == 'round' || value == 'butt' || value == 'square') {
+            if (typeof value === "string") {
+                if (value === 'round' || value === 'butt' || value === 'square') {
                     return value;
                 }
                 else {
@@ -315,10 +315,10 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
         );
         style.define(1, 'anchor', ['left','top'],
             function (value) {
-                if(typeof value === "object" && value.constructor == Array && value.length == 2) {
+                if(typeof value === "object" && value.constructor === Array && value.length === 2) {
                     if(
-                        (value[0] == 'left' || value[0] == 'center' || value[0] == 'right') &&
-                        (value[1] == 'top' || value[1] == 'middle' || value[1] == 'bottom')
+                        (value[0] === 'left' || value[0] === 'center' || value[0] === 'right') &&
+                        (value[1] === 'top' || value[1] === 'middle' || value[1] === 'bottom')
                     ) {
                         return [value[0],value[1]];
                     }

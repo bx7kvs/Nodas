@@ -2753,8 +2753,8 @@ $R.part('Objects', function MatrixHelper() {
                     sprite.position[1] + translate[1]
                 ],
             _origin = [
-                origin[0] * sprite.size[0] + sprite.margin[3],
-                origin[1] * sprite.size[1] + sprite.margin[0]
+                origin[0] * sprite.size[0],
+                origin[1] * sprite.size[1]
             ];
 
 
@@ -5020,6 +5020,60 @@ $R.part('Objects', ['Debug', '@inject', function BoxObjectExtension(Debug, injec
 
 }]);
 /**
+ * Created by bx7kv_000 on 1/5/2017.
+ */
+$R.part('Objects' ,['Debug' , function CacheObjectExtension (Debug) {
+
+    var values = {};
+
+    this.value = function (name , func) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / name is not a string!');
+            return;
+        }
+        if(typeof func !== "function") {
+            Debug.error('Object Value Cache / func is not a function');
+            return;
+        }
+
+        if(!values[name]) {
+            values[name] = {
+                value : func(),
+                func : func,
+                relevant : true
+            }
+        }
+
+        return this.get(name);
+    };
+
+    this.purge = function (name) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / Can not purge cache of non string name');
+            return;
+        }
+        if(values[name]) {
+            values[name].relevant = false;
+        }
+    };
+
+    this.get = function (name) {
+        if(typeof name !== "string") {
+            Debug.error('Object Value Cache / Can not get value of non-string name');
+            return;
+        }
+        if(values[name]) {
+            if(!values[name].relevant) {
+                values[name].value = values[name].func();
+                values[name].relevant = true;
+            }
+
+            return values[name].value;
+        }
+    }
+
+}]);
+/**
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.part('Objects', ['Debug', function DrawerObjectExtension(Debug) {
@@ -5074,60 +5128,6 @@ $R.part('Objects', ['Debug', function DrawerObjectExtension(Debug) {
         if (f) f.apply(this, arguments);
         resolve('after', arguments);
     };
-
-}]);
-/**
- * Created by bx7kv_000 on 1/5/2017.
- */
-$R.part('Objects' ,['Debug' , function CacheObjectExtension (Debug) {
-
-    var values = {};
-
-    this.value = function (name , func) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / name is not a string!');
-            return;
-        }
-        if(typeof func !== "function") {
-            Debug.error('Object Value Cache / func is not a function');
-            return;
-        }
-
-        if(!values[name]) {
-            values[name] = {
-                value : func(),
-                func : func,
-                relevant : true
-            }
-        }
-
-        return this.get(name);
-    };
-
-    this.purge = function (name) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / Can not purge cache of non string name');
-            return;
-        }
-        if(values[name]) {
-            values[name].relevant = false;
-        }
-    };
-
-    this.get = function (name) {
-        if(typeof name !== "string") {
-            Debug.error('Object Value Cache / Can not get value of non-string name');
-            return;
-        }
-        if(values[name]) {
-            if(!values[name].relevant) {
-                values[name].value = values[name].func();
-                values[name].relevant = true;
-            }
-
-            return values[name].value;
-        }
-    }
 
 }]);
 /**
@@ -5227,7 +5227,7 @@ $R.part('Objects', ['Debug', function MatrixObjectExtension(Debug) {
     var f = null, object = this.object();
 
     this.f = function (func) {
-        if (typeof func == "function") {
+        if (typeof func === "function") {
             f = func;
             delete this.f;
         }
@@ -5243,7 +5243,7 @@ $R.part('Objects', ['Debug', function MatrixObjectExtension(Debug) {
 
     this.purge = function () {
         object.extension('Cache').purge('transformMatrix');
-        if(object.type() == 'Group') {
+        if(object.type() === 'Group') {
             var layers = object.extension('Layers');
             layers.forEach(function () {
                 this.extension('Cache').purge('transformMatrix');
@@ -7526,7 +7526,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(2, 'position', [0, 0],
         function (value) {
-            if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 return ModelHelper.cloneArray(value);
             }
             else {
@@ -7541,7 +7541,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('position', 2,
         function (start, end, value) {
-            if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('position'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -7556,7 +7556,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'rotate', 0,
         function (value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 if (value < -360) {
                     value = value + 360;
                 }
@@ -7576,7 +7576,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('rotate', 0,
         function (start, end, value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 start(this.style('rotate'));
                 end(value);
             }
@@ -7591,7 +7591,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'translate', [0, 0],
         function (value) {
-            if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 return ModelHelper.cloneArray(value);
             }
             else {
@@ -7606,7 +7606,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('translate', 0,
         function (start, end, value) {
-            if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('translate'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -7622,7 +7622,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'opacity', 1,
         function (value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 if (value < 0) {
                     value = 0;
                 }
@@ -7642,7 +7642,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
     );
     animation.morph('opacity', 0,
         function (start, end, value) {
-            if (typeof  value == "number") {
+            if (typeof  value === "number") {
                 if (value < 0) value = 0;
                 if (value > 1) value = 1;
                 start(this.style('opacity'));
@@ -7661,7 +7661,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'scale', [1, 1],
         function (value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 if (value > 0) {
                     return [value, value];
                 }
@@ -7669,7 +7669,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
                     return [0, 0];
                 }
             }
-            else if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 return ModelHelper.cloneArray(value);
             }
             else {
@@ -7684,13 +7684,13 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('scale', 0,
         function (start, end, value) {
-            if (typeof  value == "number") {
+            if (typeof  value === "number") {
                 if (value < 0) value = 0;
                 if (value > 1) value = 1;
                 start(this.style('scale'));
                 end([value, value]);
             }
-            else if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('scale'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -7707,7 +7707,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'skew', [0, 0],
         function (value) {
-            if (typeof value == "number") {
+            if (typeof value === "number") {
                 if (value > 360) {
                     value = value - 360;
                 }
@@ -7720,7 +7720,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
                 return [rad, rad];
             }
-            else if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 if (value[0] > 360) {
                     value[0] = value[1] - 360;
                 }
@@ -7743,11 +7743,11 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('skew', 0,
         function (start, end, value) {
-            if (typeof  value == "number") {
+            if (typeof  value === "number") {
                 start(this.style('skew'));
                 end([value, value]);
             }
-            else if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('skew'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -7762,8 +7762,8 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(0, 'origin', [.5, .5],
         function (value) {
-            if (typeof value == "object" && value.constructor == Array) {
-                if (ModelHelper.validNumericArray(value) && value.length == 2) {
+            if (typeof value === "object" && value.constructor === Array) {
+                if (ModelHelper.validNumericArray(value) && value.length === 2) {
                     return [value[0], value[1]]
                 }
                 else {
@@ -7783,7 +7783,7 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     animation.morph('origin', 0,
         function (start, end, value) {
-           if (ModelHelper.validNumericArray(value) && value.length == 2) {
+           if (ModelHelper.validNumericArray(value) && value.length === 2) {
                 start(this.style('origin'));
                 end(ModelHelper.cloneArray(value));
             }
@@ -7798,8 +7798,8 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
 
     style.define(2, 'cap', 'round',
         function (value) {
-            if (typeof value == "string") {
-                if (value == 'round' || value == 'butt' || value == 'square') {
+            if (typeof value === "string") {
+                if (value === 'round' || value === 'butt' || value === 'square') {
                     return value;
                 }
                 else {
@@ -7833,10 +7833,10 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
         );
         style.define(1, 'anchor', ['left','top'],
             function (value) {
-                if(typeof value === "object" && value.constructor == Array && value.length == 2) {
+                if(typeof value === "object" && value.constructor === Array && value.length === 2) {
                     if(
-                        (value[0] == 'left' || value[0] == 'center' || value[0] == 'right') &&
-                        (value[1] == 'top' || value[1] == 'middle' || value[1] == 'bottom')
+                        (value[0] === 'left' || value[0] === 'center' || value[0] === 'right') &&
+                        (value[1] === 'top' || value[1] === 'middle' || value[1] === 'bottom')
                     ) {
                         return [value[0],value[1]];
                     }
@@ -11069,6 +11069,92 @@ $R.ext(['@HTMLRoot', '$$config', 'Debug', function Container(html, config, Debug
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
+$R.ext(['$$config', function Debug(config) {
+
+    var string = '$R [Debug] : ',
+        regexp = /{[a-zA-Z]+}/g,
+        regexpname = /[a-zA-Z]+/g,
+        warnings = config.warnings == undefined ? true : !!config.warnings;
+
+
+    var errorCb = [], messageCb = [];
+
+    function ResolveEvent(type, data) {
+        var array = null;
+
+        if (type == 'error') array = errorCb;
+        if (type == 'message') array = messageCb;
+
+        for (var i = 0; i < array.length; i++) {
+            array[i](data);
+        }
+    }
+
+    this.on = function (event, func) {
+        if (typeof func !== "function") return;
+        if (event == 'error') errorCb.push(func);
+        if (event == 'message') messageCb.push(func);
+    };
+
+
+    function GetMessage(data, message) {
+        message = message.toString();
+
+        var matches = message.match(regexp);
+        var props = {};
+
+        if (matches) {
+            for (var i = 0; i < matches.length; i++) {
+                var matchname = matches[i].match(regexpname)[0];
+                if (matchname) props[matchname] = {
+                    replace: matches[i],
+                    data: data[matchname].toString()
+                }
+            }
+        }
+        for (var prop in props) {
+
+            if (!props.hasOwnProperty(prop)) continue;
+
+            message = message.replace(props[prop].replace, props[prop].data);
+        }
+
+        message = string + message;
+
+        return message;
+    }
+
+    this.error = function (data, message) {
+        if (typeof data == "string") {
+            message = data;
+            data = {};
+        }
+
+        message = GetMessage(data, message);
+
+        ResolveEvent('error', message);
+
+        throw new Error(message);
+    };
+
+    this.warn = function (data, message) {
+
+        if (!warnings) return;
+
+        if (typeof data == "string") {
+            message = data;
+            data = {};
+        }
+        message = GetMessage(data, message);
+
+        ResolveEvent('message', message);
+
+        console.warn(message)
+    }
+}]);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
 $R.ext(['Debug', function Easings(Debug) {
 
     var easings = {
@@ -11198,92 +11284,6 @@ $R.ext(['Debug', function Easings(Debug) {
         Debug.error({name: name}, 'Easings / Unable to get undefined easing [{name}]. Linear easing function provided.');
         return easings['linear'];
     };
-}]);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.ext(['$$config', function Debug(config) {
-
-    var string = '$R [Debug] : ',
-        regexp = /{[a-zA-Z]+}/g,
-        regexpname = /[a-zA-Z]+/g,
-        warnings = config.warnings == undefined ? true : !!config.warnings;
-
-
-    var errorCb = [], messageCb = [];
-
-    function ResolveEvent(type, data) {
-        var array = null;
-
-        if (type == 'error') array = errorCb;
-        if (type == 'message') array = messageCb;
-
-        for (var i = 0; i < array.length; i++) {
-            array[i](data);
-        }
-    }
-
-    this.on = function (event, func) {
-        if (typeof func !== "function") return;
-        if (event == 'error') errorCb.push(func);
-        if (event == 'message') messageCb.push(func);
-    };
-
-
-    function GetMessage(data, message) {
-        message = message.toString();
-
-        var matches = message.match(regexp);
-        var props = {};
-
-        if (matches) {
-            for (var i = 0; i < matches.length; i++) {
-                var matchname = matches[i].match(regexpname)[0];
-                if (matchname) props[matchname] = {
-                    replace: matches[i],
-                    data: data[matchname].toString()
-                }
-            }
-        }
-        for (var prop in props) {
-
-            if (!props.hasOwnProperty(prop)) continue;
-
-            message = message.replace(props[prop].replace, props[prop].data);
-        }
-
-        message = string + message;
-
-        return message;
-    }
-
-    this.error = function (data, message) {
-        if (typeof data == "string") {
-            message = data;
-            data = {};
-        }
-
-        message = GetMessage(data, message);
-
-        ResolveEvent('error', message);
-
-        throw new Error(message);
-    };
-
-    this.warn = function (data, message) {
-
-        if (!warnings) return;
-
-        if (typeof data == "string") {
-            message = data;
-            data = {};
-        }
-        message = GetMessage(data, message);
-
-        ResolveEvent('message', message);
-
-        console.warn(message)
-    }
 }]);
 /**
  * Created by Viktor Khodosevich on 5/11/2017.
