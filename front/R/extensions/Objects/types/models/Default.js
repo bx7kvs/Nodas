@@ -44,12 +44,9 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
                 }
                 if (value > 360) {
                     value = value - 360;
-                    value = value * Math.PI / 180;
-                    return value;
                 }
-                else {
-                    return value * Math.PI / 180;
-                }
+                value = value * Math.PI / 180;
+                return value;
             }
         },
         function (value) {

@@ -99,17 +99,19 @@ $R.ext(['Debug', function Easings(Debug) {
             return c / 2 * (Math.sqrt(1 - (t -= 2) * t) + 1) + b;
         },
         easeInBack: function (t, b, c, d, s) {
-            if (s == undefined) s = 1.70158;
-            return c * (t /= d) * t * ((s + 1) * t - s) + b;
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (15.26 * tc * ts + -43.56 * ts * ts + 39.8 * tc + -10.6 * ts + 0.1 * t);
         },
         easeOutBack: function (t, b, c, d, s) {
-            if (s == undefined) s = 1.70158;
-            return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (11.24 * tc * ts + -23.96 * ts * ts + 12.24 * tc + 1.44 * ts + 0.04 * t);
         },
         easeInOutBack: function (t, b, c, d, s) {
-            if (s == undefined) s = 1.70158;
-            if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b;
-            return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b;
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (22.92 * tc * ts + -57.78 * ts * ts + 45 * tc + -9.28 * ts + 0.14 * t);
         },
         easeOutBounce: function (t, b, c, d) {
             if ((t /= d) < (1 / 2.75)) {

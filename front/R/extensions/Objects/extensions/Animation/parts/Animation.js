@@ -105,19 +105,20 @@ $R.part('Objects', ['$AnimationHelper', 'Morphine', function Animation(Animation
         var tick_function = AnimationHelper.getTickFunction();
 
         morphine = Morphine.create(0, 1, function (complete, value) {
-            if (stack.length == 0) {
+            if (stack.length === 0) {
                 Resolve(completeTypeStr);
                 morphine.stop();
             }
             else {
                 for (var i = 0; i < stack.length; i++) {
-                    stack[i].result = tick_function(value, stack[i].morph.start(), stack[i].morph.end());
+                    stack[i].result = tick_function(value, complete, stack[i].morph.start(), stack[i].morph.end());
+                    if(stack[i].morph.property() === 'rotate') console.log(stack[i].result);
                     stack[i].morph.apply(complete, stack[i].result);
                 }
 
                 Resolve(stepTypeStr);
 
-                if (complete == 1) {
+                if (complete === 1) {
                     Resolve(completeTypeStr);
                 }
 

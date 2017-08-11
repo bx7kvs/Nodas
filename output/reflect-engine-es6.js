@@ -1861,6 +1861,59 @@ $R.part('Objects', ['Debug', '@app', '$$config', function Tree(Debug, app, confi
 
 }]);
 /**
+ * Created by Viktor Khodosevich on 5/1/2017.
+ */
+$R.part('Objects', [function AreaObjectClass() {
+
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function CircleObjectClass (MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.circleCheckFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects' , ['$Tree', function DefaultObjectType(Tree) {
+    Tree.root(this).append(this);
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects', function GroupObjectClass() {
+
+});
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function ImageObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.part('Objects', function LineObjectClass() {
+
+});
+$R.part('Objects',['$MouseHelper', function RectangleObjectClass (MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+    var mouse = this.extension('Mouse');
+    mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function SpriteObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
+ * Created by Viktor Khodosevich on 3/25/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function TextObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
  * Created by bx7kv_000 on 1/10/2017.
  */
 $R.part('Objects', [function Canvas() {
@@ -3105,59 +3158,6 @@ $R.part('Objects', ['Debug', function PathHelper(Debug) {
     }
 
 
-}]);
-/**
- * Created by Viktor Khodosevich on 5/1/2017.
- */
-$R.part('Objects', [function AreaObjectClass() {
-
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function CircleObjectClass (MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.circleCheckFunction);
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects' , ['$Tree', function DefaultObjectType(Tree) {
-    Tree.root(this).append(this);
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects', function GroupObjectClass() {
-
-});
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function ImageObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.part('Objects', function LineObjectClass() {
-
-});
-$R.part('Objects',['$MouseHelper', function RectangleObjectClass (MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-    var mouse = this.extension('Mouse');
-    mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function SpriteObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
- * Created by Viktor Khodosevich on 3/25/2017.
- */
-$R.part('Objects', ['$MouseHelper',function TextObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
 }]);
 /**
  * Created by Viktor Khodosevich on 4/10/2017.
@@ -5131,6 +5131,38 @@ $R.part('Objects', ['Debug', function DrawerObjectExtension(Debug) {
 
 }]);
 /**
+ * Created by Viktor Khodosevich on 2/6/2017.
+ */
+$R.part('Objects', ['Debug', function MatrixObjectExtension(Debug) {
+
+    var f = null, object = this.object();
+
+    this.f = function (func) {
+        if (typeof func === "function") {
+            f = func;
+            delete this.f;
+        }
+    };
+
+    function MatrixWrapper() {
+        return f.call(object);
+    }
+
+    this.register('matrix', function () {
+        return this.extension('Cache').value('transformMatrix', MatrixWrapper);
+    });
+
+    this.purge = function () {
+        object.extension('Cache').purge('transformMatrix');
+        if(object.type() === 'Group') {
+            var layers = object.extension('Layers');
+            layers.forEach(function () {
+                this.extension('Cache').purge('transformMatrix');
+            });
+        }
+    };
+}]);
+/**
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.part('Objects' ,['Debug', function LayersObjectExtension(Debug) {
@@ -5218,38 +5250,6 @@ $R.part('Objects' ,['Debug', function LayersObjectExtension(Debug) {
         return layers;
     }
 
-}]);
-/**
- * Created by Viktor Khodosevich on 2/6/2017.
- */
-$R.part('Objects', ['Debug', function MatrixObjectExtension(Debug) {
-
-    var f = null, object = this.object();
-
-    this.f = function (func) {
-        if (typeof func === "function") {
-            f = func;
-            delete this.f;
-        }
-    };
-
-    function MatrixWrapper() {
-        return f.call(object);
-    }
-
-    this.register('matrix', function () {
-        return this.extension('Cache').value('transformMatrix', MatrixWrapper);
-    });
-
-    this.purge = function () {
-        object.extension('Cache').purge('transformMatrix');
-        if(object.type() === 'Group') {
-            var layers = object.extension('Layers');
-            layers.forEach(function () {
-                this.extension('Cache').purge('transformMatrix');
-            });
-        }
-    };
 }]);
 /**
  * Created by Viktor Khodosevich on 2/2/2017.
@@ -5693,6 +5693,125 @@ $R.part('Objects', ['Debug', function StyleObjectExtension(Debug) {
 
 }]);
 /**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects', ['Debug', function TreeObjectExtension(Debug) {
+
+    var parent = null;
+
+    function checkTree (object) {
+        if (object.$$TREESEARCHVALUE) {
+            return true;
+        }
+        else {
+            if (object.parent()) {
+                if(checkTree(object.parent())) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    function treeViolation (target,object) {
+        if(target.type() == 'Group') {
+
+            object.$$TREESEARCHVALUE = true;
+
+            if(!checkTree(target)) {
+                delete object.$$TREESEARCHVALUE;
+                return false;
+            }
+            else {
+                if(target.$$TREESEARCHVALUE) {
+                    if(target.parent()) {
+                        Debug.warn({},'You try to append group parent into itself.');
+                    }
+                }
+                else {
+                    Debug.warn({},'You try to append group parent into it\'s children.');
+                }
+                delete object.$$TREESEARCHVALUE;
+                return true;
+            }
+        }
+        else {
+            if(target.type() != 'Group') {
+                Debug.warn({target : target.type(), object : object.type()},'Yoy try to append [{object}] into [{target}].');
+                return true;
+            }
+        }
+    }
+
+    var layers = null;
+
+    this.register('append' , function (object) {
+        if(this.type() !== 'Group') {
+            Debug.watch({type : this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
+        }
+        else if(!treeViolation(this,object)) {
+
+            if(!layers) layers = this.extension('Layers');
+
+            var object_old_parent = object.parent(),
+                object_tree_ext = object.extension('Tree');
+
+            if(object_old_parent) {
+                var old_object_parent_layers = object_old_parent.extension('Layers'),
+                    object_layer = object.layer();
+
+                old_object_parent_layers.remove(object);
+
+                layers.place(object_layer,object);
+
+                object_tree_ext.parent(this);
+
+            }
+            else {
+
+                var object_layer = object.layer();
+
+                layers.place(object_layer,object);
+
+                object_tree_ext.parent(this);
+            }
+
+            var box = this.extension('Box');
+            box.purge();
+        }
+        return this;
+    });
+
+    this.register('appendTo' , function (object) {
+        object.append(this);
+        return this;
+    });
+
+    this.register('parent' , function () {
+        return parent;
+    });
+
+
+    this.parent = function (group) {
+        if(!group.type || group.type() !== 'Group') {
+            Debug.error('Object Tree Extension / Unable to set object as parent. Not a group!');
+        }
+        if(group) {
+            parent = group;
+        }
+        else {
+            return parent;
+        }
+    };
+
+}]);
+/**
  * Created by Viktor Khodosevich on 3/25/2017.
  */
 $R.part('Objects', ['Debug', '$ModelHelper', '@inject', '$DrawerHelper', function TextObjectExtension(Debug, ModelHelper, inject, DrawerHelper) {
@@ -5817,125 +5936,6 @@ $R.part('Objects', ['Debug', '$ModelHelper', '@inject', '$DrawerHelper', functio
         this.update();
         for (var i = 0; i < lines.length; i++) {
             func.apply(lines[i], [i, lines[i]]);
-        }
-    };
-
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects', ['Debug', function TreeObjectExtension(Debug) {
-
-    var parent = null;
-
-    function checkTree (object) {
-        if (object.$$TREESEARCHVALUE) {
-            return true;
-        }
-        else {
-            if (object.parent()) {
-                if(checkTree(object.parent())) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-            else {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    function treeViolation (target,object) {
-        if(target.type() == 'Group') {
-
-            object.$$TREESEARCHVALUE = true;
-
-            if(!checkTree(target)) {
-                delete object.$$TREESEARCHVALUE;
-                return false;
-            }
-            else {
-                if(target.$$TREESEARCHVALUE) {
-                    if(target.parent()) {
-                        Debug.warn({},'You try to append group parent into itself.');
-                    }
-                }
-                else {
-                    Debug.warn({},'You try to append group parent into it\'s children.');
-                }
-                delete object.$$TREESEARCHVALUE;
-                return true;
-            }
-        }
-        else {
-            if(target.type() != 'Group') {
-                Debug.warn({target : target.type(), object : object.type()},'Yoy try to append [{object}] into [{target}].');
-                return true;
-            }
-        }
-    }
-
-    var layers = null;
-
-    this.register('append' , function (object) {
-        if(this.type() !== 'Group') {
-            Debug.watch({type : this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
-        }
-        else if(!treeViolation(this,object)) {
-
-            if(!layers) layers = this.extension('Layers');
-
-            var object_old_parent = object.parent(),
-                object_tree_ext = object.extension('Tree');
-
-            if(object_old_parent) {
-                var old_object_parent_layers = object_old_parent.extension('Layers'),
-                    object_layer = object.layer();
-
-                old_object_parent_layers.remove(object);
-
-                layers.place(object_layer,object);
-
-                object_tree_ext.parent(this);
-
-            }
-            else {
-
-                var object_layer = object.layer();
-
-                layers.place(object_layer,object);
-
-                object_tree_ext.parent(this);
-            }
-
-            var box = this.extension('Box');
-            box.purge();
-        }
-        return this;
-    });
-
-    this.register('appendTo' , function (object) {
-        object.append(this);
-        return this;
-    });
-
-    this.register('parent' , function () {
-        return parent;
-    });
-
-
-    this.parent = function (group) {
-        if(!group.type || group.type() !== 'Group') {
-            Debug.error('Object Tree Extension / Unable to set object as parent. Not a group!');
-        }
-        if(group) {
-            parent = group;
-        }
-        else {
-            return parent;
         }
     };
 
@@ -7562,12 +7562,9 @@ $R.part('Objects', ['$ModelHelper', '$PathHelper', 'Debug', function DefaultObje
                 }
                 if (value > 360) {
                     value = value - 360;
-                    value = value * Math.PI / 180;
-                    return value;
                 }
-                else {
-                    return value * Math.PI / 180;
-                }
+                value = value * Math.PI / 180;
+                return value;
             }
         },
         function (value) {
@@ -9953,19 +9950,20 @@ $R.part('Objects', ['$AnimationHelper', 'Morphine', function Animation(Animation
         var tick_function = AnimationHelper.getTickFunction();
 
         morphine = Morphine.create(0, 1, function (complete, value) {
-            if (stack.length == 0) {
+            if (stack.length === 0) {
                 Resolve(completeTypeStr);
                 morphine.stop();
             }
             else {
                 for (var i = 0; i < stack.length; i++) {
-                    stack[i].result = tick_function(value, stack[i].morph.start(), stack[i].morph.end());
+                    stack[i].result = tick_function(value, complete, stack[i].morph.start(), stack[i].morph.end());
+                    if(stack[i].morph.property() === 'rotate') console.log(stack[i].result);
                     stack[i].morph.apply(complete, stack[i].result);
                 }
 
                 Resolve(stepTypeStr);
 
-                if (complete == 1) {
+                if (complete === 1) {
                     Resolve(completeTypeStr);
                 }
 
@@ -9996,47 +9994,42 @@ $R.part('Objects', ['$AnimationHelper', 'Morphine', function Animation(Animation
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
-$R.part('Objects', function AnimationHelper () {
+$R.part('Objects', function AnimationHelper() {
 
-    function TickVal(complete, start, end) {
+    function TickVal(complete, progress, start, end) {
         var locs = false, loce = false;
-        if (typeof start == "function") locs = start();
-        if (typeof end == "function") loce = end();
+        if (typeof start === "function") locs = start();
+        if (typeof end === "function") loce = end();
 
         if (start.constructor === Array) {
             var result = [];
             for (var i = 0; i < start.length; i++) {
-                result.push(TickVal(complete, start[i], end[i]));
+                result.push(TickVal(complete, progress, start[i], end[i]));
             }
         }
-        else if (typeof start == 'object') {
+        else if (typeof start === 'object') {
             var result = {};
             for (var prop in start) {
-                result[prop] = TickVal(complete, start[prop], end[prop]);
+                result[prop] = TickVal(complete, progress, start[prop], end[prop]);
             }
         }
-        else if (typeof start == 'number' || typeof start == 'function') {
-            var endval     = loce === false ? end : loce;
-            var startval   = locs === false ? start : locs;
-            var difference = endval - startval;
-            if (complete >= 1) {
-                var value = endval;
-            }
-            else {
-
-                var value = startval + (difference * complete);
-            }
-            var result = value;
+        else if (typeof start === 'number' || typeof start === 'function') {
+            var endval = loce === false ? end : loce,
+                startval = locs === false ? start : locs,
+                difference = endval - startval,
+                result = startval + (difference * complete);
+            if (progress >= 1) result = endval;
         }
         return result;
     }
 
-    this.normalizeConfig = function(config) {
-        config.duration = typeof config.duration == "number" && config.duration > 0 ? config.duration : 1000;
-        config.queue    = !!config.queue;
-        config.step     = typeof config.step == "object" ? config.step : {};
-        config.easing   = typeof config.easing == 'string' ? config.easing : 'linear';
-        config.done     = typeof config.done === "function" ? config.done : function () {};
+    this.normalizeConfig = function (config) {
+        config.duration = typeof config.duration === "number" && config.duration > 0 ? config.duration : 1000;
+        config.queue = !!config.queue;
+        config.step = typeof config.step === "object" ? config.step : {};
+        config.easing = typeof config.easing === 'string' ? config.easing : 'linear';
+        config.done = typeof config.done === "function" ? config.done : function () {
+        };
     };
 
     this.getTickFunction = function () {
@@ -10127,51 +10120,6 @@ $R.part('Objects', ['Debug', function Morph(Debug) {
     }
 
 }]);
-/**
- * Created by Viktor Khodosevich on 2/7/2017.
- */
-$R.part('Objects', function GraphicsBox() {
-
-    var container = {
-            size: [0, 0],
-            position: [0, 0]
-        },
-        sprite = {
-            margin: [0, 0, 0, 0],
-            position: [0, 0],
-            size: [0, 0]
-        };
-
-    this.get = function () {
-        return {
-            size: [container.size[0], container.size[1]],
-            position: [container.position[0], container.position[1]]
-        }
-    };
-
-    this.set = function (x, y, width, height, top, right, bottom, left) {
-        container.size[0] = width;
-        container.size[1] = height;
-        container.position[0] = x;
-        container.position[1] = y;
-        sprite.margin[0] = top;
-        sprite.margin[1] = right;
-        sprite.margin[2] = bottom;
-        sprite.margin[3] = left;
-        sprite.size[0] = left + width + right;
-        sprite.size[1] = top + height + bottom;
-        sprite.position[0] = x - left;
-        sprite.position[1] = y - top;
-    };
-
-    this.value = function () {
-        return container;
-    };
-    this.sprite = function () {
-        return sprite;
-    };
-
-});
 /**
  * Created by Viktor Khodosevich on 2/2/2017.
  */
@@ -10432,6 +10380,51 @@ $R.part('Objects', ['$Tree', 'Debug', function MouseObjectFinder(Tree, Debug) {
         return CheckElement(root, cursor);
     }
 }]);
+/**
+ * Created by Viktor Khodosevich on 2/7/2017.
+ */
+$R.part('Objects', function GraphicsBox() {
+
+    var container = {
+            size: [0, 0],
+            position: [0, 0]
+        },
+        sprite = {
+            margin: [0, 0, 0, 0],
+            position: [0, 0],
+            size: [0, 0]
+        };
+
+    this.get = function () {
+        return {
+            size: [container.size[0], container.size[1]],
+            position: [container.position[0], container.position[1]]
+        }
+    };
+
+    this.set = function (x, y, width, height, top, right, bottom, left) {
+        container.size[0] = width;
+        container.size[1] = height;
+        container.position[0] = x;
+        container.position[1] = y;
+        sprite.margin[0] = top;
+        sprite.margin[1] = right;
+        sprite.margin[2] = bottom;
+        sprite.margin[3] = left;
+        sprite.size[0] = left + width + right;
+        sprite.size[1] = top + height + bottom;
+        sprite.position[0] = x - left;
+        sprite.position[1] = y - top;
+    };
+
+    this.value = function () {
+        return container;
+    };
+    this.sprite = function () {
+        return sprite;
+    };
+
+});
 /**
  * Created by Viktor Khodosevich on 3/28/2017.
  */
@@ -11253,17 +11246,19 @@ $R.ext(['Debug', function Easings(Debug) {
             return c / 2 * (Math.sqrt(1 - (t -= 2) * t) + 1) + b;
         },
         easeInBack: function (t, b, c, d, s) {
-            if (s == undefined) s = 1.70158;
-            return c * (t /= d) * t * ((s + 1) * t - s) + b;
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (15.26 * tc * ts + -43.56 * ts * ts + 39.8 * tc + -10.6 * ts + 0.1 * t);
         },
         easeOutBack: function (t, b, c, d, s) {
-            if (s == undefined) s = 1.70158;
-            return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (11.24 * tc * ts + -23.96 * ts * ts + 12.24 * tc + 1.44 * ts + 0.04 * t);
         },
         easeInOutBack: function (t, b, c, d, s) {
-            if (s == undefined) s = 1.70158;
-            if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b;
-            return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b;
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (22.92 * tc * ts + -57.78 * ts * ts + 45 * tc + -9.28 * ts + 0.14 * t);
         },
         easeOutBounce: function (t, b, c, d) {
             if ((t /= d) < (1 / 2.75)) {
