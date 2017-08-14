@@ -1861,59 +1861,6 @@ $R.part('Objects', ['Debug', '@app', '$$config', function Tree(Debug, app, confi
 
 }]);
 /**
- * Created by Viktor Khodosevich on 5/1/2017.
- */
-$R.part('Objects', [function AreaObjectClass() {
-
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function CircleObjectClass (MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.circleCheckFunction);
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects' , ['$Tree', function DefaultObjectType(Tree) {
-    Tree.root(this).append(this);
-}]);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects', function GroupObjectClass() {
-
-});
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function ImageObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.part('Objects', function LineObjectClass() {
-
-});
-$R.part('Objects',['$MouseHelper', function RectangleObjectClass (MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-    var mouse = this.extension('Mouse');
-    mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.part('Objects', ['$MouseHelper',function SpriteObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
- * Created by Viktor Khodosevich on 3/25/2017.
- */
-$R.part('Objects', ['$MouseHelper',function TextObjectClass(MouseHelper) {
-    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-}]);
-/**
  * Created by bx7kv_000 on 1/10/2017.
  */
 $R.part('Objects', [function Canvas() {
@@ -3158,6 +3105,59 @@ $R.part('Objects', ['Debug', function PathHelper(Debug) {
     }
 
 
+}]);
+/**
+ * Created by Viktor Khodosevich on 5/1/2017.
+ */
+$R.part('Objects', [function AreaObjectClass() {
+
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function CircleObjectClass (MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.circleCheckFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects' , ['$Tree', function DefaultObjectType(Tree) {
+    Tree.root(this).append(this);
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects', function GroupObjectClass() {
+
+});
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function ImageObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.part('Objects', function LineObjectClass() {
+
+});
+$R.part('Objects',['$MouseHelper', function RectangleObjectClass (MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+    var mouse = this.extension('Mouse');
+    mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function SpriteObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+}]);
+/**
+ * Created by Viktor Khodosevich on 3/25/2017.
+ */
+$R.part('Objects', ['$MouseHelper',function TextObjectClass(MouseHelper) {
+    this.mouseCheckFunction(MouseHelper.rectCheckFunction);
 }]);
 /**
  * Created by Viktor Khodosevich on 4/10/2017.
@@ -5693,125 +5693,6 @@ $R.part('Objects', ['Debug', function StyleObjectExtension(Debug) {
 
 }]);
 /**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.part('Objects', ['Debug', function TreeObjectExtension(Debug) {
-
-    var parent = null;
-
-    function checkTree (object) {
-        if (object.$$TREESEARCHVALUE) {
-            return true;
-        }
-        else {
-            if (object.parent()) {
-                if(checkTree(object.parent())) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-            else {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    function treeViolation (target,object) {
-        if(target.type() == 'Group') {
-
-            object.$$TREESEARCHVALUE = true;
-
-            if(!checkTree(target)) {
-                delete object.$$TREESEARCHVALUE;
-                return false;
-            }
-            else {
-                if(target.$$TREESEARCHVALUE) {
-                    if(target.parent()) {
-                        Debug.warn({},'You try to append group parent into itself.');
-                    }
-                }
-                else {
-                    Debug.warn({},'You try to append group parent into it\'s children.');
-                }
-                delete object.$$TREESEARCHVALUE;
-                return true;
-            }
-        }
-        else {
-            if(target.type() != 'Group') {
-                Debug.warn({target : target.type(), object : object.type()},'Yoy try to append [{object}] into [{target}].');
-                return true;
-            }
-        }
-    }
-
-    var layers = null;
-
-    this.register('append' , function (object) {
-        if(this.type() !== 'Group') {
-            Debug.watch({type : this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
-        }
-        else if(!treeViolation(this,object)) {
-
-            if(!layers) layers = this.extension('Layers');
-
-            var object_old_parent = object.parent(),
-                object_tree_ext = object.extension('Tree');
-
-            if(object_old_parent) {
-                var old_object_parent_layers = object_old_parent.extension('Layers'),
-                    object_layer = object.layer();
-
-                old_object_parent_layers.remove(object);
-
-                layers.place(object_layer,object);
-
-                object_tree_ext.parent(this);
-
-            }
-            else {
-
-                var object_layer = object.layer();
-
-                layers.place(object_layer,object);
-
-                object_tree_ext.parent(this);
-            }
-
-            var box = this.extension('Box');
-            box.purge();
-        }
-        return this;
-    });
-
-    this.register('appendTo' , function (object) {
-        object.append(this);
-        return this;
-    });
-
-    this.register('parent' , function () {
-        return parent;
-    });
-
-
-    this.parent = function (group) {
-        if(!group.type || group.type() !== 'Group') {
-            Debug.error('Object Tree Extension / Unable to set object as parent. Not a group!');
-        }
-        if(group) {
-            parent = group;
-        }
-        else {
-            return parent;
-        }
-    };
-
-}]);
-/**
  * Created by Viktor Khodosevich on 3/25/2017.
  */
 $R.part('Objects', ['Debug', '$ModelHelper', '@inject', '$DrawerHelper', function TextObjectExtension(Debug, ModelHelper, inject, DrawerHelper) {
@@ -5936,6 +5817,125 @@ $R.part('Objects', ['Debug', '$ModelHelper', '@inject', '$DrawerHelper', functio
         this.update();
         for (var i = 0; i < lines.length; i++) {
             func.apply(lines[i], [i, lines[i]]);
+        }
+    };
+
+}]);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.part('Objects', ['Debug', function TreeObjectExtension(Debug) {
+
+    var parent = null;
+
+    function checkTree (object) {
+        if (object.$$TREESEARCHVALUE) {
+            return true;
+        }
+        else {
+            if (object.parent()) {
+                if(checkTree(object.parent())) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    function treeViolation (target,object) {
+        if(target.type() == 'Group') {
+
+            object.$$TREESEARCHVALUE = true;
+
+            if(!checkTree(target)) {
+                delete object.$$TREESEARCHVALUE;
+                return false;
+            }
+            else {
+                if(target.$$TREESEARCHVALUE) {
+                    if(target.parent()) {
+                        Debug.warn({},'You try to append group parent into itself.');
+                    }
+                }
+                else {
+                    Debug.warn({},'You try to append group parent into it\'s children.');
+                }
+                delete object.$$TREESEARCHVALUE;
+                return true;
+            }
+        }
+        else {
+            if(target.type() != 'Group') {
+                Debug.warn({target : target.type(), object : object.type()},'Yoy try to append [{object}] into [{target}].');
+                return true;
+            }
+        }
+    }
+
+    var layers = null;
+
+    this.register('append' , function (object) {
+        if(this.type() !== 'Group') {
+            Debug.watch({type : this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
+        }
+        else if(!treeViolation(this,object)) {
+
+            if(!layers) layers = this.extension('Layers');
+
+            var object_old_parent = object.parent(),
+                object_tree_ext = object.extension('Tree');
+
+            if(object_old_parent) {
+                var old_object_parent_layers = object_old_parent.extension('Layers'),
+                    object_layer = object.layer();
+
+                old_object_parent_layers.remove(object);
+
+                layers.place(object_layer,object);
+
+                object_tree_ext.parent(this);
+
+            }
+            else {
+
+                var object_layer = object.layer();
+
+                layers.place(object_layer,object);
+
+                object_tree_ext.parent(this);
+            }
+
+            var box = this.extension('Box');
+            box.purge();
+        }
+        return this;
+    });
+
+    this.register('appendTo' , function (object) {
+        object.append(this);
+        return this;
+    });
+
+    this.register('parent' , function () {
+        return parent;
+    });
+
+
+    this.parent = function (group) {
+        if(!group.type || group.type() !== 'Group') {
+            Debug.error('Object Tree Extension / Unable to set object as parent. Not a group!');
+        }
+        if(group) {
+            parent = group;
+        }
+        else {
+            return parent;
         }
     };
 
@@ -10121,6 +10121,51 @@ $R.part('Objects', ['Debug', function Morph(Debug) {
 
 }]);
 /**
+ * Created by Viktor Khodosevich on 2/7/2017.
+ */
+$R.part('Objects', function GraphicsBox() {
+
+    var container = {
+            size: [0, 0],
+            position: [0, 0]
+        },
+        sprite = {
+            margin: [0, 0, 0, 0],
+            position: [0, 0],
+            size: [0, 0]
+        };
+
+    this.get = function () {
+        return {
+            size: [container.size[0], container.size[1]],
+            position: [container.position[0], container.position[1]]
+        }
+    };
+
+    this.set = function (x, y, width, height, top, right, bottom, left) {
+        container.size[0] = width;
+        container.size[1] = height;
+        container.position[0] = x;
+        container.position[1] = y;
+        sprite.margin[0] = top;
+        sprite.margin[1] = right;
+        sprite.margin[2] = bottom;
+        sprite.margin[3] = left;
+        sprite.size[0] = left + width + right;
+        sprite.size[1] = top + height + bottom;
+        sprite.position[0] = x - left;
+        sprite.position[1] = y - top;
+    };
+
+    this.value = function () {
+        return container;
+    };
+    this.sprite = function () {
+        return sprite;
+    };
+
+});
+/**
  * Created by Viktor Khodosevich on 2/2/2017.
  */
 $R.part('Objects', ['Canvas', '@app', '$MouseObjectFinder', function MouseEventDispatcher(Canvas, app, Finder) {
@@ -10380,51 +10425,6 @@ $R.part('Objects', ['$Tree', 'Debug', function MouseObjectFinder(Tree, Debug) {
         return CheckElement(root, cursor);
     }
 }]);
-/**
- * Created by Viktor Khodosevich on 2/7/2017.
- */
-$R.part('Objects', function GraphicsBox() {
-
-    var container = {
-            size: [0, 0],
-            position: [0, 0]
-        },
-        sprite = {
-            margin: [0, 0, 0, 0],
-            position: [0, 0],
-            size: [0, 0]
-        };
-
-    this.get = function () {
-        return {
-            size: [container.size[0], container.size[1]],
-            position: [container.position[0], container.position[1]]
-        }
-    };
-
-    this.set = function (x, y, width, height, top, right, bottom, left) {
-        container.size[0] = width;
-        container.size[1] = height;
-        container.position[0] = x;
-        container.position[1] = y;
-        sprite.margin[0] = top;
-        sprite.margin[1] = right;
-        sprite.margin[2] = bottom;
-        sprite.margin[3] = left;
-        sprite.size[0] = left + width + right;
-        sprite.size[1] = top + height + bottom;
-        sprite.position[0] = x - left;
-        sprite.position[1] = y - top;
-    };
-
-    this.value = function () {
-        return container;
-    };
-    this.sprite = function () {
-        return sprite;
-    };
-
-});
 /**
  * Created by Viktor Khodosevich on 3/28/2017.
  */
@@ -11547,44 +11547,47 @@ $R.part('Objects', ['@extend', '@inject', function Graphics(extend, inject) {
  */
 $R.ext(['@inject', '$Tree', '@app', function Objects(inject, Tree) {
 
-    function InjectByType(type) {
+    function InjectByType(type, config) {
         var result = inject('$Graphics');
 
         result.defineType(type);
 
+        if(config && config.length) {
+            result.style.apply(result,config);
+        }
         return result;
     }
 
     this.group = function () {
-        return InjectByType('Group');
+        return InjectByType('Group', arguments);
     };
 
     this.line = function () {
-        return InjectByType('Line');
+        return InjectByType('Line', arguments);
     };
 
     this.rect = function () {
-        return InjectByType('Rectangle');
+        return InjectByType('Rectangle', arguments);
     };
 
     this.circle = function () {
-        return InjectByType('Circle');
+        return InjectByType('Circle', arguments);
     };
 
     this.image = function () {
-        return InjectByType('Image');
+        return InjectByType('Image', arguments);
     };
 
     this.sprite = function () {
-        return InjectByType('Sprite');
+        return InjectByType('Sprite', arguments);
     };
 
     this.text = function () {
-        return InjectByType('Text');
+        return InjectByType('Text', arguments);
     };
 
     this.area = function () {
-        return InjectByType('Area');
+        return InjectByType('Area', arguments);
     };
 
     this.group();

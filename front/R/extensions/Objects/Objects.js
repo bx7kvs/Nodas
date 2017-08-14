@@ -3,44 +3,47 @@
  */
 $R.ext(['@inject', '$Tree', '@app', function Objects(inject, Tree) {
 
-    function InjectByType(type) {
+    function InjectByType(type, config) {
         var result = inject('$Graphics');
 
         result.defineType(type);
 
+        if(config && config.length) {
+            result.style.apply(result,config);
+        }
         return result;
     }
 
     this.group = function () {
-        return InjectByType('Group');
+        return InjectByType('Group', arguments);
     };
 
     this.line = function () {
-        return InjectByType('Line');
+        return InjectByType('Line', arguments);
     };
 
     this.rect = function () {
-        return InjectByType('Rectangle');
+        return InjectByType('Rectangle', arguments);
     };
 
     this.circle = function () {
-        return InjectByType('Circle');
+        return InjectByType('Circle', arguments);
     };
 
     this.image = function () {
-        return InjectByType('Image');
+        return InjectByType('Image', arguments);
     };
 
     this.sprite = function () {
-        return InjectByType('Sprite');
+        return InjectByType('Sprite', arguments);
     };
 
     this.text = function () {
-        return InjectByType('Text');
+        return InjectByType('Text', arguments);
     };
 
     this.area = function () {
-        return InjectByType('Area');
+        return InjectByType('Area', arguments);
     };
 
     this.group();
