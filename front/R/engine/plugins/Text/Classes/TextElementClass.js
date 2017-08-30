@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 3/28/2017.
  */
 $R.plugin.class('Objects', 'Text',
-    ['$ColorHelper',
+    ['+Color',
         function TextElementClass(ColorHelper) {
             var color = 'rgba(0,0,0,1)',
                 font = 'sans-serif',
