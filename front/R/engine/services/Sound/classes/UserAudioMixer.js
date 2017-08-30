@@ -2,13 +2,16 @@
  * Created by Viktor Khodosevich on 4/21/2017.
  */
 $R.service.class('Sound',
-    ['@inject', '$$config', 'Debug',
+    ['@inject', '@Config', 'Debug',
         function UserAudioMixer(inject, config, Debug) {
 
             var events = inject('$EventProvider'),
                 filters = [],
                 output = null,
-                name = '';
+                name = '',
+                filtersCfg = config.define('filters', ['Delay', 'Gain'], {isArray: true}).watch(function (v) {
+                    filters = v;
+                });
 
 
             events.wrap(this);
@@ -24,20 +27,15 @@ $R.service.class('Sound',
 
             this.build = function (n, channel) {
 
-                var fcfg = config.filters &&
-                typeof config.filters == "object"
-                && config.filters.constructor == Array
-                && config.filters.length > 0 ? config.filters : ['Delay', 'Gain'];
-
-                for (var i = 0; i < fcfg.length; i++) {
-                    var node = inject('$' + fcfg[i] + 'Node');
+                for (var i = 0; i < filtersCfg.length; i++) {
+                    var node = inject('$' + filtersCfg[i] + 'Node');
                     if (filters[filters.length - 1]) {
                         filters[filters.length - 1].connect(node);
                     }
                     filters.push(node);
                 }
 
-                if (typeof n == "string" && n.length > 0) {
+                if (typeof n === "string" && n.length > 0) {
                     name = n;
                 }
                 else {
@@ -45,7 +43,7 @@ $R.service.class('Sound',
                     events.resolve('error');
                 }
 
-                if (channel && typeof channel == "object" && channel.connect && typeof channel.connect == "function") {
+                if (channel && typeof channel === "object" && channel.connect && typeof channel.connect === "function") {
                     this.connect(channel);
                 }
                 else if (channel === 'destination') {

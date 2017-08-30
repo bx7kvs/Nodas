@@ -2,8 +2,8 @@
  * Created by Viktor Khodosevich on 4/19/2017.
  */
 $R.service.class('Sound',
-    ['@extend', '@inject', 'Debug',
-        function UserAudioSource(extend, inject, Debug) {
+    ['@extend', '@inject',
+        function UserAudioSource(extend, inject) {
 
             var node = inject('$AudioSource'),
                 events = inject('$EventProvider'),
@@ -42,7 +42,7 @@ $R.service.class('Sound',
 
             this.build = function (src) {
 
-                if (typeof src == "string" && src.length > 0) {
+                if (typeof src === "string" && src.length > 0) {
                     url = src;
                     node.build(src);
                     mixer = inject('$UserAudioMixer').build('source-built-in-filter');

@@ -5,7 +5,7 @@ $R.service.class('Resource',
     ['@extend', 'Debug',
         function Image(extend, Debug) {
 
-            extend(this, '$ResourceClass');
+            extend(this, '$Resource');
 
             var url = null, resolveEventFunc = null, stateFunc = null, image = null, width = 0, height = 0;
 

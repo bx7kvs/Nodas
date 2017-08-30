@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 3/25/2017.
  */
 $R.service.class('Objects',
-    ['@inject', '$DrawerHelper', 'Resource',
+    ['@inject', '+Drawer', 'Resource',
         function TextObjectDrawer(inject, DrawerHelper, Resource) {
             var text = this.extension('Text'),
                 style = this.extension('Style'),

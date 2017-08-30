@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.service.class('Objects',
-    ['$ModelHelper', '$PathHelper', 'Debug',
+    ['+Model', '+Path', 'Debug',
         function DefaultObjectModel(ModelHelper, PathHelper, Debug) {
 
             var style = this.extension('Style'),
@@ -167,13 +167,15 @@ $R.service.class('Objects',
                 function (start, end, value) {
                     if (typeof  value === "number") {
                         if (value < 0) value = 0;
-                        if (value > 1) value = 1;
                         start(this.style('scale'));
                         end([value, value]);
                     }
                     else if (ModelHelper.validNumericArray(value) && value.length === 2) {
                         start(this.style('scale'));
-                        end(ModelHelper.cloneArray(value));
+                        var endArray = [value[0],value[1]];
+                        if(endArray[0] < 0) endArray[0] = 0;
+                        if(endArray[1] < 0) endArray[1] = 0;
+                        end(endArray);
                     }
                     else {
                         Debug.warn({v: value}, 'Invalid value for scale');
@@ -196,8 +198,6 @@ $R.service.class('Objects',
                             value = value + 360;
                         }
                         var rad = value * Math.PI / 180;
-
-                        console.log(value, rad);
 
                         return [rad, rad];
                     }

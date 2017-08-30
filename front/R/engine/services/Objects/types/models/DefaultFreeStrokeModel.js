@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 5/3/2017.
  */
 $R.service.class('Objects',
-    ['+ModelHelper', '+ColorHelper', 'Debug',
+    ['+Model', '+Color', 'Debug',
         function DefaultFreeStrokeModel(ModelHelper, ColorHelper, Debug) {
 
             var style = this.extension('Style');

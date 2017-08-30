@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.service.class('Objects',
-    ['@extend', '+ModelHelper', '+PathHelper', '+ColorHelper', 'Debug',
+    ['@extend', '+Model', '+Path', '+Color', 'Debug',
         function LineObjectModel(extend, ModelHelper, PathHelper, ColorHelper, Debug) {
 
             extend(this, '$DefaultObjectModel');

@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.service.class('Objects',
-    ['@inject', 'Debug', '$DrawerHelper', '$PathHelper',
+    ['@inject', 'Debug', '+Drawer', '+Path',
         function LineObjectDrawer(inject, Debug, DrawerHelper, PathHelper) {
 
             var box = this.extension('Box'),

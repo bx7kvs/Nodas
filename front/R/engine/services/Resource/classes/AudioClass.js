@@ -4,7 +4,7 @@
 $R.service.class('Resource',
     ['@extend', 'Debug',
         function Audio(extend, Debug) {
-            extend(this, '$ResourceClass');
+            extend(this, '$Resource');
 
 
             this.type = 'Audio';

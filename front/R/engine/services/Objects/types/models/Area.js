@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 5/1/2017.
  */
 $R.service.class('Objects',
-    ['@extend', '$ModelHelper', '$PathHelper', 'Debug',
+    ['@extend', '+Model', '+Path', 'Debug',
         function AreaObjectModel(extend, ModelHelper, PathHelper, Debug) {
             extend(this, '.DefaultObjectModel');
             extend(this, '.GlobalBackgroundModel');

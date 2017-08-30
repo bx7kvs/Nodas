@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 1/13/2017.
  */
 $R.service.class('Objects',
-    ['@extend', '$ColorHelper', '$ModelHelper', 'Debug',
+    ['@extend', '+Color', '+Model', 'Debug',
         function CircleObjectModel(extend, ColorHelper, ModelHelper, Debug) {
             extend(this, '.DefaultObjectModel');
             extend(this, '.$GlobalBackgroundModel');

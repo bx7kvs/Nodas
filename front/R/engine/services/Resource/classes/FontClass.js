@@ -5,7 +5,7 @@ $R.service.class('Resource',
     ['@extend', 'Debug', '$$config', '@HTMLRoot',
         function Font(extend, Debug, config, html) {
 
-            extend(this, '$ResourceClass');
+            extend(this, '$Resource');
 
             this.type = 'Font';
             var state = null, resolve = null, font = null,

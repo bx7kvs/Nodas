@@ -3,7 +3,7 @@
  */
 $R.service.class('Resource',
     ['@extend', 'Debug',
-        function ResourceClass(extend, Debug) {
+        function Resource(extend, Debug) {
 
             var url = null,
                 self = this,

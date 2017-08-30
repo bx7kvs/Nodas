@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 3/25/2017.
  */
 $R.service.class('Objects',
-    ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
+    ['@extend', '+Model', '+Color', 'Debug',
         function TextObjectModel(extend, ModelHelper, ColorHelper, Debug) {
             extend(this, '$DefaultObjectModel');
 

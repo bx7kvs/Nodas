@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 1/13/2017.
  */
 $R.service.class('Objects',
-    ['$DrawerHelper', '$ModelHelper', 'Resource',
+    ['+Drawer', '+Model', 'Resource',
         function SpriteObjectDrawer(DrawerHelper, ModelHelper, Resource) {
 
             var style = this.extension('Style'),

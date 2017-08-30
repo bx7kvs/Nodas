@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 2/8/2017.
  */
 $R.service.class('Objects',
-    ['$ModelHelper',
+    ['+Model',
         function GlobalSizeModel(ModelHelper) {
 
             var animation = this.extension('Animation'),

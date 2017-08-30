@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 1/5/2017.
  */
 $R.service.class('Objects',
-    ['Debug', '$MatrixHelper',
+    ['Debug', '+Matrix',
         function DefaultObjectDrawer(Debug, Matrix) {
             var matrix = this.extension('Matrix');
 

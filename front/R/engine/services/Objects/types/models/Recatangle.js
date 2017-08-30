@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 1/11/2017.
  */
 $R.service.class('Objects',
-    ['@extend', '$ModelHelper', '$ColorHelper', 'Debug',
+    ['@extend', '+Model', '+Color', 'Debug',
         function RectangleObjectModel(extend, ModelHelper, ColorHelper, Debug) {
 
             extend(this, '$DefaultObjectModel');

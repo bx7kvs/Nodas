@@ -5,7 +5,7 @@ $R.service.class('Resource',
     ['@extend', 'Debug',
         function Sprite(extend, Debug) {
 
-            extend(this, '$ResourceClass');
+            extend(this, '$Resource');
 
             var url = null, image = null, size = 0, frames = 0, duration = 0, width = 0, height = 0,
                 frameHeight = 0, frameWidth = 0, fps = 12,

@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 1/13/2017.
  */
 $R.service.class('Objects',
-    ['$ModelHelper', '$ColorHelper', 'Debug', 'Resource',
+    ['+Model', '+Color', 'Debug', 'Resource',
         function GlobalBackgroundModel(ModelHelper, ColorHelper, Debug, Resource) {
             var style = this.extension('Style'),
                 animation = this.extension('Animation');

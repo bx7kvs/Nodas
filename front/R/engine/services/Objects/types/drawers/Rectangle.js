@@ -2,7 +2,7 @@
  * Created by bx7kv_000 on 1/11/2017.
  */
 $R.service.class('Objects',
-    ['@inject', '$DrawerHelper',
+    ['@inject', '+Drawer',
         function RectangleObjectDrawer(inject, DrawerHelper) {
 
             var assembler = inject('$GraphicsAssembler'),

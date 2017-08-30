@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 4/16/2017.
  */
 $R.service.class('Sound',
-    ['@audio', '@inject', 'Resource', 'Debug',
+    ['@Audio', '@inject', 'Resource', 'Debug',
         function AudioSource(audio, inject, Resource, Debug) {
 
             var url = null,
