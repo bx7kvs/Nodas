@@ -1,0 +1,48 @@
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+
+$R.service.class('Objects',
+    ['@extend', '@inject', '<Plugins',
+        function Graphics(extend, inject, plugins) {
+
+            var type = null,
+                resolved_plugins = {};
+
+            this.extension = function (name) {
+                return resolved_plugins[name];
+            };
+
+            this.type = function () {
+                return type;
+            };
+
+            this.defineType = function (t) {
+                if (typeof t !== "string") return;
+
+                delete this.defineType;
+
+                type = t;
+
+                var list = plugins.list();
+                for (var i = 0; i < list.length; i++) {
+                    resolved_plugins[list[i]] = inject('$Plugin');
+                    resolved_plugins[list[i]].defineObject(this);
+                    extend(resolved_plugins[list[i]], '<' + list[i]);
+                    if (resolved_plugins[list[i]].matchType(type)) {
+                        resolved_plugins[list[i]].wrap(this);
+                    }
+                    else {
+                        delete resolved_plugins[list[i]];
+                    }
+                }
+                extend(this, '$' + t + 'ObjectModel');
+                extend(this, '$DefaultObjectDrawer');
+                extend(this, '$' + t + 'ObjectDrawer');
+                extend(this, '$DefaultObjectType');
+                extend(this, '$' + t + 'ObjectClass');
+
+            };
+        }
+    ]
+);
