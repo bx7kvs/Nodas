@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 3/26/2017.
  */
 $R.plugin.class('Objects', 'Text',
-    ['+Color', '@extend', '$DrawerHelper',
+    ['+Color', '@extend', '+Drawer',
         function TextWordClass(ColorHelper, extend, DrawerHelper) {
 
             extend(this, '$TextElementClass');

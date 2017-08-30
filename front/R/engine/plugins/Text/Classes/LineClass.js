@@ -2,7 +2,7 @@
  * Created by Viktor Khodosevich on 3/28/2017.
  */
 $R.plugin.class('Objects', 'Text',
-    ['@extend', '@inject', '$DrawerHelper',
+    ['@extend', '@inject', '+Drawer',
         function TextLineClass(extend, inject, DrawerHelper) {
             extend(this, '$TextElementClass');
 
