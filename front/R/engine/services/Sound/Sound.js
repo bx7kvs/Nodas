@@ -2,8 +2,12 @@
  * Created by Viktor Khodosevich on 4/16/2017.
  */
 $R.service(
-    ['@Audio', '@inject', 'Debug',
-        function Sound(context, inject, Debug) {
+    ['@Audio', '@inject', '@Config', 'Debug',
+        function Sound(context, inject, config, Debug) {
+
+            config.define('filters', ['Delay', 'Gain'], {isArray: true});
+
+            console.log(config.watch('filters', function () {}));
 
             var destination = inject('$Audio').build('$$DESTINATION', 'destination'),
                 sounds = {},
@@ -11,7 +15,10 @@ $R.service(
                 channelcount = 0,
                 channels = {
                     $$DESTINATION: destination
-                };
+                },
+                self = this;
+
+
 
             this.sample = function (url, channel, name) {
                 if (typeof url === "string" && url.length > 0) {
@@ -85,8 +92,6 @@ $R.service(
             this.destination = function () {
                 return channels.$$DESTINATION;
             };
-
-
         }
     ]
 );

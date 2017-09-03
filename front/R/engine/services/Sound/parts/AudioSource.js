@@ -38,7 +38,7 @@ $R.service.class('Sound',
                             events.resolve('load');
                         },
                         function () {
-                            Debug.error({src: src}, '[{src}] audio buffer can not be decoded.');
+                            Debug.error({src: src}, '[{src}] audio buffer can not be decoded. Resource not found, or of wrong format');
                             events.resolve('error');
                         }
                     )

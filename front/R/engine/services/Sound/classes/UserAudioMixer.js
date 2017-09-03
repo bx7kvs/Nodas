@@ -9,9 +9,7 @@ $R.service.class('Sound',
                 filters = [],
                 output = null,
                 name = '',
-                filtersCfg = config.define('filters', ['Delay', 'Gain'], {isArray: true}).watch(function (v) {
-                    filters = v;
-                });
+                filtersCfg = config.watch('filters', function (v) {filters = v});
 
 
             events.wrap(this);

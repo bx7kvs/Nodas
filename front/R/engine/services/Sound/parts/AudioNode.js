@@ -108,14 +108,14 @@ $R.service.class('Sound',
             var model = {};
 
             this.property = function (name, defVal, setter, getter, normlizer) {
-                if (typeof name == "string") {
+                if (typeof name === "string") {
                     var property = {
                         name: name,
                         value: null,
                         getter: null,
                         setter: null,
                         normalizer: normlizer,
-                        animated: typeof normlizer == "function" ? true : false
+                        animated: typeof normlizer === "function" ? true : false
                     };
 
                     if (typeof getter === "function") {
