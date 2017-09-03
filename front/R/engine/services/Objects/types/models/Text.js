@@ -2,13 +2,14 @@
  * Created by Viktor Khodosevich on 3/25/2017.
  */
 $R.service.class('Objects',
-    ['@extend', '+Model', '+Color', 'Debug',
-        function TextObjectModel(extend, ModelHelper, ColorHelper, Debug) {
+    ['@extend', '+Model', '+Color', 'Debug', '@Fonts',
+        function TextObjectModel(extend, ModelHelper, ColorHelper, Debug, Fonts) {
             extend(this, '$DefaultObjectModel');
 
             var style = this.extension('Style'),
                 text = this.extension('Text'),
-                animation = this.extension('Animation');
+                animation = this.extension('Animation'),
+                object = this;
 
             style.define(1, 'size', ['auto', 'auto'],
                 function (value) {
@@ -63,14 +64,27 @@ $R.service.class('Objects',
                 }
             );
 
+            var systemFont = 'sans-serif';
+
             style.define(1, 'font', 'sans-serif',
                 function (value) {
                     if (typeof value === "string") {
+                        systemFont = Fonts.format(value);
+                        object.style('systemFont', null);
                         return value;
                     }
                 },
                 function (value) {
                     return value;
+                }
+            );
+
+            style.define(1, 'systemFont', systemFont,
+                function () {
+                    return systemFont;
+                },
+                function () {
+                    return systemFont;
                 }
             );
 

@@ -33,7 +33,7 @@ $R.plugin.class('Objects', 'Text',
             };
 
             this.words = function (array) {
-                if (array && typeof array == "object" && array.constructor == Array) {
+                if (array && typeof array === "object" && array.constructor === Array) {
                     for (var i = 0; i < array.length; i++) {
                         words.push(array[i]
                             .size(this.size())

@@ -3,7 +3,7 @@
  */
 $R.plugin('Objects',
     ['Debug', '+Model', '@inject',
-        function Text(Debug, ModelHelper, inject) {
+        function Text(Debug, ModelHelper, inject, Fonts) {
 
             this.applyTo('Text');
 
@@ -66,7 +66,7 @@ $R.plugin('Objects',
                         h = 0;
 
 
-                    var font = style.get('font'),
+                    var font = style.get('systemFont'),
                         fontSize = style.get('fontSize'),
                         lineHeight = style.get('lineHeight'),
                         fontWeight = style.get('weight'),

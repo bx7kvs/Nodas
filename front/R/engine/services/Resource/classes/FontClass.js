@@ -2,20 +2,27 @@
  * Created by Viktor Khodosevich on 3/26/2017.
  */
 $R.service.class('Resource',
-    ['@extend', 'Debug', '$$config', '@HTMLRoot',
-        function Font(extend, Debug, config, html) {
+    ['@extend', 'Debug', '@Config', '@Fonts',
+        function Font(extend, Debug, config, Fonts) {
 
             extend(this, '$Resource');
 
             this.type = 'Font';
             var state = null, resolve = null, font = null,
-                root = config.dir && typeof config.dir === "string" ? config.dir : './fonts',
-                format = $R.fontFormats(),
+                root = config.watch('fontDir', function (str) {
+                    root = str;
+                    if (appended) document.getElementsByTagName('body')[0].removeChild(fontLoaderElement);
+                    if (checkInterval) window.clearInterval(checkInterval);
+                    getFont();
+                }),
+                format = Fonts.formats(),
                 weight = null,
                 style = null,
                 response = null,
+                appended = false,
                 fontLoaderElement = document.createElement('div');
 
+            fontLoaderElement.setAttribute('class', 'reflect-font-loader-element');
             fontLoaderElement.style.fontFamily = 'sans-serif';
             fontLoaderElement.style.fontSize = '12px';
             fontLoaderElement.style.lineHeight = '12px';
@@ -31,39 +38,41 @@ $R.service.class('Resource',
                 weight = url[1];
                 style = url[2];
                 fontLoaderElement.style.fontStyle = style;
-                html.element().appendChild(fontLoaderElement);
                 getFont();
             });
+            var checkInterval = null;
 
             function getFont() {
-                $R.font(root, font, weight, style);
-
-                var checkInterval = null,
-                    repeatUntillError = 1000,
+                Fonts.font(root, font, weight, style);
+                document.getElementsByTagName('body')[0].appendChild(fontLoaderElement);
+                appended = true;
+                var repeatTillError = 1000,
                     repeatCount = 0,
                     initial = [fontLoaderElement.offsetWidth, fontLoaderElement.offsetHeight];
 
-                fontLoaderElement.style.fontFamily = '"' + font + '-' + weight + '", sans-serif';
+                fontLoaderElement.style.fontFamily = '"' + Fonts.format(font) + '-' + weight + '", sans-serif';
                 checkInterval = setInterval(function () {
                     if (fontLoaderElement.offsetWidth !== initial[0] || fontLoaderElement.offsetHeight !== initial[1]) {
-                        html.element().removeChild(fontLoaderElement);
+                        document.getElementsByTagName('body')[0].removeChild(fontLoaderElement);
+                        appended = false;
                         clearInterval(checkInterval);
                         state(1);
                         resolve('load', []);
                     }
                     repeatCount++;
-                    if (repeatCount > repeatUntillError) {
+                    if (repeatCount > repeatTillError) {
                         state(-2);
                         resolve('error', []);
                         Debug.warn({font: font + '-' + weight}, 'Unable to load font [{font}]. Font pending timed out...');
-                        html.element().removeChild(fontLoaderElement);
+                        document.getElementsByTagName('body')[0].removeChild(fontLoaderElement);
+                        appended = false;
                         clearInterval(checkInterval);
                     }
                 }, 50);
             }
 
             this.export = function () {
-                return font;
+                return Fonts.format(font)
             };
         }
     ]

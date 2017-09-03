@@ -1,29 +1,45 @@
 /**
  * Created by Viktor Khodosevich on 14/08/2017.
  */
-Core(function Fonts() {
+Core(function Fonts(Config, app) {
 
     var element = document.createElement('style');
 
     var families = {},
-        format = ['eot', 'svg', 'ttf', 'woff'];
+        format = Config.define('fontFormats', ['eot', 'svg', 'ttf', 'woff'], {
+            isArray: true, custom: function (v) {
+                var result = true;
+                for (var i = 0; i < v.length(); i++) {
+                    if (v[i] !== 'eot' || v[i] !== 'svg' || v[i] !== 'ttf' || v[i] !== 'woff') {
+                        result = false;
+                        break;
+                    }
+                }
+                return result;
+            }
+        }).watch(function (v) {
+            format = v;
+            update();
+        }),
+        formatStr = {
+            eot: function (url) {
+                return 'url("' + url + '.eot?#iefix") format("embedded-opentype")';
+            },
+            woff: function (url) {
+                return 'url("' + url + '.woff") format("woff")';
+            },
+            ttf: function (url) {
+                return 'url("' + url + '.ttf") format("truetype")';
+            },
+            svg: function (url, font, style) {
+                return 'url("' + url + '.svg#' + font + '-' + (style.charAt(0).toUpperCase() + style.slice(1)) + '") format("svg")';
+            }
+        },
+        self = this;
+
+    Config.define('fontDir', './fonts', {isString: true});
 
     document.getElementsByTagName('head')[0].appendChild(element);
-
-    var formatStr = {
-        eot: function (url) {
-            return 'url("' + url + '.eot?#iefix") format("embedded-opentype")';
-        },
-        woff: function (url) {
-            return 'url("' + url + '.woff") format("woff")';
-        },
-        ttf: function (url) {
-            return 'url("' + url + '.ttf") format("truetype")';
-        },
-        svg: function (url, font, style) {
-            return 'url("' + url + '.svg#' + font + '-' + (style.charAt(0).toUpperCase() + style.slice(1)) + '") format("svg")';
-        }
-    };
 
     function fontString(font, root) {
 
@@ -31,25 +47,23 @@ Core(function Fonts() {
 
         for (var w = 0; w < font.weight.length; w++) {
             for (var s = 0; s < font.style.length; s++) {
-                if (!font[font.weight[w] + '-' + font.style[s]]) {
-                    var filestring = root + '/' + font.name + '-' + font.weight[w] + '-' + font.style[s];
-                    var string = '@font-face {' +
-                        'font-family: "' + font.name + '-' + font.weight[w] + '";' +
-                        'src:';
+                var filestring = root + '/' + font.name + '-' + font.weight[w] + '-' + font.style[s];
+                var string = '@font-face {' +
+                    'font-family: "' + self.format(font.name) + '-' + font.weight[w] + '";' +
+                    'src:';
 
-                    for (var f = 0; f < format.length; f++) {
-                        string += formatStr[format[f]](filestring, font.name, font.style[s]);
-                        if (f < format.length - 1) {
-                            string += ','
-                        }
-                        else {
-                            string += ';'
-                        }
+                for (var f = 0; f < format.length; f++) {
+                    string += formatStr[format[f]](filestring, font.name, font.style[s]);
+                    if (f < format.length - 1) {
+                        string += ','
                     }
-                    string += 'font-weight: ' + font.weight[w] + ';';
-                    string += 'font-style:' + font.style[s] + ';}';
-                    font[font.weight[w] + '-' + font.style[s]] = string;
+                    else {
+                        string += ';'
+                    }
                 }
+                string += 'font-weight: ' + font.weight[w] + ';';
+                string += 'font-style:' + font.style[s] + ';}';
+                font[font.weight[w] + '-' + font.style[s]] = string;
 
                 result += font[font.weight[w] + '-' + font.style[s]];
             }
@@ -85,7 +99,6 @@ Core(function Fonts() {
                 name: font
             };
         }
-        if (families[font][weight + '-' + style]) return;
         if (!families[font].weight) families[font].weight = [];
         if (!families[font].style) families[font].style = [];
         if (!inArray(families[font].weight, weight)) families[font].weight.push(weight);
@@ -93,7 +106,11 @@ Core(function Fonts() {
         update(path);
     };
 
-    this.font.formats =  function () {
+    this.format = function (font) {
+        return app + '-' + font;
+    };
+
+    this.formats = function () {
         var result = [];
         for (var i = 0; i < format.length; i++) {
             result.push(format[i]);

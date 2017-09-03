@@ -5,8 +5,7 @@ Core(function Root() {
     var apps = {},
         services = Core.get('Services'),
         classes = Core.get('Classes'),
-        helpers = Core.get('Helpers'),
-        fonts = Core.get('Fonts');
+        helpers = Core.get('Helpers');
 
     function createApplication(app) {
         var appContainer = Core.inject('Container', [apps[app]]),
@@ -14,6 +13,7 @@ Core(function Root() {
             appCanvas = Core.inject('Canvas', [appTicker]),
             appAudio = Core.inject('Audio', []),
             appConfig = Core.inject('Config', [app]),
+            appFonts = Core.inject('Fonts', [appConfig, app]),
             appApi = Core.inject('Application', [appCanvas, appTicker, appConfig]);
 
         var defaultsLibrary = {};
@@ -21,7 +21,7 @@ Core(function Root() {
         defaultsLibrary.Ticker = Core.inject('Injection', [appTicker, true]);
         defaultsLibrary.Canvas = Core.inject('Injection', [appCanvas, true]);
         defaultsLibrary.API = Core.inject('Injection', [appApi, true]);
-        defaultsLibrary.Fonts = Core.inject('Injection', [fonts, true]);
+        defaultsLibrary.Fonts = Core.inject('Injection', [appFonts, true]);
         defaultsLibrary.Config = Core.inject('Injection', [appConfig, true]);
         defaultsLibrary.Audio = Core.inject('Injection', [appAudio, true]);
 

@@ -150,7 +150,7 @@ Core(function Config() {
         if (typeof name === "string") {
             if (typeof f === "function") {
                 if (properties[name]) {
-                    properties[name].watch(f);
+                    return properties[name].watch(f);
                 }
                 else throw new Error('No such property as [' + name + '] to watch.');
             }
