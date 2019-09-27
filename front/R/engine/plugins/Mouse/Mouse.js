@@ -6,7 +6,7 @@ $R.plugin('Objects',
         function Mouse(MouseHelper, Dispatcher, Tree, Debug) {
 
             var callbacks = {
-                    drag: [],
+                    dragmove: [],
                     dragstart: [],
                     dragend: [],
                     mousemove: [],
@@ -172,7 +172,6 @@ $R.plugin('Objects',
             };
 
             this.resolve = function (target, event, eventObj) {
-
                 if (disabled) return;
 
                 var array = GetEventArray(event);

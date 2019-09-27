@@ -60,8 +60,9 @@ $R.service.class('Objects',
                 box.purge();
             });
 
-            drawer.f(function (context) {
+            drawer.f(function (context, time, frame) {
 
+                var args = arguments;
                 context.save();
 
                 context.globalAlpha *= style.get('opacity');
@@ -69,12 +70,11 @@ $R.service.class('Objects',
                 DrawerHelper.transform(this, context);
 
                 layers.forEach(function () {
-
                     var odrawer = this.extension('Drawer'),
                         type = this.type();
 
                     if (type === 'Group') {
-                        odrawer.draw.call(this, context);
+                        odrawer.draw.apply(this, args);
                     }
                     else {
                         var ostyle = this.extension('Style');
@@ -82,7 +82,7 @@ $R.service.class('Objects',
                         context.save();
                         context.globalCompositeOperation = ostyle.get('blending');
                         context.globalAlpha *= ostyle.get('opacity');
-                        odrawer.draw.call(this, context);
+                        odrawer.draw.apply(this, args);
                         context.restore();
                     }
 

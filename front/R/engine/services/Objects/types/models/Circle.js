@@ -4,8 +4,8 @@
 $R.service.class('Objects',
     ['@extend', '+Color', '+Model', 'Debug',
         function CircleObjectModel(extend, ColorHelper, ModelHelper, Debug) {
-            extend(this, '.DefaultObjectModel');
-            extend(this, '.$GlobalBackgroundModel');
+            extend(this, '$DefaultObjectModel');
+            extend(this, '$GlobalBackgroundModel');
 
             var style = this.extension('Style'),
                 animation = this.extension('Animation');

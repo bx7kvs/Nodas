@@ -23,7 +23,8 @@ $R.service(
                 },
                 checked = true,
                 active = false,
-                focused = false;
+                focused = false,
+                dragged = false;
 
             Canvas.on('mousedown', function () {
                 if (!active || !focused) return;
@@ -129,25 +130,44 @@ $R.service(
                     type === 'mousemove' || type === 'mouseup' || type === 'mousedown') && target.current) {
                     Dispatch(type, target.current);
                 }
-                if (type === 'mouseleave' && target.previous) {
+                if ((type === 'mouseleave' || type === 'dragend') && target.previous) {
                     Dispatch(type, target.previous);
                 }
+            }
+
+            function resolveDragStart() {
+                dragged = true;
+                drag.start[0] = cursor.current[0];
+                drag.start[1] = cursor.current[1];
+                resolveEventByType('dragstart');
+            }
+
+            function resolveDragEnd() {
+                drag.current[0] = cursor.current[0];
+                drag.current[1] = cursor.current[1];
+                drag.delta[0] = drag.start[0] - drag.current[0];
+                drag.delta[1] = drag.start[1] - drag.current[1];
+                resolveEventByType('dragend');
+                dragged = false;
             }
 
             function DispatchEvents() {
                 if (mousedown.current !== mousedown.old && mousedown.current) {
                     resolveEventByType('mousedown');
                 }
-
+                if (mousedown.current && mousedown.current !== mousedown.old && !dragged) {
+                    resolveDragStart();
+                }
                 if (cursor.old[0] !== cursor.current[0] || cursor.old[1] !== cursor.current[1]) {
 
                     if (target.current && !target.previous) {
                         resolveEventByType('mouseenter');
                     }
-                    else if (!target.current && target.previous) {
+                    if (!target.current && target.previous) {
                         resolveEventByType('mouseleave');
+                        resolveDragEnd();
                     }
-                    else if (target.current && target.previous) {
+                    if (target.current && target.previous) {
                         target.current.$$MOUSESEARCH = true;
                         var result = false;
 
@@ -155,37 +175,31 @@ $R.service(
                         delete target.current.$$MOUSESEARCH;
 
                         if (result) {
+                            resolveDragEnd();
                             resolveEventByType('mouseleave');
                             resolveEventByType('mouseenter');
+                            resolveDragStart();
                         }
                     }
-
-                    if (mousedown.current && mousedown.current !== mousedown.old) {
-                        drag.start[0] = cursor[0];
-                        drag.start[1] = cursor[1];
-                        resolveEventByType('dragstart');
-                    }
-                    else if (mousedown.current && mousedown.current === mousedown.old) {
-                        drag.current[0] = cursor[0];
-                        drag.current[1] = cursor[1];
+                    if (mousedown.current && mousedown.current === mousedown.old && dragged) {
+                        drag.current[0] = cursor.current[0];
+                        drag.current[1] = cursor.current[1];
                         drag.delta[0] = drag.start[0] - drag.current[0];
                         drag.delta[1] = drag.start[1] - drag.current[1];
                         resolveEventByType('dragmove');
                     }
-                    else if (!mousedown.current && mousedown.current !== mousedown.old) {
-                        drag.current[0] = cursor[0];
-                        drag.current[1] = cursor[1];
-                        drag.delta[0] = drag.start[0] - drag.current[0];
-                        drag.delta[1] = drag.start[1] - drag.current[1];
-                        resolveEventByType('dragend');
-                    }
-                    else if (!mousedown.current && mousedown.current === mousedown.old) {
+
+
+                    if (!mousedown.current && mousedown.current === mousedown.old) {
                         resolveEventByType('mousemove');
                     }
                 }
-
-                if (mousedown.current !== mousedown.old && !mousedown.current) {
+                if (!mousedown.current && mousedown.current !== mousedown.old && dragged) {
+                    resolveDragEnd();
+                }
+                if (!mousedown.current && mousedown.current !== mousedown.old) {
                     resolveEventByType('mouseup');
+                    dragged = false
                 }
 
                 target.previous = target.current;

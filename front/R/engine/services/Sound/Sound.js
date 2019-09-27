@@ -7,8 +7,6 @@ $R.service(
 
             config.define('filters', ['Delay', 'Gain'], {isArray: true});
 
-            console.log(config.watch('filters', function () {}));
-
             var destination = inject('$Audio').build('$$DESTINATION', 'destination'),
                 sounds = {},
                 soundcount = 0,

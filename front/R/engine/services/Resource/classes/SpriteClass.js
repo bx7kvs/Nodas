@@ -139,7 +139,7 @@ $R.service.class('Resource',
             var _time = new Date().getTime();
 
             this.tick = function (time) {
-
+                time = time.getTime();
                 if (pause) return;
 
                 var progress = (time - _time) / duration;

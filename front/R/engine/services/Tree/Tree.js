@@ -41,10 +41,10 @@ $R.service(
                 }
             };
 
-            Canvas.queue(0, function drawGraphicsTree(context) {
+            Canvas.queue(0, function drawGraphicsTree(context, date, frame) {
                 if (!root || !rootDrawer) return;
                 if (clear) context.clearRect(0, 0, context.canvas.offsetWidth, context.canvas.offsetHeight);
-                rootDrawer.draw.call(root, context);
+                rootDrawer.draw.apply(root, arguments);
             });
 
         }

@@ -4,9 +4,9 @@
 $R.service.class('Objects',
     ['@extend', '+Model', '+Path', 'Debug',
         function AreaObjectModel(extend, ModelHelper, PathHelper, Debug) {
-            extend(this, '.DefaultObjectModel');
-            extend(this, '.GlobalBackgroundModel');
-            extend(this, '.DefaultFreeStrokeModel');
+            extend(this, '$DefaultObjectModel');
+            extend(this, '$GlobalBackgroundModel');
+            extend(this, '$DefaultFreeStrokeModel');
 
             var style = this.extension('Style'),
                 animation = this.extension('Animation');
