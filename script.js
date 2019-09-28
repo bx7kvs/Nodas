@@ -161,7 +161,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
 
         sprite.animate({
             position: [400, 400], // equals to [400,400]
-            rotate: 120
+            rotate: 180
         }, {duration: 1000, queue: false});
         /* Lets play our audio sample when we hovering our circle element :) */
         sample.play();
@@ -204,7 +204,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
         this.animate({fill: 'rgba(50,10,220,1)', radius: 100}, {duration: 300, queue: false, easing: 'easeOutCubic'});
         sprite.animate({
             position: [400, 100],
-            rotate: 120
+            rotate: 361
         }, {duration: 1000, queue: false});
     });
 
