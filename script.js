@@ -293,7 +293,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
     lineButton3.on('mousedown', function () {
         line.style({
             path : path2
-        },{duration: 500, queue: false});
+        });
     });
     lineButton4.on('mousedown', function () {
         line.style({
