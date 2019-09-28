@@ -139,7 +139,7 @@ $R.service.class('Objects',
                                     else {
                                         if (old[i]) {
                                             result.push(old[i]);
-                                            Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, mo changes made!');
+                                            Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, no changes made!');
                                         }
                                         else {
                                             result.push(old[old.length - 1]);
@@ -150,7 +150,7 @@ $R.service.class('Objects',
                                 else {
                                     if (old[i]) {
                                         result.push(old[i]);
-                                        Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, mo changes made!');
+                                        Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, no changes made!');
                                     }
                                     else {
                                         result.push(old[old.length - 1]);
@@ -161,7 +161,7 @@ $R.service.class('Objects',
                             else {
                                 if (old[i]) {
                                     result.push(old[i]);
-                                    Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, mo changes made!');
+                                    Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, no changes made!');
                                 }
                                 else {
                                     result.push(old[old.length - 1]);

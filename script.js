@@ -60,7 +60,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
     var rect = $O.rect({
             anchor: ['center', 'middle'],
             size: [100, 100],
-            position: [100, 100],
+            position: [500, 300],
             strokeWidth: 0,
             fill: 'rgba(255,0,0,1)'
         }),
@@ -112,7 +112,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
             weight: 100,
             fontSize: 20,
             lineHeight: 30,
-            position : [500, 100]
+            position: [500, 100]
         }),
 
         /* Now, lets create a circle. Just for fun ;) But note that circle styles are not the same as rectangle's.
@@ -124,7 +124,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
         circle = $O.circle({
             anchor: ['center', 'middle'],
             radius: 100,
-            position: [1000, 500],
+            position: [800, 300],
             strokeWidth: 1,
             fill: 'rgba(55,24,10,1)'
         });
@@ -160,7 +160,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
         this.animate({fill: 'rgba(0,100,20,1)', radius: 110}, {duration: 300, queue: false});
 
         sprite.animate({
-            position: [400,400], // equals to [400,400]
+            position: [400, 400], // equals to [400,400]
             rotate: 120
         }, {duration: 1000, queue: false});
         /* Lets play our audio sample when we hovering our circle element :) */
@@ -220,12 +220,118 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
             'position': [e.drag.current[0], e.drag.current[1]]
         });
     });
+
+    /* And finally we create a line to experiment with path manipulations */
+
+    var path1 = [[0, 40], [50, 10], [100, 80], [150, 50]],
+        path2 = [[0, 10], [50, 50], [100, 80], [150, 2], [200, 40]],
+        line = $O.line(
+            {
+                path: path1 /* Path is a simple array of points[x,y]; */
+            }
+        );
+
+    /* Path can be interpolated */
+
+    line.style('interpolation', .4);
+    /* value of interpolation can be a number
+     from 0 (no smoothing) to .4 (maximum of smoothness)
+     */
+
+    /* You can not animate paths, because of performance issues. This feature is currently under developement
+    * to better understand visually how it work let's create a couple of buttons to manipulate path behaviour
+    * For buttons representation we will use text blocks
+    * */
+
+    var lineButton1 = $O.text(
+        {
+            str: 'Make path smooth',
+            position: [0, 0],
+            fontFamily: 'Roboto',
+            fontWeight: 100,
+            color: 'rgba(50, 100, 20, 1)'
+        }
+        ),
+        lineButton2 = $O.text(
+            {
+                str: 'show path 1',
+                position: [120, 0],
+                fontFamily: 'Roboto',
+                fontWeight: 100,
+                color: 'rgba(50, 100, 20, 1)'
+            }
+        ),
+        lineButton3 = $O.text(
+            {
+                str: 'show path 2',
+                position: [200, 0],
+                fontFamily: 'Roboto',
+                fontWeight: 100,
+                color: 'rgba(50, 100, 20, 1)'
+            }
+        ),
+        lineButton4 = $O.text(
+            {
+                str: 'Disable smoothing',
+                position: [300, 0],
+                fontFamily: 'Roboto',
+                fontWeight: 100,
+                color: 'rgba(50, 100, 20, 1)'
+            }
+        );
+
+    lineButton1.on('mousedown', function () {
+        line.style({
+            interpolation : .4
+        });
+    });
+    lineButton2.on('mousedown', function () {
+        line.style({
+            path : path1
+        });
+    });
+    lineButton3.on('mousedown', function () {
+        line.style({
+            path : path2
+        },{duration: 500, queue: false});
+    });
+    lineButton4.on('mousedown', function () {
+        line.style({
+            interpolation : 0
+        });
+    });
+
+    /* lets put our buttons to a group */
+
+    var buttonsGroup = $O.group();
+
+    buttonsGroup.append(lineButton1);
+    buttonsGroup.append(lineButton2);
+    buttonsGroup.append(lineButton3);
+    buttonsGroup.append(lineButton4);
+
+    /* Lets position out buttons somewhere on the scene */
+
+    buttonsGroup.style({
+        position: [20, 200]
+    });
+
+    /* Lets put our line into the button group and display it below the buttons */
+
+    buttonsGroup.append(line);
+
+    line.style({
+        position : [0, 50]
+    });
+
+
 }]);
 
-/* It is time to run our application!
+/* We have discribed out application :)
+* It is time to run it!
 * We have already registered our application constructor at the very beginning using $R.app()
-* Now we jus need to say Reflect, which app is should run calling $R.run() passing application's constuctor function
-* name.
+* Now we just need to say Reflect, which app it should run by calling $R.run() and passing application's
+* constructor function name.
 *  */
 
 var test = $R.run('TestApp');
@@ -233,16 +339,19 @@ var test = $R.run('TestApp');
 /* At this stage our application is build and ready to display itself!
     We just need a little bit of tweaking)
 
-    We will call a config function and pass some arguments in there.
+    We will call a config function and pass some useful arguments in there.
  */
 test.config({
     canvas: 'test-canvas', /* the id of the canvas at the page we would like to display our app. */
     size: ['100%', '100%'], /* size of the canvas. It can be percents (of the parent element) or pixels (just numbers)*/
     warnings: true, /* Do we want our application to show warnings while it is working. Let them be. But there will be none :0*/
-    clear: true, /* Should we erase the canvas each frame. Useful to squeeze a bit of performance in apps where
-        background is always filled */
+    clear: true, /* Should we erase the canvas each frame?
+     Useful to squeeze a bit of performance in apps where
+        background is always filled with images or solid color */
     fontDir: './front/fonts' /*Specifies the folder where fonts' files are placed*/
 });
 
 /* And lets go! */
 test.start();
+
+/* To stop application rendering just call test.stop() */

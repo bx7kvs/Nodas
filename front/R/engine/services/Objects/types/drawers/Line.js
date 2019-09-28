@@ -10,11 +10,9 @@ $R.service.class('Objects',
                 canvas = inject('$Canvas'),
                 matrix = this.extension('Matrix'),
                 require_update = false, interpolated = false,
-                strokefix = 1, interpolationfix = 0;
-
-            var drawer = this.extension('Drawer');
-
-            var xshift = 0, yshift = 0;
+                strokefix = 1, interpolationfix = 0,
+                drawer = this.extension('Drawer'),
+                xshift = 0, yshift = 0;
 
             box.f(function (boxContainer) {
                 var position = style.get('position'),
@@ -54,10 +52,10 @@ $R.service.class('Objects',
                     }
                 }
 
-                if (minx == Infinity) minx = 0;
-                if (miny == Infinity) miny = 0;
-                if (maxx == -Infinity) maxx = 0;
-                if (maxy == -Infinity) maxx = 0;
+                if (minx === Infinity) minx = 0;
+                if (miny === Infinity) miny = 0;
+                if (maxx === -Infinity) maxx = 0;
+                if (maxy === -Infinity) maxx = 0;
 
                 xshift = minx;
                 yshift = miny;
@@ -66,16 +64,16 @@ $R.service.class('Objects',
                     width = Math.abs(maxx - minx),
                     height = Math.abs(maxy - miny);
 
-                if (anchor[0] == 'center') {
+                if (anchor[0] === 'center') {
                     x -= width ? width / 2 : 0;
                 }
-                if (anchor[0] == 'right') {
+                if (anchor[0] === 'right') {
                     x -= width ? width : 0;
                 }
-                if (anchor[1] == 'middle') {
+                if (anchor[1] === 'middle') {
                     y -= height ? height / 2 : 0;
                 }
-                if (anchor[1] == 'bottom') {
+                if (anchor[1] === 'bottom') {
                     y -= height ? height : 0
                 }
                 boxContainer.set(
@@ -151,18 +149,11 @@ $R.service.class('Objects',
 
                 ctx.clearRect(0, 0, sprite.size[0], sprite.size[1]);
                 ctx.save();
-                ctx.fillStyle = 'rgba(255,0,0,.5)';
-                ctx.beginPath();
-                ctx.rect(0, 0, sprite.size[0], sprite.size[1]);
-                ctx.fill();
-                ctx.restore();
 
                 if (!interpolated) {
                     PathHelper.interpolate(path, interpolation);
                     interpolated = true;
                 }
-
-                ctx.save();
 
                 ctx.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
 

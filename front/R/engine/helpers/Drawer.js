@@ -217,8 +217,8 @@ $R.helper.system(
                     context.moveTo(x2, y2);
                 }
                 else {
-                    context.moveTo(x1, y1);
                     context.beginPath();
+                    context.moveTo(x1, y1);
                     context.strokeStyle = strokeColor[i];
                     context.lineWidth = strokeWidth[i];
                     context.setLineDash(strokeStyle[i]);
@@ -309,19 +309,19 @@ $R.helper.system(
                 context.setLineDash(strokeStyle[i]);
 
 
-                if (i == 0) {
+                if (i === 0) {
                     _x = x + w;
                     _y = y;
                 }
-                if (i == 1) {
+                if (i === 1) {
                     _x = x + w;
                     _y = y + h;
                 }
-                if (i == 2) {
+                if (i === 2) {
                     _x = x;
                     _y = y + h;
                 }
-                if (i == 3) {
+                if (i === 3) {
                     _x = x;
                     _y = y;
                 }

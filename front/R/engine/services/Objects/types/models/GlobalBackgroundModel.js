@@ -31,7 +31,7 @@ $R.service.class('Objects',
                             return false;
                         }
                     }
-                    else if (typeof value == "object" && value.constructor == Array) {
+                    else if (typeof value == "object" && value.constructor === Array) {
                         if (ColorHelper.isColor(value)) {
                             return ColorHelper.arrayToColor(value);
                         }
@@ -93,8 +93,8 @@ $R.service.class('Objects',
                             return [Resource.image(value)];
                         }
                     }
-                    else if (typeof value == "object" || value.constructor == Array) {
-                        if (value.length == 2 && typeof value[0] == "string" && typeof value[1] == "number") {
+                    else if (typeof value == "object" || value.constructor === Array) {
+                        if (value.length === 2 && typeof value[0] == "string" && typeof value[1] == "number") {
                             if (value[1] > 0) {
                                 var resource = Resource.sprite(value[0]);
                                 resource.config(value[1]);
