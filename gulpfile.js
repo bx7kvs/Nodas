@@ -33,11 +33,11 @@ gulp.task('compile-es6', function () {
         ]
     )
         .pipe(concat('reflect-engine-es6.js'))
-        .pipe(wrap('<%= contents %> module.exports = $R;'))
-   /*     .pipe(uglify({
+ /*       .pipe(uglify({
             mangle: {keep_fnames: true},
             compress: {keep_fnames: true}
         }))*/
+        .pipe(wrap('<%= contents %> export default core'))
         .pipe(gulp.dest('./output'));
 });
 

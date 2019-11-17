@@ -42,10 +42,8 @@ Core.get = function (module, payload) {
     if (typeof module === "string") {
         if (modules[module]) {
             return modules[module].get.apply(modules[module], payload);
-        }
-        else throw new Error('Module [' + module + '] was not found');
-    }
-    else throw new Error('Module name is not a string. Wrong arguments');
+        } else throw new Error('Module [' + module + '] was not found');
+    } else throw new Error('Module name is not a string. Wrong arguments');
 };
 
 Core.is = function (target, name) {
@@ -60,18 +58,15 @@ Core.inject = function (module, payload) {
     if (typeof module === "string") {
         if (modules[module]) {
             return modules[module].create(payload);
-        }
-        else throw new Error('Nodule [' + module + '] was not found.');
-    }
-    else throw new Error('Module name is not a string. Wrong Arguments');
+        } else throw new Error('Nodule [' + module + '] was not found.');
+    } else throw new Error('Module name is not a string. Wrong Arguments');
 };
 
 Core.extend = function (module, target, payload) {
     if (typeof modules[module] === "string") {
         if (typeof target === "object") {
             return modules[module].extend(target, payload);
-        }
-        else throw new Error('Unable to extend target of tyoe [' + (typeof target) + '] bu module constructor [' + module + '].');
+        } else throw new Error('Unable to extend target of tyoe [' + (typeof target) + '] bu module constructor [' + module + '].');
     }
 };
 
@@ -126,8 +121,7 @@ function Injection(f) {
         if (typeof payload === "object" && payload.constructor === Array) {
             f.apply(target, payload);
             return target;
-        }
-        else {
+        } else {
             f.call(target);
             return target;
         }
@@ -1028,29 +1022,26 @@ Core(function Helpers() {
             var helper = Core.inject('Injection', [cfg]);
             if (helpers[helper.name()]) console.warn('helper [' + helper.name() + '] override.');
             helpers[helper.name()] = helper;
-        }
-        catch (e) {
+        } catch (e) {
             throw new Error('Unable to create Helper.');
         }
     }
 
     Core.define('helper', helper);
 
-    helper.system = function (cfg, public) {
+    helper.system = function (cfg, is_public) {
         try {
             var helper = Core.inject('Injection', [cfg]);
-            if(sysHelpers[helper.name()]) console.warn('System Helper ['+helper.name()+'] Duplicate declaration override.');
+            if (sysHelpers[helper.name()]) console.warn('System Helper [' + helper.name() + '] Duplicate declaration override.');
             sysHelpers[helper.name()] = helper;
-            if(public) {
-                if(helpers[helper.name()]) {
-                    console.warn('System Helper ['+helper.name()+'] overrides user helper. Skipped system helper.');
-                }
-                else {
+            if (is_public) {
+                if (helpers[helper.name()]) {
+                    console.warn('System Helper [' + helper.name() + '] overrides user helper. Skipped system helper.');
+                } else {
                     helpers[helper.name()] = helper;
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
 
         }
     }
@@ -1064,7 +1055,7 @@ Core(function Helpers() {
 
     this.getPublicHelpers = function (defaults) {
         var container = Core.inject('Container', [helpers]);
-        container.source(container,'+');
+        container.source(container, '+');
         container.source(defaults, '@');
         return container;
     };
@@ -2006,6 +1997,64 @@ $R.plugin('Objects',
  * Created by bx7kv_000 on 1/5/2017.
  */
 $R.plugin('Objects',
+    ['Debug',
+        function Cache(Debug) {
+
+            var values = {};
+
+            this.value = function (name, func) {
+                if (typeof name !== "string") {
+                    Debug.error('Object Value Cache / name is not a string!');
+                    return;
+                }
+                if (typeof func !== "function") {
+                    Debug.error('Object Value Cache / func is not a function');
+                    return;
+                }
+
+                if (!values[name]) {
+                    values[name] = {
+                        value: func(),
+                        func: func,
+                        relevant: true
+                    }
+                }
+
+                return this.get(name);
+            };
+
+            this.purge = function (name) {
+                if (typeof name !== "string") {
+                    Debug.error('Object Value Cache / Can not purge cache of non string name');
+                    return;
+                }
+                if (values[name]) {
+                    values[name].relevant = false;
+                }
+            };
+
+            this.get = function (name) {
+                if (typeof name !== "string") {
+                    Debug.error('Object Value Cache / Can not get value of non-string name');
+                    return;
+                }
+                if (values[name]) {
+                    if (!values[name].relevant) {
+                        values[name].value = values[name].func();
+                        values[name].relevant = true;
+                    }
+
+                    return values[name].value;
+                }
+            }
+
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 1/5/2017.
+ */
+$R.plugin('Objects',
     ['Debug', '@inject',
         function Box(Debug, inject) {
 
@@ -2050,38 +2099,63 @@ $R.plugin('Objects',
     ]
 );
 /**
- * Created by Viktor Khodosevich on 2/6/2017.
+ * Created by bx7kv_000 on 12/26/2016.
  */
 $R.plugin('Objects',
     ['Debug',
-        function Matrix(Debug) {
+        function Drawer(Debug) {
 
-            var f = null, object = this.object();
+            var f = null, matrix = null,
+                cb = {
+                    before: [],
+                    after: []
+                },
+                object = this.object();
 
-            this.f = function (func) {
-                if (typeof func === "function") {
-                    f = func;
-                    delete this.f;
+            function resolve(event, args) {
+                for (var i = 0; i < cb[event].length; i++) {
+                    cb[event].apply(object, args);
                 }
-            };
-
-            function MatrixWrapper() {
-                return f.call(object);
             }
 
-            this.register('matrix', function () {
-                return this.extension('Cache').value('transformMatrix', MatrixWrapper);
+            this.f = function (func) {
+                if (typeof func !== "function") {
+                    Debug.error({}, 'ObjectDrawer / func is not a function!');
+                    delete this.f;
+                    return;
+                }
+                f = func;
+                delete this.f;
+            };
+
+            this.register('before', function (func) {
+                if (typeof func == "function") {
+                    cb.before.push(func);
+                }
+                else {
+                    Debug.warn('Unable to set event [before Render]. func is not a Function')
+                }
             });
 
-            this.purge = function () {
-                object.extension('Cache').purge('transformMatrix');
-                if (object.type() === 'Group') {
-                    var layers = object.extension('Layers');
-                    layers.forEach(function () {
-                        this.extension('Cache').purge('transformMatrix');
-                    });
+            this.register('after', function (func) {
+                if (typeof func == "function") {
+                    cb.after.push(func);
                 }
+                else {
+                    Debug.warn('Unable to set event [after Render]. func is not a Function')
+                }
+            });
+
+            this.matrix = function () {
+                return matrix;
             };
+
+            this.draw = function () {
+                resolve('before', arguments);
+                if (f) f.apply(this, arguments);
+                resolve('after', arguments);
+            };
+
         }
     ]
 );
@@ -2174,125 +2248,6 @@ $R.plugin('Objects',
             this.layers = function () {
                 return layers;
             }
-
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 1/5/2017.
- */
-$R.plugin('Objects',
-    ['Debug',
-        function Cache(Debug) {
-
-            var values = {};
-
-            this.value = function (name, func) {
-                if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / name is not a string!');
-                    return;
-                }
-                if (typeof func !== "function") {
-                    Debug.error('Object Value Cache / func is not a function');
-                    return;
-                }
-
-                if (!values[name]) {
-                    values[name] = {
-                        value: func(),
-                        func: func,
-                        relevant: true
-                    }
-                }
-
-                return this.get(name);
-            };
-
-            this.purge = function (name) {
-                if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / Can not purge cache of non string name');
-                    return;
-                }
-                if (values[name]) {
-                    values[name].relevant = false;
-                }
-            };
-
-            this.get = function (name) {
-                if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / Can not get value of non-string name');
-                    return;
-                }
-                if (values[name]) {
-                    if (!values[name].relevant) {
-                        values[name].value = values[name].func();
-                        values[name].relevant = true;
-                    }
-
-                    return values[name].value;
-                }
-            }
-
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.plugin('Objects',
-    ['Debug',
-        function Drawer(Debug) {
-
-            var f = null, matrix = null,
-                cb = {
-                    before: [],
-                    after: []
-                },
-                object = this.object();
-
-            function resolve(event, args) {
-                for (var i = 0; i < cb[event].length; i++) {
-                    cb[event].apply(object, args);
-                }
-            }
-
-            this.f = function (func) {
-                if (typeof func !== "function") {
-                    Debug.error({}, 'ObjectDrawer / func is not a function!');
-                    delete this.f;
-                    return;
-                }
-                f = func;
-                delete this.f;
-            };
-
-            this.register('before', function (func) {
-                if (typeof func == "function") {
-                    cb.before.push(func);
-                }
-                else {
-                    Debug.warn('Unable to set event [before Render]. func is not a Function')
-                }
-            });
-
-            this.register('after', function (func) {
-                if (typeof func == "function") {
-                    cb.after.push(func);
-                }
-                else {
-                    Debug.warn('Unable to set event [after Render]. func is not a Function')
-                }
-            });
-
-            this.matrix = function () {
-                return matrix;
-            };
-
-            this.draw = function () {
-                resolve('before', arguments);
-                if (f) f.apply(this, arguments);
-                resolve('after', arguments);
-            };
 
         }
     ]
@@ -2495,6 +2450,42 @@ $R.plugin('Objects',
                 callbacks[i].$$OFF = false;
             }
 
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 2/6/2017.
+ */
+$R.plugin('Objects',
+    ['Debug',
+        function Matrix(Debug) {
+
+            var f = null, object = this.object();
+
+            this.f = function (func) {
+                if (typeof func === "function") {
+                    f = func;
+                    delete this.f;
+                }
+            };
+
+            function MatrixWrapper() {
+                return f.call(object);
+            }
+
+            this.register('matrix', function () {
+                return this.extension('Cache').value('transformMatrix', MatrixWrapper);
+            });
+
+            this.purge = function () {
+                object.extension('Cache').purge('transformMatrix');
+                if (object.type() === 'Group') {
+                    var layers = object.extension('Layers');
+                    layers.forEach(function () {
+                        this.extension('Cache').purge('transformMatrix');
+                    });
+                }
+            };
         }
     ]
 );
@@ -2747,6 +2738,131 @@ $R.plugin('Objects',
 
                 return false;
             }
+
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.plugin('Objects', ['Debug',
+        function Tree(Debug) {
+
+            var parent = null;
+
+            function checkTree(object) {
+                if (object.$$TREESEARCHVALUE) {
+                    return true;
+                }
+                else {
+                    if (object.parent()) {
+                        if (checkTree(object.parent())) {
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                return false;
+            }
+
+            function treeViolation(target, object) {
+                if (target.type() === 'Group') {
+
+                    object.$$TREESEARCHVALUE = true;
+
+                    if (!checkTree(target)) {
+                        delete object.$$TREESEARCHVALUE;
+                        return false;
+                    }
+                    else {
+                        if (target.$$TREESEARCHVALUE) {
+                            if (target.parent()) {
+                                Debug.warn({}, 'You try to append group parent into itself.');
+                            }
+                        }
+                        else {
+                            Debug.warn({}, 'You try to append group parent into it\'s children.');
+                        }
+                        delete object.$$TREESEARCHVALUE;
+                        return true;
+                    }
+                }
+                else {
+                    if (target.type() !== 'Group') {
+                        Debug.warn({
+                            target: target.type(),
+                            object: object.type()
+                        }, 'Yoy try to append [{object}] into [{target}].');
+                        return true;
+                    }
+                }
+            }
+
+            var layers = null;
+
+            this.register('append', function (object) {
+                if (this.type() !== 'Group') {
+                    Debug.watch({type: this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
+                }
+                else if (!treeViolation(this, object)) {
+
+                    if (!layers) layers = this.extension('Layers');
+
+                    var object_old_parent = object.parent(),
+                        object_tree_ext = object.extension('Tree');
+
+                    if (object_old_parent) {
+                        var old_object_parent_layers = object_old_parent.extension('Layers'),
+                            object_layer = object.layer();
+
+                        old_object_parent_layers.remove(object);
+
+                        layers.place(object_layer, object);
+
+                        object_tree_ext.parent(this);
+
+                    }
+                    else {
+
+                        var object_layer = object.layer();
+
+                        layers.place(object_layer, object);
+
+                        object_tree_ext.parent(this);
+                    }
+
+                    var box = this.extension('Box');
+                    box.purge();
+                }
+                return this;
+            });
+
+            this.register('appendTo', function (object) {
+                object.append(this);
+                return this;
+            });
+
+            this.register('parent', function () {
+                return parent;
+            });
+
+
+            this.parent = function (group) {
+                if (!group.type || group.type() !== 'Group') {
+                    Debug.error('Object Tree Extension / Unable to set object as parent. Not a group!');
+                }
+                if (group) {
+                    parent = group;
+                }
+                else {
+                    return parent;
+                }
+            };
 
         }
     ]
@@ -3184,131 +3300,6 @@ $R.service(
     ]
 );
 /**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.plugin('Objects', ['Debug',
-        function Tree(Debug) {
-
-            var parent = null;
-
-            function checkTree(object) {
-                if (object.$$TREESEARCHVALUE) {
-                    return true;
-                }
-                else {
-                    if (object.parent()) {
-                        if (checkTree(object.parent())) {
-                            return true;
-                        }
-                        else {
-                            return false;
-                        }
-                    }
-                    else {
-                        return false;
-                    }
-                }
-                return false;
-            }
-
-            function treeViolation(target, object) {
-                if (target.type() === 'Group') {
-
-                    object.$$TREESEARCHVALUE = true;
-
-                    if (!checkTree(target)) {
-                        delete object.$$TREESEARCHVALUE;
-                        return false;
-                    }
-                    else {
-                        if (target.$$TREESEARCHVALUE) {
-                            if (target.parent()) {
-                                Debug.warn({}, 'You try to append group parent into itself.');
-                            }
-                        }
-                        else {
-                            Debug.warn({}, 'You try to append group parent into it\'s children.');
-                        }
-                        delete object.$$TREESEARCHVALUE;
-                        return true;
-                    }
-                }
-                else {
-                    if (target.type() !== 'Group') {
-                        Debug.warn({
-                            target: target.type(),
-                            object: object.type()
-                        }, 'Yoy try to append [{object}] into [{target}].');
-                        return true;
-                    }
-                }
-            }
-
-            var layers = null;
-
-            this.register('append', function (object) {
-                if (this.type() !== 'Group') {
-                    Debug.watch({type: this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
-                }
-                else if (!treeViolation(this, object)) {
-
-                    if (!layers) layers = this.extension('Layers');
-
-                    var object_old_parent = object.parent(),
-                        object_tree_ext = object.extension('Tree');
-
-                    if (object_old_parent) {
-                        var old_object_parent_layers = object_old_parent.extension('Layers'),
-                            object_layer = object.layer();
-
-                        old_object_parent_layers.remove(object);
-
-                        layers.place(object_layer, object);
-
-                        object_tree_ext.parent(this);
-
-                    }
-                    else {
-
-                        var object_layer = object.layer();
-
-                        layers.place(object_layer, object);
-
-                        object_tree_ext.parent(this);
-                    }
-
-                    var box = this.extension('Box');
-                    box.purge();
-                }
-                return this;
-            });
-
-            this.register('appendTo', function (object) {
-                object.append(this);
-                return this;
-            });
-
-            this.register('parent', function () {
-                return parent;
-            });
-
-
-            this.parent = function (group) {
-                if (!group.type || group.type() !== 'Group') {
-                    Debug.error('Object Tree Extension / Unable to set object as parent. Not a group!');
-                }
-                if (group) {
-                    parent = group;
-                }
-                else {
-                    return parent;
-                }
-            };
-
-        }
-    ]
-);
-/**
  * Created by bx7kv_000 on 12/25/2016.
  */
 $R.service(
@@ -3397,6 +3388,233 @@ $R.service(
 
                 console.warn(message)
             }
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 5/11/2017.
+ */
+$R.service(
+    ['@app', '@Canvas', '@inject', 'Debug',
+        function Keyboard(app, canvas, inject, Debug) {
+
+            var callbacks = {},
+                active = false,
+                enabled = true,
+                focused = true,
+                queue = [];
+
+            this.keydown = function (code, func) {
+                return this.on(code, 'keydown', func);
+            };
+
+            this.keyup = function (code, func) {
+                return this.on(code, 'keyup', func);
+            };
+
+            this.disable = function () {
+                enabled = false;
+                return this;
+            };
+
+            this.enable = function () {
+                enabled = true;
+                return this;
+            };
+
+            this.on = function (code, event, func) {
+                if (typeof code === "number" && typeof event === "string") {
+                    if (event === 'keyup' || event === 'keydown') {
+                        if (typeof func === "function") {
+                            if (!callbacks[code]) callbacks[code] = {};
+                            if (!callbacks[event]) callbacks[code][event] = [];
+                            callbacks[code][event].push(func);
+                        }
+                        else {
+                            Debug.warn('Event callback is not a function');
+                        }
+                    }
+                    else {
+                        Debug.warn({e: event}, 'No such type of event as [{e}]');
+                    }
+                }
+                else {
+                    Debug.warn({c: code}, 'Wrong key code [{c}]');
+                }
+                return this;
+            };
+
+            function OnAppTick() {
+                for (var i = 0; i < queue.length; i++) {
+                    queue[i]();
+                }
+                queue = [];
+            }
+
+            function getQueueFunc(e) {
+                return function () {
+                    var keycode = e.keyCode;
+                    if (callbacks[keycode] && callbacks[keycode][e.type]) {
+                        for (var i = 0; i < callbacks[keycode][e.type].length; i++) {
+                            var event = inject('$KeyboardEvent').build(e);
+                            callbacks[keycode][e.type][i].apply(event, [keycode, e.type]);
+                        }
+                    }
+                }
+            }
+
+            var canvasClicked = false;
+
+            canvas.element().addEventListener('mousedown', function () {
+                canvasClicked = true;
+            });
+
+            window.addEventListener('mousedown', function () {
+                if (canvasClicked) {
+                    focused = true;
+                }
+                else {
+                    focused = false;
+                }
+                canvasClicked = false;
+            });
+
+            window.addEventListener('keydown', function (e) {
+                if (!active || !enabled || !focused) return;
+                queue.push(getQueueFunc(e));
+            });
+            window.addEventListener('keyup', function (e) {
+                if (!active || !enabled || !focused) return;
+                queue.push(getQueueFunc(e));
+            });
+
+            app.$on('start', function () {
+                active = true;
+            });
+            app.$on('stop', function () {
+                active = false;
+            });
+            app.$('tick', OnAppTick);
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 5/11/2017.
+ */
+$R.service.class('Keyboard',
+    [
+        function KeyboardEvent() {
+
+            var keycode = null,
+                ctrlPressed = false,
+                altPressed = false,
+                shiftPressed = false,
+                event = false,
+                type = null;
+
+            this.build = function (e) {
+                keycode = e.keyCode;
+                ctrlPressed = e.ctrlKey;
+                altPressed = e.altKey;
+                shiftPressed = e.shiftKey;
+                event = e;
+                type = e.type;
+                delete this.build;
+                return this;
+            };
+
+            this.type = function (string) {
+                if (typeof string == "string") {
+                    return type === string;
+                }
+                else  return type;
+            };
+
+            this.code = function () {
+                return keycode;
+            };
+
+            this.shift = function () {
+                return shiftPressed;
+            };
+            this.alt = function () {
+                return altPressed;
+            };
+            this.ctrl = function () {
+                return ctrlPressed;
+            };
+            this.original = function () {
+                return event;
+            };
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.service(
+    ['@inject', '+Easing', '@Canvas', 'Debug',
+        function Morphine(inject, Easings, Canvas, Debug) {
+
+            var morphines = [];
+
+            this.create = function (start, end, func, easing, duration, rpt) {
+
+                if (typeof start !== "number" || typeof end !== "number") {
+                    Debug.error({}, 'Morphine / Unable to create. Start value is wrong!');
+                    return;
+                }
+
+                if (typeof func !== "function") {
+                    Debug.error({}, 'Morphine / Unable to create. End value is wrong!');
+                    return;
+                }
+
+                if (typeof easing !== "string") {
+                    Debug.error({}, 'Morphine / Unable to create. Easing is not a string!');
+                    return;
+                }
+
+                if (typeof  duration !== "number" || duration <= 0) {
+                    Debug.error({}, 'Morphine / Unable to create. Duration is less than 0 or not a number');
+                }
+
+                var efunc = Easings.get(easing);
+
+                if (!efunc) {
+                    Debug.error({easing: easing}, ' Morphine / Unable to create. No such easing {easing}');
+                }
+
+
+                var morphine = inject('$Morphine');
+
+                var tickF = morphine.config(start, end, func, duration, efunc, rpt);
+
+                if (!tickF || typeof tickF !== "function") {
+                    Debug.error({}, 'Morphine / Unable to config morphine. Due to some error.');
+                    return;
+                }
+
+                tickF.$m = morphine;
+
+                morphines.push(tickF);
+
+                return morphine;
+
+            };
+
+            Canvas.queue(-2, function processMorphines(context, date) {
+                var date = date.getTime(),
+                    _morphines = [];
+
+                for (var i = 0; i < morphines.length; i++) {
+                    if (!morphines[i].$m.done()) {
+                        morphines[i](date);
+                        _morphines.push(morphines[i]);
+                    }
+                }
+                morphines = _morphines;
+            });
         }
     ]
 );
@@ -3641,233 +3859,6 @@ $R.service(
     ]
 );
 /**
- * Created by Viktor Khodosevich on 5/11/2017.
- */
-$R.service(
-    ['@app', '@Canvas', '@inject', 'Debug',
-        function Keyboard(app, canvas, inject, Debug) {
-
-            var callbacks = {},
-                active = false,
-                enabled = true,
-                focused = true,
-                queue = [];
-
-            this.keydown = function (code, func) {
-                return this.on(code, 'keydown', func);
-            };
-
-            this.keyup = function (code, func) {
-                return this.on(code, 'keyup', func);
-            };
-
-            this.disable = function () {
-                enabled = false;
-                return this;
-            };
-
-            this.enable = function () {
-                enabled = true;
-                return this;
-            };
-
-            this.on = function (code, event, func) {
-                if (typeof code === "number" && typeof event === "string") {
-                    if (event === 'keyup' || event === 'keydown') {
-                        if (typeof func === "function") {
-                            if (!callbacks[code]) callbacks[code] = {};
-                            if (!callbacks[event]) callbacks[code][event] = [];
-                            callbacks[code][event].push(func);
-                        }
-                        else {
-                            Debug.warn('Event callback is not a function');
-                        }
-                    }
-                    else {
-                        Debug.warn({e: event}, 'No such type of event as [{e}]');
-                    }
-                }
-                else {
-                    Debug.warn({c: code}, 'Wrong key code [{c}]');
-                }
-                return this;
-            };
-
-            function OnAppTick() {
-                for (var i = 0; i < queue.length; i++) {
-                    queue[i]();
-                }
-                queue = [];
-            }
-
-            function getQueueFunc(e) {
-                return function () {
-                    var keycode = e.keyCode;
-                    if (callbacks[keycode] && callbacks[keycode][e.type]) {
-                        for (var i = 0; i < callbacks[keycode][e.type].length; i++) {
-                            var event = inject('$KeyboardEvent').build(e);
-                            callbacks[keycode][e.type][i].apply(event, [keycode, e.type]);
-                        }
-                    }
-                }
-            }
-
-            var canvasClicked = false;
-
-            canvas.element().addEventListener('mousedown', function () {
-                canvasClicked = true;
-            });
-
-            window.addEventListener('mousedown', function () {
-                if (canvasClicked) {
-                    focused = true;
-                }
-                else {
-                    focused = false;
-                }
-                canvasClicked = false;
-            });
-
-            window.addEventListener('keydown', function (e) {
-                if (!active || !enabled || !focused) return;
-                queue.push(getQueueFunc(e));
-            });
-            window.addEventListener('keyup', function (e) {
-                if (!active || !enabled || !focused) return;
-                queue.push(getQueueFunc(e));
-            });
-
-            app.$on('start', function () {
-                active = true;
-            });
-            app.$on('stop', function () {
-                active = false;
-            });
-            app.$('tick', OnAppTick);
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 5/11/2017.
- */
-$R.service.class('Keyboard',
-    [
-        function KeyboardEvent() {
-
-            var keycode = null,
-                ctrlPressed = false,
-                altPressed = false,
-                shiftPressed = false,
-                event = false,
-                type = null;
-
-            this.build = function (e) {
-                keycode = e.keyCode;
-                ctrlPressed = e.ctrlKey;
-                altPressed = e.altKey;
-                shiftPressed = e.shiftKey;
-                event = e;
-                type = e.type;
-                delete this.build;
-                return this;
-            };
-
-            this.type = function (string) {
-                if (typeof string == "string") {
-                    return type === string;
-                }
-                else  return type;
-            };
-
-            this.code = function () {
-                return keycode;
-            };
-
-            this.shift = function () {
-                return shiftPressed;
-            };
-            this.alt = function () {
-                return altPressed;
-            };
-            this.ctrl = function () {
-                return ctrlPressed;
-            };
-            this.original = function () {
-                return event;
-            };
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.service(
-    ['@inject', '+Easing', '@Canvas', 'Debug',
-        function Morphine(inject, Easings, Canvas, Debug) {
-
-            var morphines = [];
-
-            this.create = function (start, end, func, easing, duration, rpt) {
-
-                if (typeof start !== "number" || typeof end !== "number") {
-                    Debug.error({}, 'Morphine / Unable to create. Start value is wrong!');
-                    return;
-                }
-
-                if (typeof func !== "function") {
-                    Debug.error({}, 'Morphine / Unable to create. End value is wrong!');
-                    return;
-                }
-
-                if (typeof easing !== "string") {
-                    Debug.error({}, 'Morphine / Unable to create. Easing is not a string!');
-                    return;
-                }
-
-                if (typeof  duration !== "number" || duration <= 0) {
-                    Debug.error({}, 'Morphine / Unable to create. Duration is less than 0 or not a number');
-                }
-
-                var efunc = Easings.get(easing);
-
-                if (!efunc) {
-                    Debug.error({easing: easing}, ' Morphine / Unable to create. No such easing {easing}');
-                }
-
-
-                var morphine = inject('$Morphine');
-
-                var tickF = morphine.config(start, end, func, duration, efunc, rpt);
-
-                if (!tickF || typeof tickF !== "function") {
-                    Debug.error({}, 'Morphine / Unable to config morphine. Due to some error.');
-                    return;
-                }
-
-                tickF.$m = morphine;
-
-                morphines.push(tickF);
-
-                return morphine;
-
-            };
-
-            Canvas.queue(-2, function processMorphines(context, date) {
-                var date = date.getTime(),
-                    _morphines = [];
-
-                for (var i = 0; i < morphines.length; i++) {
-                    if (!morphines[i].$m.done()) {
-                        morphines[i](date);
-                        _morphines.push(morphines[i]);
-                    }
-                }
-                morphines = _morphines;
-            });
-        }
-    ]
-);
-/**
  * Created by bx7kv_000 on 12/25/2016.
  */
 
@@ -3967,101 +3958,6 @@ $R.service(
 
             Tree.root(this.group());
 
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service(
-    ['@Audio', '@inject', '@Config', 'Debug',
-        function Sound(context, inject, config, Debug) {
-
-            config.define('filters', ['Delay', 'Gain'], {isArray: true});
-
-            var destination = inject('$Audio').build('$$DESTINATION', 'destination'),
-                sounds = {},
-                soundcount = 0,
-                channelcount = 0,
-                channels = {
-                    $$DESTINATION: destination
-                },
-                self = this;
-
-
-
-            this.sample = function (url, channel, name) {
-                if (typeof url === "string" && url.length > 0) {
-                    if (sounds[url]) return sounds[url];
-                    if (typeof name !== "string" || name.length === 0) name = 'UserSound[' + soundcount + ']';
-                    soundcount++;
-                    var result = inject('$Audio').build(name, url);
-                    if (typeof channel !== "string" || channel.length === 0) channel = '$$DESTINATION';
-                    var out = this.channel(channel);
-                    result.connect(out);
-                    sounds[result.url()] = result;
-                    return result;
-                }
-                else {
-                    Debug.warn({url: url}, '[{url}] is not valid audio url or empty.');
-                }
-            };
-
-            this.channel = function (name) {
-                if (typeof name === "string" && name.length > 0) {
-                    if (channels[name]) return channels[name];
-
-                    var result = inject('$Audio').build(name);
-
-                    result.connect(destination);
-                    channels[name] = result;
-                    channelcount++;
-                    return result;
-                }
-            };
-
-            this.channels = function (byurl) {
-                var list = {},
-                    byurl = !!byurl;
-
-                for (var channel in channels) {
-                    if (channels.hasOwnProperty(channel)) {
-                        if (channel !== '$$DESTINATION') {
-                            if (byurl) {
-                                list[channel.url()] = channel[channel];
-                            }
-                            else {
-                                list[channel] = channels[channel];
-                            }
-
-                        }
-                    }
-                }
-
-                return list;
-            };
-
-            this.sounds = function (byurl) {
-                var list = {},
-                    byurl = !!byurl;
-
-                for (var prop in sounds) {
-                    if (sounds.hasOwnProperty(prop)) {
-                        if (byurl) {
-                            list[prop] = sounds[prop];
-                        }
-                        else {
-                            list[sounds[prop].name()] = sounds[prop];
-                        }
-                    }
-                }
-
-                return list;
-            };
-
-            this.destination = function () {
-                return channels.$$DESTINATION;
-            };
         }
     ]
 );
@@ -4294,6 +4190,101 @@ $R.service(
                     }
                 }
             });
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service(
+    ['@Audio', '@inject', '@Config', 'Debug',
+        function Sound(context, inject, config, Debug) {
+
+            config.define('filters', ['Delay', 'Gain'], {isArray: true});
+
+            var destination = inject('$Audio').build('$$DESTINATION', 'destination'),
+                sounds = {},
+                soundcount = 0,
+                channelcount = 0,
+                channels = {
+                    $$DESTINATION: destination
+                },
+                self = this;
+
+
+
+            this.sample = function (url, channel, name) {
+                if (typeof url === "string" && url.length > 0) {
+                    if (sounds[url]) return sounds[url];
+                    if (typeof name !== "string" || name.length === 0) name = 'UserSound[' + soundcount + ']';
+                    soundcount++;
+                    var result = inject('$Audio').build(name, url);
+                    if (typeof channel !== "string" || channel.length === 0) channel = '$$DESTINATION';
+                    var out = this.channel(channel);
+                    result.connect(out);
+                    sounds[result.url()] = result;
+                    return result;
+                }
+                else {
+                    Debug.warn({url: url}, '[{url}] is not valid audio url or empty.');
+                }
+            };
+
+            this.channel = function (name) {
+                if (typeof name === "string" && name.length > 0) {
+                    if (channels[name]) return channels[name];
+
+                    var result = inject('$Audio').build(name);
+
+                    result.connect(destination);
+                    channels[name] = result;
+                    channelcount++;
+                    return result;
+                }
+            };
+
+            this.channels = function (byurl) {
+                var list = {},
+                    byurl = !!byurl;
+
+                for (var channel in channels) {
+                    if (channels.hasOwnProperty(channel)) {
+                        if (channel !== '$$DESTINATION') {
+                            if (byurl) {
+                                list[channel.url()] = channel[channel];
+                            }
+                            else {
+                                list[channel] = channels[channel];
+                            }
+
+                        }
+                    }
+                }
+
+                return list;
+            };
+
+            this.sounds = function (byurl) {
+                var list = {},
+                    byurl = !!byurl;
+
+                for (var prop in sounds) {
+                    if (sounds.hasOwnProperty(prop)) {
+                        if (byurl) {
+                            list[prop] = sounds[prop];
+                        }
+                        else {
+                            list[sounds[prop].name()] = sounds[prop];
+                        }
+                    }
+                }
+
+                return list;
+            };
+
+            this.destination = function () {
+                return channels.$$DESTINATION;
+            };
         }
     ]
 );
@@ -4947,50 +4938,6 @@ $R.plugin.class('Objects', 'Text',
     ]
 );
 /**
- * Created by Viktor Khodosevich on 2/2/2017.
- */
-$R.service.class('Dispatcher',
-    ['Tree', 'Debug',
-        function Finder(Tree, Debug) {
-
-            function CheckElement(e, cursor) {
-                if (e.type() === 'Group') {
-                    var result = null,
-                        layers = e.extension('Layers');
-
-                    layers.forEach(function () {
-                        if (!this.disabled()) {
-                            if (this.type() === 'Group') {
-                                var _result = CheckElement(this, cursor);
-                                if (_result) result = _result;
-                            }
-                            else {
-                                var mouseext = this.extension('Mouse'),
-                                    _result = mouseext.check(this, cursor);
-
-                                if (_result) {
-                                    result = _result
-                                }
-                            }
-                        }
-                    });
-                    return result;
-                }
-            }
-
-            this.check = function (cursor) {
-                var root = Tree.root();
-                if (!root) return null;
-                if (typeof cursor !== "object" || cursor.constructor !== Array || cursor.length !== 2 || typeof cursor[0] !== "number" || typeof cursor[1] !== "number") {
-                    Debug.warn({c: cursor}, 'ObjectFinder ; {[c]} is not a valid cursor value.');
-                    return null;
-                }
-                return CheckElement(root, cursor);
-            }
-        }
-    ]
-);
-/**
  * Created by bx7kv_000 on 12/25/2016.
  */
 $R.service.class('Morphine', [
@@ -5367,6 +5314,50 @@ $R.service.class('Objects',
     }
 );
 /**
+ * Created by Viktor Khodosevich on 2/2/2017.
+ */
+$R.service.class('Dispatcher',
+    ['Tree', 'Debug',
+        function Finder(Tree, Debug) {
+
+            function CheckElement(e, cursor) {
+                if (e.type() === 'Group') {
+                    var result = null,
+                        layers = e.extension('Layers');
+
+                    layers.forEach(function () {
+                        if (!this.disabled()) {
+                            if (this.type() === 'Group') {
+                                var _result = CheckElement(this, cursor);
+                                if (_result) result = _result;
+                            }
+                            else {
+                                var mouseext = this.extension('Mouse'),
+                                    _result = mouseext.check(this, cursor);
+
+                                if (_result) {
+                                    result = _result
+                                }
+                            }
+                        }
+                    });
+                    return result;
+                }
+            }
+
+            this.check = function (cursor) {
+                var root = Tree.root();
+                if (!root) return null;
+                if (typeof cursor !== "object" || cursor.constructor !== Array || cursor.length !== 2 || typeof cursor[0] !== "number" || typeof cursor[1] !== "number") {
+                    Debug.warn({c: cursor}, 'ObjectFinder ; {[c]} is not a valid cursor value.');
+                    return null;
+                }
+                return CheckElement(root, cursor);
+            }
+        }
+    ]
+);
+/**
  * Created by Viktor Khodosevich on 5/1/2017.
  */
 $R.service.class('Objects', [function AreaObjectClass() {
@@ -5444,1192 +5435,6 @@ $R.service.class('Objects',
     ['+Mouse',
         function TextObjectClass(MouseHelper) {
             this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.service.class('Sound',
-    ['@inject', 'Debug',
-        function AnimationProvider(inject, Debug) {
-
-            var animations = [],
-                animated = false,
-                morphs = {};
-
-            this.morph = function (name, ordering, setter, applier) {
-                var morph = inject('$Morph');
-                morph.config(name, this, ordering, setter, applier);
-                if (morph.valid()) {
-                    morphs[name] = morph;
-                }
-            };
-
-            this.extractMorph = function (name) {
-                return morphs[name];
-            };
-
-            function findCompetitor(properties, animation) {
-                animation.$$SELF = true;
-
-                var competitor = null;
-
-                for (var i = 0; i < animations.length; i++) {
-                    if (!animations[i].$$SELF) {
-                        if (animations[i].active() && !animations[i].done()) {
-                            var check = false;
-                            for (var n = 0; n < properties.length; n++) {
-                                if (animations[i].hasProperty(properties[n])) {
-                                    check = true;
-                                    break;
-                                }
-                            }
-                            if (check) {
-                                if (!competitor) competitor = [];
-                                competitor.push(animations[i]);
-                            }
-                        }
-                    }
-                }
-
-                delete animation.$$SELF;
-
-                return competitor;
-            }
-
-            function CheckAnimationQueue() {
-                var _animations = [];
-
-                for (var i = 0; i < animations.length; i++) {
-                    if (!animations[i].active()) {
-                        var props = animations[i].properties();
-                        if (animations[i].queue()) {
-                            if (!findCompetitor(props, animations[i])) {
-                                animations[i].start();
-                            }
-                        }
-                        else {
-                            var competitors = findCompetitor(props, animations[i]);
-                            if (competitors) {
-                                for (var n = 0; n < competitors.length; n++) {
-                                    for (var p = 0; p < props.length; p++) {
-                                        competitors[n].stop(props[p]);
-                                    }
-                                }
-                            }
-                            animations[i].start();
-                        }
-                        _animations.push(animations[i]);
-                    }
-                    else {
-                        if (!animations[i].done()) {
-                            _animations.push(animations[i]);
-                        }
-                    }
-                }
-
-                animations = _animations;
-            }
-
-
-            function CreateAnimationType1(property, value, duration, easing) {
-                var pair = {};
-
-                pair[property] = value;
-
-                if (morphs[property]) {
-                    var stack = [
-                            {
-                                ordering: morphs[property].ordering(),
-                                morph: morphs[property],
-                                value: value
-                            }
-                        ],
-                        config = {};
-
-                    if (duration && typeof duration === "number") config.duration = duration;
-                    if (easing && typeof easing === "string") config.easing = easing;
-
-
-                    var animation = inject('$Animation');
-
-                    animation.config(this, stack, config, CheckAnimationQueue);
-                    animations.push(animation);
-                }
-
-            }
-
-            function CreateAnimationType2(pairs, arg2, arg3) {
-                var config = {};
-
-                if (typeof arg2 === "object") {
-                    config = arg2;
-                }
-                else if (typeof arg2 === "number") {
-                    config = {
-                        duration: arg2
-                    };
-                    if (typeof arg3 === "string") {
-                        config.easing = arg3
-                    }
-                }
-                else if (typeof arg2 === "string") {
-                    config = {
-                        easing: arg2
-                    };
-                }
-
-                var result = {};
-
-                for (var property in pairs) {
-                    if (!pairs.hasOwnProperty(property)) continue;
-                    if (!morphs[property]) {
-                        Debug.warn({
-                            type: this.type(),
-                            property: property
-                        }, 'Property {property} of {type} can not be animated!');
-                    }
-                    else {
-                        result[property] = {
-                            ordering: morphs[property].ordering(),
-                            morph: morphs[property],
-                            value: pairs[property]
-                        }
-                    }
-                }
-
-                var morph_stack = [];
-
-                for (var item in result) {
-                    morph_stack.push(result[item]);
-                }
-
-                if (morph_stack.length) {
-                    morph_stack.sort(function (a, b) {
-                        return a.ordering - b.ordering;
-                    });
-
-                    var animation = inject('$Animation');
-                    animation.config(this, morph_stack, config, CheckAnimationQueue);
-                    animations.push(animation);
-                }
-                else {
-                    Debug.warn('No properties to animate!');
-                }
-            }
-
-            this.animate = function (arg1, arg2, arg3, arg4) {
-                if (typeof arg1 === 'string' && arg2) {
-                    CreateAnimationType1.apply(this, arguments);
-                }
-                else if (typeof arg1 === "object" && arg1.constructor !== Array) {
-                    CreateAnimationType2.apply(this, arguments);
-                }
-                else {
-                    Debug.warn('Unable to create animation. Wrong arguments');
-                }
-                CheckAnimationQueue();
-            };
-
-            this.animated = function () {
-                return animated;
-            };
-
-            this.stop = function (property) {
-                if (typeof property !== "string" || property.length === 0) return;
-                for (var i = 0; i < animations.length; i++) {
-                    animations[i].stop(property);
-                }
-            };
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@extend',
-        function DelayNode(audio, extend) {
-
-            extend(this, '$AudioNode');
-
-            var timeCFG = 0, forceCFG = 0, killDelay = 10000,
-                globalGain = audio.context().createGain(),
-                delay = audio.context().createDelay(),
-                feedback = audio.context().createGain(),
-                bq = audio.context().createBiquadFilter();
-
-            globalGain.gain.value = 1;
-            bq.frequency.value = 2000;
-            feedback.gain.value = forceCFG;
-            delay.delayTime.value = timeCFG;
-
-            delay.connect(feedback);
-            feedback.connect(bq);
-            bq.connect(delay);
-            feedback.connect(globalGain);
-
-            this.build('delay', [globalGain, feedback], globalGain);
-
-            this.property('delay', [0, 0],
-                function (value) {
-                    if (typeof value == "object" && value.constructor === Array &&
-                        value.length == 2 && typeof value[0] == "number" && typeof value[1] == "number") {
-                        var time = value[0],
-                            force = value[1];
-
-                        if (time > 1) time = 1;
-                        if (time < 0) time = 0;
-                        if (force > .8) force = .8;
-                        if (force < 0) force = 0;
-                        timeCFG = time;
-                        forceCFG = force;
-                        delay.delayTime.value = timeCFG;
-                        feedback.gain.value = forceCFG;
-                        return [force, time];
-                    }
-                },
-                function (value) {
-                    return [value[0], value[1]];
-                },
-                function (value) {
-                    var time = value[0],
-                        force = value[1];
-
-                    if (time > 1) time = 1;
-                    if (time < 0) time = 0;
-                    if (force > .8) force = .8;
-                    if (force < 0) force = 0;
-
-                    return [force, time];
-                }
-            );
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@extend',
-        function DestinationNode(audio, extend) {
-
-            extend(this, '$AudioNode');
-
-            this.build('destination', audio.context().destination, false);
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@extend',
-        function GainNode(audio, extend) {
-
-            extend(this, '$AudioNode');
-
-            var volume = 1,
-                gain = audio.context().createGain();
-
-            gain.gain.value = volume;
-
-            this.build('gain', gain, gain);
-
-            this.property('volume', 1,
-                function (value) {
-                    if (typeof value == "number") {
-                        if (value < 0) value = 0;
-                        if (value > 1) value = 1;
-                        volume = value;
-                        gain.gain.value = volume;
-                        return value;
-                    }
-                },
-                function (value) {
-                    return value;
-                },
-                function (value) {
-                    if (value < 0) value = 0;
-                    if (value > 1) value = 1;
-                    return value;
-                }
-            );
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@extend',
-        function LowpassNode(audio, extend) {
-
-            extend(this, '$AudioNode');
-
-            var bqf = audio.context().createBiquadFilter(),
-
-                frequency = 22050;
-
-            bqf.type = 'lowpass';
-            bqf.frequency.value = frequency;
-
-            this.build('lowpass', bqf, bqf);
-
-            this.property('lowpass', 22050,
-                function (value) {
-                    if (value < 0) value = 0;
-                    if (value > 22050) value = 22050;
-                    frequency = value;
-                    bqf.frequency.value = value;
-                    return value;
-                },
-                function (value) {
-                    return value;
-                },
-                function (value) {
-                    if (value < 0) value = 0;
-                    if (value > 22050) value = 22050;
-                    return value;
-                }
-            );
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/23/2017.
- */
-$R.service.class('Sound',
-    ['@inject', 'Debug',
-        function Audio(inject, Debug) {
-
-            var source = null,
-                url = null,
-                type = null,
-                events = inject('$EventProvider'),
-                animations = inject('$AnimationProvider'),
-                self = this,
-                output = null,
-                nodename = '';
-
-            events.wrap(this);
-
-            function eventArgs() {
-                return [self, output, url, type];
-            }
-
-            events.event('ready', eventArgs, true);
-            events.event('load', eventArgs, true);
-            events.event('error', eventArgs, true);
-            events.event('play', eventArgs, false);
-            events.event('connect', eventArgs, false);
-            events.event('disconnect', eventArgs, false);
-            events.event('end', eventArgs, false);
-
-            function createAnimationMorph(filter, property) {
-                animations.morph.apply(this, [property.name, 0,
-                    function (start, end, value) {
-                        value = property.normalizer(value);
-                        if (value !== undefined) {
-                            end(value);
-                            start(filter.get(property.name));
-                        }
-                    },
-                    function (value) {
-                        value = property.normalizer(value);
-                        return filter.set(property.name, value);
-                    }
-                ]);
-            }
-
-            this.build = function (name, src) {
-                if (typeof name === "string" && name.length > 0) {
-                    if (typeof src === "string" && src !== 'destination' && src.length > 0) {
-                        url = src;
-                        source = inject('$UserAudioSource').build(src);
-                        type = 'Sample';
-                        source.on('load', function () {
-                            events.resolve('load');
-                        });
-
-                        this.play = function () {
-                            source.play();
-                            return this;
-                        };
-
-                        this.terminate = function () {
-                            source.stop();
-                            return this;
-                        }
-                    }
-                    else if (src === 'destination') {
-                        source = inject('$UserAudioMixer').build(name, src);
-                        this.connect = function () {
-                            if (arguments[0] && typeof arguments[0] === "object" && arguments[0].$$SOURCE) {
-                                return source;
-                            }
-                            return this;
-                        };
-
-                        url = '[' + name + ']' + 'AudioChannel';
-                        type = 'Channel';
-                        events.resolve('load');
-                    }
-                    else if (src === undefined) {
-                        source = inject('$UserAudioMixer').build(name);
-                        url = '[' + name + ']' + 'AudioChannel';
-                        type = 'Channel';
-                        events.resolve('load');
-                    }
-
-                    source.on('error', function () {
-                        events.resolve('error');
-                    });
-
-                    source.on('play', function () {
-                        events.resolve('play');
-                    });
-
-                    source.on('end', function () {
-                        events.resolve('end');
-                    });
-
-                    source.on('connect', function () {
-                        events.resolve('connect');
-                    });
-
-                    source.on('disconnect', function () {
-                        events.resolve('disconnect');
-                    });
-
-                    var filters = source.filters();
-
-                    for (var i = 0; i < filters.length; i++) {
-                        var props = filters[i].props();
-                        for (var m = 0; m < props.length; m++) {
-                            if (props[m].animated) {
-                                createAnimationMorph.apply(this, [filters[i], props[m]]);
-                            }
-                        }
-                    }
-
-                    nodename = name;
-
-                    events.resolve('ready');
-
-                }
-                else {
-                    Debug.warn('Audio mixer have no name! Should be a string');
-                }
-
-                return this;
-            };
-
-            this.filter = function (name, value) {
-                if (typeof name === "string" && name.length > 0) {
-                    var filter = null,
-                        filters = source.filters();
-
-                    for (var i = 0; i < filters.length; i++) {
-                        if (filters[i].has(name)) {
-                            filter = filters[i];
-                        }
-                    }
-
-                    if (filter) {
-                        if (value !== undefined) {
-                            filter.set(name, value);
-                        }
-                        else {
-                            return filter.get(name);
-                        }
-                    }
-                    else {
-                        Debug.warn({name: name}, 'Unable to set filter property [{name}]. No filter with that param!');
-                    }
-                }
-                return this;
-            };
-
-            this.connect = function (out) {
-                if (out && typeof out === "object" && out.$$SOURCE) {
-                    return source;
-                }
-
-                if (typeof out === "object" && out.type && typeof out.type === "function") {
-                    var ctype = out.type();
-                    if (type === 'Channel' && ctype === 'Sample') {
-                        Debug.error('Trying to connect Channel with Sample!');
-                        return this;
-                    }
-                    else if (out.connect && typeof out.connect === "function") {
-                        var outsource = out.connect({$$SOURCE: true});
-                        output = out;
-                        source.connect(outsource);
-                        return out;
-                    }
-                    else {
-                        Debug.error('Unknown type of  object passed as output!');
-                    }
-                }
-                else {
-                    Debug.error('Unknown type of  object passed as output!');
-                }
-
-                return this;
-            };
-
-            this.output = function () {
-                return output;
-            };
-
-            this.animate = function () {
-                animations.animate.apply(this, arguments);
-                return this;
-            };
-
-            this.type = function (str) {
-                if (typeof str === "string") {
-                    return str === type;
-                }
-                return type;
-            };
-
-            this.url = function () {
-                return url;
-            };
-
-            this.name = function () {
-                return nodename;
-            };
-
-            this.stop = function () {
-                animations.stop.apply(this, arguments);
-                return this;
-            };
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/21/2017.
- */
-$R.service.class('Sound',
-    ['@inject', '@Config', 'Debug',
-        function UserAudioMixer(inject, config, Debug) {
-
-            var events = inject('$EventProvider'),
-                filters = [],
-                output = null,
-                name = '',
-                filtersCfg = config.watch('filters', function (v) {filters = v});
-
-
-            events.wrap(this);
-
-            function argF() {
-                return [this];
-            }
-
-            events.event('play', argF, false);
-            events.event('connect', argF, false);
-            events.event('ready', argF, true);
-            events.event('error', argF, true);
-
-            this.build = function (n, channel) {
-
-                for (var i = 0; i < filtersCfg.length; i++) {
-                    var node = inject('$' + filtersCfg[i] + 'Node');
-                    if (filters[filters.length - 1]) {
-                        filters[filters.length - 1].connect(node);
-                    }
-                    filters.push(node);
-                }
-
-                if (typeof n === "string" && n.length > 0) {
-                    name = n;
-                }
-                else {
-                    Debug.warn({n: n}, '[{n}] is not a valid name for channel');
-                    events.resolve('error');
-                }
-
-                if (channel && typeof channel === "object" && channel.connect && typeof channel.connect === "function") {
-                    this.connect(channel);
-                }
-                else if (channel === 'destination') {
-                    var destination = inject('$DestinationNode');
-                    filters[filters.length - 1].connect(destination);
-
-                    this.connect = function (out) {
-                        if (out.$$AUDIONODE) {
-                            return filters[0];
-                        }
-                    }
-                }
-
-
-                delete  this.build;
-                return this;
-            };
-
-            this.connect = function (out) {
-                if (out.$$AUDIONODE) {
-                    return filters[0];
-                }
-                else {
-                    var input = out.connect({$$AUDIONODE: true});
-                    filters[filters.length - 1].connect(input);
-                    output = out;
-                }
-
-                return this;
-            };
-
-            this.output = function () {
-                return output;
-            };
-
-            this.filters = function () {
-                return filters;
-            };
-
-            this.name = function () {
-                return name;
-            }
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/19/2017.
- */
-$R.service.class('Sound',
-    ['@extend', '@inject',
-        function UserAudioSource(extend, inject) {
-
-            var node = inject('$AudioSource'),
-                events = inject('$EventProvider'),
-                mixer = null,
-                output = null,
-                url = '';
-
-            function cbArgs() {
-                return [this];
-            }
-
-            function connectCbArgs() {
-                return [this, output];
-            }
-
-            events.wrap(this);
-
-            events.event('ready', cbArgs, true);
-            events.event('load', cbArgs, true);
-            events.event('error', cbArgs, true);
-            events.event('connect', connectCbArgs, false);
-            events.event('play', cbArgs, false);
-            events.event('stop', cbArgs, false);
-
-            node.on('ready', function () {
-                events.resolve('ready');
-            });
-
-            node.on('load', function () {
-                events.resolve('load');
-            });
-
-            node.on('error', function () {
-                events.resolve('error');
-            });
-
-            this.build = function (src) {
-
-                if (typeof src === "string" && src.length > 0) {
-                    url = src;
-                    node.build(src);
-                    mixer = inject('$UserAudioMixer').build('source-built-in-filter');
-                    mixer.on('connect', function () {
-                        events.resolve('connect');
-                    });
-                    node.connect(mixer.connect({$$AUDIONODE: true}));
-                    delete this.build;
-                    events.resolve('ready');
-                }
-                else {
-                    delete  this.build;
-                    events.resolve('error');
-                }
-
-
-                return this;
-            };
-
-            this.filters = function () {
-                if (mixer) {
-                    return mixer.filters();
-                }
-                return [];
-            };
-
-
-            this.play = function () {
-                if (!this.status('error')) {
-                    if (this.status('ready')) {
-                        if (this.status('load')) {
-                            node.play();
-                        }
-                        else {
-                            this.on('load', function () {
-                                node.play();
-                            });
-                        }
-                    }
-                }
-
-                return this;
-            };
-
-            this.stop = function () {
-                node.stop();
-                return this;
-            };
-
-            this.output = function () {
-                return output;
-            };
-
-            this.connect = function (out) {
-                if (out && out.constructor === mixer.constructor) {
-                    output = out;
-                    mixer.connect(out);
-                }
-                return this;
-            };
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@inject', 'Debug',
-        function AudioNode(inject, Debug) {
-
-            var output = null,
-                input = null,
-                nextNode = null,
-                buildF = function (sound, output) {
-                    if (!output) {
-                        var input = this.input();
-                        for (var i = 0; i < input.length; i++) {
-                            sound.connect(input[i]);
-                        }
-                    }
-                    return this.output();
-                },
-                sounds = [],
-                events = inject('$EventProvider'),
-                nodename = '';
-
-            function args() {
-                return [nextNode];
-            }
-
-            events.wrap(this);
-
-            events.event('ready', args, true);
-            events.event('play', args, false);
-            events.event('end', args, false);
-            events.event('connect', args, false);
-            events.event('disconnect', args, false);
-            events.event('property', args, false);
-
-            this.disconnect = function () {
-                if (nextNode && output) {
-                    var _inpArray = nextNode.input();
-                    for (var i = 0; i < output.length; i++) {
-                        for (var n = 0; n < _inpArray.length; n++) {
-                            output[i].disconnect(_inpArray[n]);
-                        }
-                    }
-                    nextNode = null;
-                    events.resolve('disconnect');
-                }
-                return this;
-            };
-
-            this.connect = function (out) {
-                this.disconnect();
-                nextNode = out;
-                if (nextNode && output) {
-                    var _inpArr = nextNode.input();
-                    for (var i = 0; i < output.length; i++) {
-                        for (var n = 0; n < _inpArr.length; n++) {
-                            output[i].connect(_inpArr[i]);
-                        }
-                    }
-                }
-                events.resolve('connect');
-                return this;
-            };
-
-            this.build = function (name, inp, out, f) {
-                input = typeof inp == "object" && inp.constructor === Array ? inp : [inp];
-                output = typeof out == "object" && out.constructor === Array ? out : [out];
-                nodename = name;
-                if (typeof f == "function") buildF = f;
-                delete this.build;
-                events.resolve('ready');
-                return this;
-            };
-
-            this.input = function () {
-                return input;
-            };
-
-            this.output = function () {
-                return output;
-            };
-
-            this.name = function () {
-                return nodename;
-            };
-
-            this.play = function (sound, output) {
-                sounds.push(sound);
-                sound.addEventListener('ended', function () {
-                    var result = [];
-                    sound.$$SEARCH = true;
-                    for (var i = 0; i < sounds.length; i++) {
-                        if (!sounds.$$SEARCH) {
-                            result.push(sounds[i]);
-                        }
-                    }
-                    delete sound.$$SEARCH;
-                    sounds = result;
-                });
-
-                if (nextNode) {
-                    nextNode.play(sound, buildF.apply(this, arguments));
-                }
-
-            };
-
-            var model = {};
-
-            this.property = function (name, defVal, setter, getter, normlizer) {
-                if (typeof name === "string") {
-                    var property = {
-                        name: name,
-                        value: null,
-                        getter: null,
-                        setter: null,
-                        normalizer: normlizer,
-                        animated: typeof normlizer === "function" ? true : false
-                    };
-
-                    if (typeof getter === "function") {
-                        property.getter = getter;
-                    }
-                    if (typeof setter === "function") {
-                        property.setter = setter;
-                    }
-
-                    property.value = defVal;
-
-                    if (defVal && typeof property.getter && property.setter) {
-                        if (!model[property.name]) {
-                            model[property.name] = property;
-                        }
-                        else {
-                            Debug.warn({property: property}, 'Duplicated property [{property}]');
-                        }
-                    }
-                }
-                else {
-                    Debug.warn({name: name}, 'Property name [{name}] is not valid!');
-                }
-            };
-
-            this.set = function (name, value) {
-                if (typeof name == "string" && name.length > 0) {
-                    var result = model[name].setter(value);
-                    if (result !== undefined) {
-                        model[name].value = result;
-                    }
-                    else {
-                        Debug.warn({prop: name, val: value}, '[{val}] is not a valid valuen for [{prop}].');
-                    }
-                }
-            };
-
-            this.get = function (name) {
-                if (typeof name == "string" && name.length > 0) {
-                    if (model[name]) {
-                        return model[name].value;
-                    }
-                    else {
-                        Debug.warn({name: name}, 'Object has no property [{name}]. Unable to get value.');
-                    }
-                }
-                else {
-                    Debug.warn('Property name has to be a string');
-                }
-            };
-
-            this.props = function () {
-                var result = [];
-
-                for (var prop in model) {
-                    if (model.hasOwnProperty(prop)) {
-                        result.push(model[prop]);
-                    }
-                }
-
-                return result;
-            };
-
-            this.has = function (name) {
-                return !!model[name];
-            };
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/22/2017.
- */
-$R.service.class('Sound',
-    function AudioNodeSoundDispatcher() {
-
-        var sounds = [];
-
-        this.register = function (sound) {
-            sound.addEventListener('end', function () {
-                sound.$$SEARCH = true;
-
-                var result = [];
-
-                for (var i = 0; i < sounds.length; i++) {
-                    if (!sounds[i].$$SEARCH) {
-                        result.push(sounds[i]);
-                    }
-                }
-                sounds = result;
-            });
-
-            sounds.push(sound);
-        };
-
-        this.reconnect = function (destination) {
-            for (var i = 0; i < sounds.length; i++) {
-                sounds[i].disconnect();
-                sounds[i].connect(destination);
-            }
-        };
-    }
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@inject', 'Resource', 'Debug',
-        function AudioSource(audio, inject, Resource, Debug) {
-
-            var url = null,
-                resource = null,
-                buffer = null,
-                output = null,
-                events = inject('$EventProvider'),
-                self = this,
-                sounds = [];
-
-            function args() {
-                return [resource, buffer, output];
-            }
-
-            events.wrap(this);
-
-            events.event('ready', args, true);
-            events.event('load', args, true);
-            events.event('error', args, true);
-            events.event('connect', args, false);
-            events.event('disconnect', args, false);
-            events.event('play', false);
-            events.event('end', false);
-
-            this.build = function (src) {
-                resource = Resource.audio(src);
-
-                resource.on('load', function (response) {
-                    audio.context().decodeAudioData(
-                        response,
-                        function (result) {
-                            buffer = result;
-                            events.resolve('load');
-                        },
-                        function () {
-                            Debug.error({src: src}, '[{src}] audio buffer can not be decoded. Resource not found, or of wrong format');
-                            events.resolve('error');
-                        }
-                    )
-                });
-
-                resource.on('error', function () {
-                    Debug.error({src: src}, 'Unable to load audio file');
-                    events.resolve(error)
-                });
-                delete this.build;
-
-                return this;
-            };
-
-            this.disconnect = function () {
-                if (output) {
-                    output = null;
-                    events.resolve('disconnect');
-                }
-                return this;
-            };
-
-            this.connect = function (out) {
-                this.disconnect();
-                output = out;
-                events.resolve('connect');
-                return this;
-            };
-
-            this.play = function () {
-                if (output && this.status('load')) {
-                    var source = audio.context().createBufferSource();
-                    source.buffer = buffer;
-                    sounds.push(source);
-                    output.play(source, false);
-                    source.start(0);
-                }
-                return this;
-            };
-
-            this.stop = function () {
-                for (var i = 0; i < sounds.length; i++) {
-                    sounds[i].stop(0);
-                }
-                sounds = [];
-                return this;
-            };
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['Debug',
-        function Event(Debug) {
-
-            var cb = [],
-                state = false,
-                name = 'default',
-                stateval = false,
-                self = this,
-                argFunct = function () {
-                    return [];
-                };
-
-            this.build = function (eventName, argF, isStateEvent) {
-                state = !!isStateEvent;
-
-                if (typeof argF == "function") {
-                    argFunct = argF;
-                }
-
-                if (typeof eventName == "string" && eventName.length > 0) {
-                    name = eventName
-                }
-
-                delete this.build;
-                return this;
-            };
-
-            this.name = function () {
-                return name;
-            };
-
-            this.active = function () {
-                return stateval;
-            };
-
-            this.resolve = function () {
-                if (state) stateval = true;
-
-                var args = argFunct();
-                if (typeof args !== "object" || args.constructor !== Array) args = [];
-
-                else {
-                    for (var i = 0; i < cb.length; i++) {
-                        cb[i].apply(this, args);
-                    }
-                }
-                return this;
-            };
-
-            this.callback = function (func) {
-                if (typeof func !== "function") return this;
-                if (self.active()) {
-                    var args = argFunct();
-                    if (typeof args !== "object" || args.constructor !== Array) args = [];
-                    func.apply(this, args);
-                    cb.push(arguments[0]);
-                    return this;
-                }
-                cb.push(func);
-                return this;
-            };
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@inject',
-        function EventProvider(inject) {
-
-            var events = [];
-
-            this.event = function (name, argF, state) {
-                var event = inject('$Event');
-                event.build.apply(event, arguments);
-                events[name] = event;
-                return this;
-            };
-
-            this.resolve = function (name) {
-                if (events[name]) events[name].resolve.call(events[name]);
-                return this;
-            };
-
-            this.wrap = function (object) {
-                object.on = function (name, func) {
-                    if (events[name]) {
-                        events[name].callback.call(object, func);
-                    }
-                };
-
-                object.status = function (name) {
-                    if (events[name]) return events[name].active();
-                    return false;
-                };
-                return this;
-            };
-
         }
     ]
 );
@@ -7076,6 +5881,1192 @@ $R.service.class('Resource',
                     return matrix[currentY][currentX];
                 }
             }
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.service.class('Sound',
+    ['@inject', 'Debug',
+        function AnimationProvider(inject, Debug) {
+
+            var animations = [],
+                animated = false,
+                morphs = {};
+
+            this.morph = function (name, ordering, setter, applier) {
+                var morph = inject('$Morph');
+                morph.config(name, this, ordering, setter, applier);
+                if (morph.valid()) {
+                    morphs[name] = morph;
+                }
+            };
+
+            this.extractMorph = function (name) {
+                return morphs[name];
+            };
+
+            function findCompetitor(properties, animation) {
+                animation.$$SELF = true;
+
+                var competitor = null;
+
+                for (var i = 0; i < animations.length; i++) {
+                    if (!animations[i].$$SELF) {
+                        if (animations[i].active() && !animations[i].done()) {
+                            var check = false;
+                            for (var n = 0; n < properties.length; n++) {
+                                if (animations[i].hasProperty(properties[n])) {
+                                    check = true;
+                                    break;
+                                }
+                            }
+                            if (check) {
+                                if (!competitor) competitor = [];
+                                competitor.push(animations[i]);
+                            }
+                        }
+                    }
+                }
+
+                delete animation.$$SELF;
+
+                return competitor;
+            }
+
+            function CheckAnimationQueue() {
+                var _animations = [];
+
+                for (var i = 0; i < animations.length; i++) {
+                    if (!animations[i].active()) {
+                        var props = animations[i].properties();
+                        if (animations[i].queue()) {
+                            if (!findCompetitor(props, animations[i])) {
+                                animations[i].start();
+                            }
+                        }
+                        else {
+                            var competitors = findCompetitor(props, animations[i]);
+                            if (competitors) {
+                                for (var n = 0; n < competitors.length; n++) {
+                                    for (var p = 0; p < props.length; p++) {
+                                        competitors[n].stop(props[p]);
+                                    }
+                                }
+                            }
+                            animations[i].start();
+                        }
+                        _animations.push(animations[i]);
+                    }
+                    else {
+                        if (!animations[i].done()) {
+                            _animations.push(animations[i]);
+                        }
+                    }
+                }
+
+                animations = _animations;
+            }
+
+
+            function CreateAnimationType1(property, value, duration, easing) {
+                var pair = {};
+
+                pair[property] = value;
+
+                if (morphs[property]) {
+                    var stack = [
+                            {
+                                ordering: morphs[property].ordering(),
+                                morph: morphs[property],
+                                value: value
+                            }
+                        ],
+                        config = {};
+
+                    if (duration && typeof duration === "number") config.duration = duration;
+                    if (easing && typeof easing === "string") config.easing = easing;
+
+
+                    var animation = inject('$Animation');
+
+                    animation.config(this, stack, config, CheckAnimationQueue);
+                    animations.push(animation);
+                }
+
+            }
+
+            function CreateAnimationType2(pairs, arg2, arg3) {
+                var config = {};
+
+                if (typeof arg2 === "object") {
+                    config = arg2;
+                }
+                else if (typeof arg2 === "number") {
+                    config = {
+                        duration: arg2
+                    };
+                    if (typeof arg3 === "string") {
+                        config.easing = arg3
+                    }
+                }
+                else if (typeof arg2 === "string") {
+                    config = {
+                        easing: arg2
+                    };
+                }
+
+                var result = {};
+
+                for (var property in pairs) {
+                    if (!pairs.hasOwnProperty(property)) continue;
+                    if (!morphs[property]) {
+                        Debug.warn({
+                            type: this.type(),
+                            property: property
+                        }, 'Property {property} of {type} can not be animated!');
+                    }
+                    else {
+                        result[property] = {
+                            ordering: morphs[property].ordering(),
+                            morph: morphs[property],
+                            value: pairs[property]
+                        }
+                    }
+                }
+
+                var morph_stack = [];
+
+                for (var item in result) {
+                    morph_stack.push(result[item]);
+                }
+
+                if (morph_stack.length) {
+                    morph_stack.sort(function (a, b) {
+                        return a.ordering - b.ordering;
+                    });
+
+                    var animation = inject('$Animation');
+                    animation.config(this, morph_stack, config, CheckAnimationQueue);
+                    animations.push(animation);
+                }
+                else {
+                    Debug.warn('No properties to animate!');
+                }
+            }
+
+            this.animate = function (arg1, arg2, arg3, arg4) {
+                if (typeof arg1 === 'string' && arg2) {
+                    CreateAnimationType1.apply(this, arguments);
+                }
+                else if (typeof arg1 === "object" && arg1.constructor !== Array) {
+                    CreateAnimationType2.apply(this, arguments);
+                }
+                else {
+                    Debug.warn('Unable to create animation. Wrong arguments');
+                }
+                CheckAnimationQueue();
+            };
+
+            this.animated = function () {
+                return animated;
+            };
+
+            this.stop = function (property) {
+                if (typeof property !== "string" || property.length === 0) return;
+                for (var i = 0; i < animations.length; i++) {
+                    animations[i].stop(property);
+                }
+            };
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/23/2017.
+ */
+$R.service.class('Sound',
+    ['@inject', 'Debug',
+        function Audio(inject, Debug) {
+
+            var source = null,
+                url = null,
+                type = null,
+                events = inject('$EventProvider'),
+                animations = inject('$AnimationProvider'),
+                self = this,
+                output = null,
+                nodename = '';
+
+            events.wrap(this);
+
+            function eventArgs() {
+                return [self, output, url, type];
+            }
+
+            events.event('ready', eventArgs, true);
+            events.event('load', eventArgs, true);
+            events.event('error', eventArgs, true);
+            events.event('play', eventArgs, false);
+            events.event('connect', eventArgs, false);
+            events.event('disconnect', eventArgs, false);
+            events.event('end', eventArgs, false);
+
+            function createAnimationMorph(filter, property) {
+                animations.morph.apply(this, [property.name, 0,
+                    function (start, end, value) {
+                        value = property.normalizer(value);
+                        if (value !== undefined) {
+                            end(value);
+                            start(filter.get(property.name));
+                        }
+                    },
+                    function (value) {
+                        value = property.normalizer(value);
+                        return filter.set(property.name, value);
+                    }
+                ]);
+            }
+
+            this.build = function (name, src) {
+                if (typeof name === "string" && name.length > 0) {
+                    if (typeof src === "string" && src !== 'destination' && src.length > 0) {
+                        url = src;
+                        source = inject('$UserAudioSource').build(src);
+                        type = 'Sample';
+                        source.on('load', function () {
+                            events.resolve('load');
+                        });
+
+                        this.play = function () {
+                            source.play();
+                            return this;
+                        };
+
+                        this.terminate = function () {
+                            source.stop();
+                            return this;
+                        }
+                    }
+                    else if (src === 'destination') {
+                        source = inject('$UserAudioMixer').build(name, src);
+                        this.connect = function () {
+                            if (arguments[0] && typeof arguments[0] === "object" && arguments[0].$$SOURCE) {
+                                return source;
+                            }
+                            return this;
+                        };
+
+                        url = '[' + name + ']' + 'AudioChannel';
+                        type = 'Channel';
+                        events.resolve('load');
+                    }
+                    else if (src === undefined) {
+                        source = inject('$UserAudioMixer').build(name);
+                        url = '[' + name + ']' + 'AudioChannel';
+                        type = 'Channel';
+                        events.resolve('load');
+                    }
+
+                    source.on('error', function () {
+                        events.resolve('error');
+                    });
+
+                    source.on('play', function () {
+                        events.resolve('play');
+                    });
+
+                    source.on('end', function () {
+                        events.resolve('end');
+                    });
+
+                    source.on('connect', function () {
+                        events.resolve('connect');
+                    });
+
+                    source.on('disconnect', function () {
+                        events.resolve('disconnect');
+                    });
+
+                    var filters = source.filters();
+
+                    for (var i = 0; i < filters.length; i++) {
+                        var props = filters[i].props();
+                        for (var m = 0; m < props.length; m++) {
+                            if (props[m].animated) {
+                                createAnimationMorph.apply(this, [filters[i], props[m]]);
+                            }
+                        }
+                    }
+
+                    nodename = name;
+
+                    events.resolve('ready');
+
+                }
+                else {
+                    Debug.warn('Audio mixer have no name! Should be a string');
+                }
+
+                return this;
+            };
+
+            this.filter = function (name, value) {
+                if (typeof name === "string" && name.length > 0) {
+                    var filter = null,
+                        filters = source.filters();
+
+                    for (var i = 0; i < filters.length; i++) {
+                        if (filters[i].has(name)) {
+                            filter = filters[i];
+                        }
+                    }
+
+                    if (filter) {
+                        if (value !== undefined) {
+                            filter.set(name, value);
+                        }
+                        else {
+                            return filter.get(name);
+                        }
+                    }
+                    else {
+                        Debug.warn({name: name}, 'Unable to set filter property [{name}]. No filter with that param!');
+                    }
+                }
+                return this;
+            };
+
+            this.connect = function (out) {
+                if (out && typeof out === "object" && out.$$SOURCE) {
+                    return source;
+                }
+
+                if (typeof out === "object" && out.type && typeof out.type === "function") {
+                    var ctype = out.type();
+                    if (type === 'Channel' && ctype === 'Sample') {
+                        Debug.error('Trying to connect Channel with Sample!');
+                        return this;
+                    }
+                    else if (out.connect && typeof out.connect === "function") {
+                        var outsource = out.connect({$$SOURCE: true});
+                        output = out;
+                        source.connect(outsource);
+                        return out;
+                    }
+                    else {
+                        Debug.error('Unknown type of  object passed as output!');
+                    }
+                }
+                else {
+                    Debug.error('Unknown type of  object passed as output!');
+                }
+
+                return this;
+            };
+
+            this.output = function () {
+                return output;
+            };
+
+            this.animate = function () {
+                animations.animate.apply(this, arguments);
+                return this;
+            };
+
+            this.type = function (str) {
+                if (typeof str === "string") {
+                    return str === type;
+                }
+                return type;
+            };
+
+            this.url = function () {
+                return url;
+            };
+
+            this.name = function () {
+                return nodename;
+            };
+
+            this.stop = function () {
+                animations.stop.apply(this, arguments);
+                return this;
+            };
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/21/2017.
+ */
+$R.service.class('Sound',
+    ['@inject', '@Config', 'Debug',
+        function UserAudioMixer(inject, config, Debug) {
+
+            var events = inject('$EventProvider'),
+                filters = [],
+                output = null,
+                name = '',
+                filtersCfg = config.watch('filters', function (v) {filters = v});
+
+
+            events.wrap(this);
+
+            function argF() {
+                return [this];
+            }
+
+            events.event('play', argF, false);
+            events.event('connect', argF, false);
+            events.event('ready', argF, true);
+            events.event('error', argF, true);
+
+            this.build = function (n, channel) {
+
+                for (var i = 0; i < filtersCfg.length; i++) {
+                    var node = inject('$' + filtersCfg[i] + 'Node');
+                    if (filters[filters.length - 1]) {
+                        filters[filters.length - 1].connect(node);
+                    }
+                    filters.push(node);
+                }
+
+                if (typeof n === "string" && n.length > 0) {
+                    name = n;
+                }
+                else {
+                    Debug.warn({n: n}, '[{n}] is not a valid name for channel');
+                    events.resolve('error');
+                }
+
+                if (channel && typeof channel === "object" && channel.connect && typeof channel.connect === "function") {
+                    this.connect(channel);
+                }
+                else if (channel === 'destination') {
+                    var destination = inject('$DestinationNode');
+                    filters[filters.length - 1].connect(destination);
+
+                    this.connect = function (out) {
+                        if (out.$$AUDIONODE) {
+                            return filters[0];
+                        }
+                    }
+                }
+
+
+                delete  this.build;
+                return this;
+            };
+
+            this.connect = function (out) {
+                if (out.$$AUDIONODE) {
+                    return filters[0];
+                }
+                else {
+                    var input = out.connect({$$AUDIONODE: true});
+                    filters[filters.length - 1].connect(input);
+                    output = out;
+                }
+
+                return this;
+            };
+
+            this.output = function () {
+                return output;
+            };
+
+            this.filters = function () {
+                return filters;
+            };
+
+            this.name = function () {
+                return name;
+            }
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/19/2017.
+ */
+$R.service.class('Sound',
+    ['@extend', '@inject',
+        function UserAudioSource(extend, inject) {
+
+            var node = inject('$AudioSource'),
+                events = inject('$EventProvider'),
+                mixer = null,
+                output = null,
+                url = '';
+
+            function cbArgs() {
+                return [this];
+            }
+
+            function connectCbArgs() {
+                return [this, output];
+            }
+
+            events.wrap(this);
+
+            events.event('ready', cbArgs, true);
+            events.event('load', cbArgs, true);
+            events.event('error', cbArgs, true);
+            events.event('connect', connectCbArgs, false);
+            events.event('play', cbArgs, false);
+            events.event('stop', cbArgs, false);
+
+            node.on('ready', function () {
+                events.resolve('ready');
+            });
+
+            node.on('load', function () {
+                events.resolve('load');
+            });
+
+            node.on('error', function () {
+                events.resolve('error');
+            });
+
+            this.build = function (src) {
+
+                if (typeof src === "string" && src.length > 0) {
+                    url = src;
+                    node.build(src);
+                    mixer = inject('$UserAudioMixer').build('source-built-in-filter');
+                    mixer.on('connect', function () {
+                        events.resolve('connect');
+                    });
+                    node.connect(mixer.connect({$$AUDIONODE: true}));
+                    delete this.build;
+                    events.resolve('ready');
+                }
+                else {
+                    delete  this.build;
+                    events.resolve('error');
+                }
+
+
+                return this;
+            };
+
+            this.filters = function () {
+                if (mixer) {
+                    return mixer.filters();
+                }
+                return [];
+            };
+
+
+            this.play = function () {
+                if (!this.status('error')) {
+                    if (this.status('ready')) {
+                        if (this.status('load')) {
+                            node.play();
+                        }
+                        else {
+                            this.on('load', function () {
+                                node.play();
+                            });
+                        }
+                    }
+                }
+
+                return this;
+            };
+
+            this.stop = function () {
+                node.stop();
+                return this;
+            };
+
+            this.output = function () {
+                return output;
+            };
+
+            this.connect = function (out) {
+                if (out && out.constructor === mixer.constructor) {
+                    output = out;
+                    mixer.connect(out);
+                }
+                return this;
+            };
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@Audio', '@extend',
+        function DelayNode(audio, extend) {
+
+            extend(this, '$AudioNode');
+
+            var timeCFG = 0, forceCFG = 0, killDelay = 10000,
+                globalGain = audio.context().createGain(),
+                delay = audio.context().createDelay(),
+                feedback = audio.context().createGain(),
+                bq = audio.context().createBiquadFilter();
+
+            globalGain.gain.value = 1;
+            bq.frequency.value = 2000;
+            feedback.gain.value = forceCFG;
+            delay.delayTime.value = timeCFG;
+
+            delay.connect(feedback);
+            feedback.connect(bq);
+            bq.connect(delay);
+            feedback.connect(globalGain);
+
+            this.build('delay', [globalGain, feedback], globalGain);
+
+            this.property('delay', [0, 0],
+                function (value) {
+                    if (typeof value == "object" && value.constructor === Array &&
+                        value.length == 2 && typeof value[0] == "number" && typeof value[1] == "number") {
+                        var time = value[0],
+                            force = value[1];
+
+                        if (time > 1) time = 1;
+                        if (time < 0) time = 0;
+                        if (force > .8) force = .8;
+                        if (force < 0) force = 0;
+                        timeCFG = time;
+                        forceCFG = force;
+                        delay.delayTime.value = timeCFG;
+                        feedback.gain.value = forceCFG;
+                        return [force, time];
+                    }
+                },
+                function (value) {
+                    return [value[0], value[1]];
+                },
+                function (value) {
+                    var time = value[0],
+                        force = value[1];
+
+                    if (time > 1) time = 1;
+                    if (time < 0) time = 0;
+                    if (force > .8) force = .8;
+                    if (force < 0) force = 0;
+
+                    return [force, time];
+                }
+            );
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@Audio', '@extend',
+        function DestinationNode(audio, extend) {
+
+            extend(this, '$AudioNode');
+
+            this.build('destination', audio.context().destination, false);
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@Audio', '@extend',
+        function GainNode(audio, extend) {
+
+            extend(this, '$AudioNode');
+
+            var volume = 1,
+                gain = audio.context().createGain();
+
+            gain.gain.value = volume;
+
+            this.build('gain', gain, gain);
+
+            this.property('volume', 1,
+                function (value) {
+                    if (typeof value == "number") {
+                        if (value < 0) value = 0;
+                        if (value > 1) value = 1;
+                        volume = value;
+                        gain.gain.value = volume;
+                        return value;
+                    }
+                },
+                function (value) {
+                    return value;
+                },
+                function (value) {
+                    if (value < 0) value = 0;
+                    if (value > 1) value = 1;
+                    return value;
+                }
+            );
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@Audio', '@extend',
+        function LowpassNode(audio, extend) {
+
+            extend(this, '$AudioNode');
+
+            var bqf = audio.context().createBiquadFilter(),
+
+                frequency = 22050;
+
+            bqf.type = 'lowpass';
+            bqf.frequency.value = frequency;
+
+            this.build('lowpass', bqf, bqf);
+
+            this.property('lowpass', 22050,
+                function (value) {
+                    if (value < 0) value = 0;
+                    if (value > 22050) value = 22050;
+                    frequency = value;
+                    bqf.frequency.value = value;
+                    return value;
+                },
+                function (value) {
+                    return value;
+                },
+                function (value) {
+                    if (value < 0) value = 0;
+                    if (value > 22050) value = 22050;
+                    return value;
+                }
+            );
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@inject', 'Debug',
+        function AudioNode(inject, Debug) {
+
+            var output = null,
+                input = null,
+                nextNode = null,
+                buildF = function (sound, output) {
+                    if (!output) {
+                        var input = this.input();
+                        for (var i = 0; i < input.length; i++) {
+                            sound.connect(input[i]);
+                        }
+                    }
+                    return this.output();
+                },
+                sounds = [],
+                events = inject('$EventProvider'),
+                nodename = '';
+
+            function args() {
+                return [nextNode];
+            }
+
+            events.wrap(this);
+
+            events.event('ready', args, true);
+            events.event('play', args, false);
+            events.event('end', args, false);
+            events.event('connect', args, false);
+            events.event('disconnect', args, false);
+            events.event('property', args, false);
+
+            this.disconnect = function () {
+                if (nextNode && output) {
+                    var _inpArray = nextNode.input();
+                    for (var i = 0; i < output.length; i++) {
+                        for (var n = 0; n < _inpArray.length; n++) {
+                            output[i].disconnect(_inpArray[n]);
+                        }
+                    }
+                    nextNode = null;
+                    events.resolve('disconnect');
+                }
+                return this;
+            };
+
+            this.connect = function (out) {
+                this.disconnect();
+                nextNode = out;
+                if (nextNode && output) {
+                    var _inpArr = nextNode.input();
+                    for (var i = 0; i < output.length; i++) {
+                        for (var n = 0; n < _inpArr.length; n++) {
+                            output[i].connect(_inpArr[i]);
+                        }
+                    }
+                }
+                events.resolve('connect');
+                return this;
+            };
+
+            this.build = function (name, inp, out, f) {
+                input = typeof inp == "object" && inp.constructor === Array ? inp : [inp];
+                output = typeof out == "object" && out.constructor === Array ? out : [out];
+                nodename = name;
+                if (typeof f == "function") buildF = f;
+                delete this.build;
+                events.resolve('ready');
+                return this;
+            };
+
+            this.input = function () {
+                return input;
+            };
+
+            this.output = function () {
+                return output;
+            };
+
+            this.name = function () {
+                return nodename;
+            };
+
+            this.play = function (sound, output) {
+                sounds.push(sound);
+                sound.addEventListener('ended', function () {
+                    var result = [];
+                    sound.$$SEARCH = true;
+                    for (var i = 0; i < sounds.length; i++) {
+                        if (!sounds.$$SEARCH) {
+                            result.push(sounds[i]);
+                        }
+                    }
+                    delete sound.$$SEARCH;
+                    sounds = result;
+                });
+
+                if (nextNode) {
+                    nextNode.play(sound, buildF.apply(this, arguments));
+                }
+
+            };
+
+            var model = {};
+
+            this.property = function (name, defVal, setter, getter, normlizer) {
+                if (typeof name === "string") {
+                    var property = {
+                        name: name,
+                        value: null,
+                        getter: null,
+                        setter: null,
+                        normalizer: normlizer,
+                        animated: typeof normlizer === "function" ? true : false
+                    };
+
+                    if (typeof getter === "function") {
+                        property.getter = getter;
+                    }
+                    if (typeof setter === "function") {
+                        property.setter = setter;
+                    }
+
+                    property.value = defVal;
+
+                    if (defVal && typeof property.getter && property.setter) {
+                        if (!model[property.name]) {
+                            model[property.name] = property;
+                        }
+                        else {
+                            Debug.warn({property: property}, 'Duplicated property [{property}]');
+                        }
+                    }
+                }
+                else {
+                    Debug.warn({name: name}, 'Property name [{name}] is not valid!');
+                }
+            };
+
+            this.set = function (name, value) {
+                if (typeof name == "string" && name.length > 0) {
+                    var result = model[name].setter(value);
+                    if (result !== undefined) {
+                        model[name].value = result;
+                    }
+                    else {
+                        Debug.warn({prop: name, val: value}, '[{val}] is not a valid valuen for [{prop}].');
+                    }
+                }
+            };
+
+            this.get = function (name) {
+                if (typeof name == "string" && name.length > 0) {
+                    if (model[name]) {
+                        return model[name].value;
+                    }
+                    else {
+                        Debug.warn({name: name}, 'Object has no property [{name}]. Unable to get value.');
+                    }
+                }
+                else {
+                    Debug.warn('Property name has to be a string');
+                }
+            };
+
+            this.props = function () {
+                var result = [];
+
+                for (var prop in model) {
+                    if (model.hasOwnProperty(prop)) {
+                        result.push(model[prop]);
+                    }
+                }
+
+                return result;
+            };
+
+            this.has = function (name) {
+                return !!model[name];
+            };
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/22/2017.
+ */
+$R.service.class('Sound',
+    function AudioNodeSoundDispatcher() {
+
+        var sounds = [];
+
+        this.register = function (sound) {
+            sound.addEventListener('end', function () {
+                sound.$$SEARCH = true;
+
+                var result = [];
+
+                for (var i = 0; i < sounds.length; i++) {
+                    if (!sounds[i].$$SEARCH) {
+                        result.push(sounds[i]);
+                    }
+                }
+                sounds = result;
+            });
+
+            sounds.push(sound);
+        };
+
+        this.reconnect = function (destination) {
+            for (var i = 0; i < sounds.length; i++) {
+                sounds[i].disconnect();
+                sounds[i].connect(destination);
+            }
+        };
+    }
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@Audio', '@inject', 'Resource', 'Debug',
+        function AudioSource(audio, inject, Resource, Debug) {
+
+            var url = null,
+                resource = null,
+                buffer = null,
+                output = null,
+                events = inject('$EventProvider'),
+                self = this,
+                sounds = [];
+
+            function args() {
+                return [resource, buffer, output];
+            }
+
+            events.wrap(this);
+
+            events.event('ready', args, true);
+            events.event('load', args, true);
+            events.event('error', args, true);
+            events.event('connect', args, false);
+            events.event('disconnect', args, false);
+            events.event('play', false);
+            events.event('end', false);
+
+            this.build = function (src) {
+                resource = Resource.audio(src);
+
+                resource.on('load', function (response) {
+                    audio.context().decodeAudioData(
+                        response,
+                        function (result) {
+                            buffer = result;
+                            events.resolve('load');
+                        },
+                        function () {
+                            Debug.error({src: src}, '[{src}] audio buffer can not be decoded. Resource not found, or of wrong format');
+                            events.resolve('error');
+                        }
+                    )
+                });
+
+                resource.on('error', function () {
+                    Debug.error({src: src}, 'Unable to load audio file');
+                    events.resolve(error)
+                });
+                delete this.build;
+
+                return this;
+            };
+
+            this.disconnect = function () {
+                if (output) {
+                    output = null;
+                    events.resolve('disconnect');
+                }
+                return this;
+            };
+
+            this.connect = function (out) {
+                this.disconnect();
+                output = out;
+                events.resolve('connect');
+                return this;
+            };
+
+            this.play = function () {
+                if (output && this.status('load')) {
+                    var source = audio.context().createBufferSource();
+                    source.buffer = buffer;
+                    sounds.push(source);
+                    output.play(source, false);
+                    source.start(0);
+                }
+                return this;
+            };
+
+            this.stop = function () {
+                for (var i = 0; i < sounds.length; i++) {
+                    sounds[i].stop(0);
+                }
+                sounds = [];
+                return this;
+            };
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['Debug',
+        function Event(Debug) {
+
+            var cb = [],
+                state = false,
+                name = 'default',
+                stateval = false,
+                self = this,
+                argFunct = function () {
+                    return [];
+                };
+
+            this.build = function (eventName, argF, isStateEvent) {
+                state = !!isStateEvent;
+
+                if (typeof argF == "function") {
+                    argFunct = argF;
+                }
+
+                if (typeof eventName == "string" && eventName.length > 0) {
+                    name = eventName
+                }
+
+                delete this.build;
+                return this;
+            };
+
+            this.name = function () {
+                return name;
+            };
+
+            this.active = function () {
+                return stateval;
+            };
+
+            this.resolve = function () {
+                if (state) stateval = true;
+
+                var args = argFunct();
+                if (typeof args !== "object" || args.constructor !== Array) args = [];
+
+                else {
+                    for (var i = 0; i < cb.length; i++) {
+                        cb[i].apply(this, args);
+                    }
+                }
+                return this;
+            };
+
+            this.callback = function (func) {
+                if (typeof func !== "function") return this;
+                if (self.active()) {
+                    var args = argFunct();
+                    if (typeof args !== "object" || args.constructor !== Array) args = [];
+                    func.apply(this, args);
+                    cb.push(arguments[0]);
+                    return this;
+                }
+                cb.push(func);
+                return this;
+            };
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@inject',
+        function EventProvider(inject) {
+
+            var events = [];
+
+            this.event = function (name, argF, state) {
+                var event = inject('$Event');
+                event.build.apply(event, arguments);
+                events[name] = event;
+                return this;
+            };
+
+            this.resolve = function (name) {
+                if (events[name]) events[name].resolve.call(events[name]);
+                return this;
+            };
+
+            this.wrap = function (object) {
+                object.on = function (name, func) {
+                    if (events[name]) {
+                        events[name].callback.call(object, func);
+                    }
+                };
+
+                object.status = function (name) {
+                    if (events[name]) return events[name].active();
+                    return false;
+                };
+                return this;
+            };
+
         }
     ]
 );

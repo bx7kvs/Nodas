@@ -42,10 +42,8 @@ Core.get = function (module, payload) {
     if (typeof module === "string") {
         if (modules[module]) {
             return modules[module].get.apply(modules[module], payload);
-        }
-        else throw new Error('Module [' + module + '] was not found');
-    }
-    else throw new Error('Module name is not a string. Wrong arguments');
+        } else throw new Error('Module [' + module + '] was not found');
+    } else throw new Error('Module name is not a string. Wrong arguments');
 };
 
 Core.is = function (target, name) {
@@ -60,18 +58,15 @@ Core.inject = function (module, payload) {
     if (typeof module === "string") {
         if (modules[module]) {
             return modules[module].create(payload);
-        }
-        else throw new Error('Nodule [' + module + '] was not found.');
-    }
-    else throw new Error('Module name is not a string. Wrong Arguments');
+        } else throw new Error('Nodule [' + module + '] was not found.');
+    } else throw new Error('Module name is not a string. Wrong Arguments');
 };
 
 Core.extend = function (module, target, payload) {
     if (typeof modules[module] === "string") {
         if (typeof target === "object") {
             return modules[module].extend(target, payload);
-        }
-        else throw new Error('Unable to extend target of tyoe [' + (typeof target) + '] bu module constructor [' + module + '].');
+        } else throw new Error('Unable to extend target of tyoe [' + (typeof target) + '] bu module constructor [' + module + '].');
     }
 };
 
@@ -126,8 +121,7 @@ function Injection(f) {
         if (typeof payload === "object" && payload.constructor === Array) {
             f.apply(target, payload);
             return target;
-        }
-        else {
+        } else {
             f.call(target);
             return target;
         }
@@ -1028,29 +1022,26 @@ Core(function Helpers() {
             var helper = Core.inject('Injection', [cfg]);
             if (helpers[helper.name()]) console.warn('helper [' + helper.name() + '] override.');
             helpers[helper.name()] = helper;
-        }
-        catch (e) {
+        } catch (e) {
             throw new Error('Unable to create Helper.');
         }
     }
 
     Core.define('helper', helper);
 
-    helper.system = function (cfg, public) {
+    helper.system = function (cfg, is_public) {
         try {
             var helper = Core.inject('Injection', [cfg]);
-            if(sysHelpers[helper.name()]) console.warn('System Helper ['+helper.name()+'] Duplicate declaration override.');
+            if (sysHelpers[helper.name()]) console.warn('System Helper [' + helper.name() + '] Duplicate declaration override.');
             sysHelpers[helper.name()] = helper;
-            if(public) {
-                if(helpers[helper.name()]) {
-                    console.warn('System Helper ['+helper.name()+'] overrides user helper. Skipped system helper.');
-                }
-                else {
+            if (is_public) {
+                if (helpers[helper.name()]) {
+                    console.warn('System Helper [' + helper.name() + '] overrides user helper. Skipped system helper.');
+                } else {
                     helpers[helper.name()] = helper;
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
 
         }
     }
@@ -1064,7 +1055,7 @@ Core(function Helpers() {
 
     this.getPublicHelpers = function (defaults) {
         var container = Core.inject('Container', [helpers]);
-        container.source(container,'+');
+        container.source(container, '+');
         container.source(defaults, '@');
         return container;
     };
@@ -1803,1381 +1794,6 @@ Core(function Ticker() {
 /**
  * Created by bx7kv_000 on 12/25/2016.
  */
-$R.service(
-    ['@Canvas', '@Config', 'Debug',
-        function Canvas(Canvas, Config, Debug) {
-
-            var callbacks = [], width = 0, height = 0, dimms = [0, 0], xunits = 'px', yunits = 'px',
-                offset = [0, 0], scroll = [0, 0], output = Canvas.element(), self = this;
-
-            Config.define(
-                'size',
-                [0, 0],
-                {
-                    isArray: true,
-                    custom: function (v) {
-                        if ((typeof v[0] === "string" || typeof v[0] === Array)
-                            &&
-                            (typeof v[0] === "string" || typeof v[1] === "number")) {
-                            return true;
-                        }
-                    }
-                })
-                .watch(
-                    function (v) {
-                        if (typeof v[0] === "number") {
-                            width = v[0];
-                        }
-                        else if (typeof v[0] === "string") {
-                            if (v[0].match(/^[\d]+%$/)) {
-                                width = parseInt(v[0]);
-                                xunits = '%';
-                            }
-                            else {
-                                width = 1000;
-                                xunits = 'px';
-                                Debug.warn({width: v[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
-                            }
-                        }
-                        else {
-                            width = 1000;
-                            Debug.warn({width: v[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
-                        }
-
-                        if (typeof v[1] === "number") {
-                            height = v[1];
-                        }
-                        else if (typeof v[1] === "string") {
-                            if (v[1].match(/^[\d]+%$/)) {
-                                height = parseInt(v[1]);
-                                yunits = '%';
-                            }
-                            else {
-                                height = 800;
-                                Debug.warn({height: v[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
-                            }
-                        }
-                        else {
-                            height = 800;
-                            Debug.warn({height: v[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
-                        }
-                        WindowResizeCallback();
-                    }
-                );
-
-            var pW = 0, pH = 0, resizeTO = null;
-
-            function compareOnResize(success) {
-                if (xunits === '%' || yunits === '%') {
-                    var _pW = pW, _pH = pH;
-                    Canvas.size(0, 0);
-                    if (resizeTO) clearTimeout(resizeTO);
-
-                    resizeTO = setTimeout(function () {
-                        var parentNode = Canvas.element().parentNode,
-                            styles = window.getComputedStyle(parentNode, null);
-
-                        pH = parseInt(styles.getPropertyValue('height'));
-                        pW = parseInt(styles.getPropertyValue('width'));
-
-                        if (_pW !== pW) {
-                            if (xunits === '%' && _pW !== pW) {
-                                dimms[0] = Math.floor(pW * (width / 100));
-                            }
-                        }
-                        if (_pH !== pH) {
-                            if (yunits === '%') {
-                                dimms[1] = Math.floor(pH * (height / 100));
-                            }
-                        }
-                        Canvas.size(dimms[0], dimms[1]);
-                        resizeTO = null;
-                        success();
-                    }, 200);
-                }
-                else {
-                    dimms[0] = width;
-                    dimms[1] = height;
-                    Canvas.size(dimms[0], dimms[1]);
-
-                    return false;
-                }
-            }
-
-            function GetCanvasOffset(x) {
-                var offsetProp = x ? 'offsetLeft' : 'offsetTop';
-
-                var result = 0, element = Canvas.element();
-
-                do {
-                    if (!isNaN(element[offsetProp])) {
-                        result += element[offsetProp];
-                    }
-                } while (element = element.offsetParent);
-
-                return result;
-            }
-
-            function WindowResizeCallback() {
-                if (!output) return;
-                compareOnResize(function () {
-                    offset[0] = GetCanvasOffset(0);
-                    offset[1] = GetCanvasOffset(1);
-                    for (var i = 0; i < callbacks.length; i++) {
-                        callbacks[i](dimms[0], dimms[1]);
-                    }
-                    ResolveCanvasEventArray('canvasresize', [new RCanvasResizeEvent()]);
-                });
-
-            }
-
-            function CanvasSwitchCallback() {
-                offset[0] = GetCanvasOffset(0);
-                offset[1] = GetCanvasOffset(1);
-                ResolveCanvasEventArray('canvasswitch', [new RCanvasSwitchEvent()]);
-                WindowResizeCallback();
-            }
-
-            this.resize = function (func) {
-                if (typeof func !== "function") return;
-                callbacks.push(func);
-            };
-
-            this.width = function () {
-                if (xunits === '%') {
-                    return pW * (width / 100);
-                }
-                else {
-                    return width;
-                }
-
-            };
-
-            this.height = function () {
-                if (xunits === '%') {
-                    return pH * (height / 100);
-                }
-                else {
-                    return height;
-                }
-            };
-
-            var canvasEventCallbacks = {
-                mousemove: [],
-                mousedown: [],
-                mouseup: [],
-                mouseleave: [],
-                mouseenter: [],
-                canvasresize: [],
-                canvasswitch: []
-            };
-
-            function GetCanvasEventArray(event) {
-                return canvasEventCallbacks[event];
-            }
-
-            function ResolveCanvasEventArray(event, data) {
-                if (typeof data !== "object" || data.constructor !== Array) {
-                    Debug.warn({e: event}, 'Canvas : unable to resolve event array [{e}]. Data is not an array!');
-                    return;
-                }
-
-                var array = GetCanvasEventArray(event);
-
-                if (!array) {
-                    Debug.warn({e: event}, 'Unable to resolve event [{e}] no such event!');
-                    return;
-                }
-                for (var i = 0; i < array.length; i++) {
-                    array[i].apply(self, data);
-                }
-            }
-
-            this.on = function (event, func) {
-                var array = GetCanvasEventArray(event);
-                if (!array) {
-                    Debug.warn({e: event}, 'Canvas : Unable to set event handler for event [{e}]');
-                    return;
-                }
-                if (typeof func !== "function") {
-                    Debug.warn({f: event}, 'Canvas : Unable to set event handler [{f}]');
-                }
-                array.push(func);
-            };
-
-            function GetMouseRelativePosition(e) {
-                return [e.pageX - offset[0] - scroll[0], e.pageY - offset[1] - scroll[1]];
-            }
-
-            function RCanvasMouse(e) {
-                this.page = [e.pageX, e.pageY];
-                this.sceen = [e.pageX - scroll[0], e.pageY - scroll[1]];
-                this.position = GetMouseRelativePosition(e);
-            }
-
-            function RCanvasMouseEvent(e) {
-                this.original = e;
-                this.type = e.type;
-                this.mouse = new RCanvasMouse(e);
-                this.canvas = self;
-            }
-
-            function RCanvasResizeEvent() {
-                this.type = 'canvasresize';
-                this.canvas = self;
-                this.offset = [offset[0], offset[1]];
-                this.size = [width, height];
-                this.original = [width, height];
-                this.units = [xunits, yunits];
-                if (xunits === '%') {
-                    this.size[0] = pW * (width / 100);
-                }
-                if (yunits === '%') {
-                    this.size[1] = pH * (height / 100);
-                }
-            }
-
-            function RCanvasSwitchEvent() {
-                this.type = 'canvasswitch';
-                this.canvas = self;
-                this.offset = [offset[0], offset[1]];
-                this.size = [width, height];
-                this.original = [width, height];
-                this.units = [xunits, yunits];
-                if (xunits === '%') {
-                    this.size[0] = pW * (width / 100);
-                }
-                if (yunits === '%') {
-                    this.size[1] = pH * (height / 100);
-                }
-            }
-
-            var listeners = {
-                mousemove: function (e) {
-                    ResolveCanvasEventArray('mousemove', [new RCanvasMouseEvent(e)]);
-                },
-                mousedown: function (e) {
-                    ResolveCanvasEventArray('mousedown', [new RCanvasMouseEvent(e)]);
-                },
-                mouseup: function (e) {
-                    ResolveCanvasEventArray('mouseup', [new RCanvasMouseEvent(e)]);
-                },
-                mouseleave: function (e) {
-                    ResolveCanvasEventArray('mouseleave', [new RCanvasMouseEvent(e)]);
-                },
-                mouseenter: function (e) {
-                    ResolveCanvasEventArray('mouseenter', [new RCanvasMouseEvent(e)]);
-                }
-            };
-
-            Canvas.switch(function () {
-                if (output) {
-                    for (var event in listeners) {
-                        if (listeners.hasOwnProperty(event)) {
-                            output.removeEventListener(event, listeners[event]);
-                        }
-                    }
-                }
-
-                output = this.element();
-                for (var event in listeners) {
-                    if (listeners.hasOwnProperty(event)) {
-                        output.addEventListener(event, listeners[event]);
-                    }
-                }
-                CanvasSwitchCallback();
-            });
-
-
-            window.addEventListener('scroll', function () {
-                scroll[1] = window.pageXOffset || document.documentElement.scrollLeft;
-                scroll[0] = window.pageYOffset || document.documentElement.scrollTop;
-            });
-
-            window.addEventListener('resize', WindowResizeCallback);
-        }
-
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.service(
-    ['@Config',
-        function Debug(config) {
-
-            var string = '$R [Debug] : ',
-                regexp = /{[a-zA-Z]+}/g,
-                regexpname = /[a-zA-Z]+/g,
-                warnings = config.define('warnings', false, {isBool: true}, function (v) {
-                    warnings = v;
-                });
-
-
-            var errorCb = [], messageCb = [];
-
-            function ResolveEvent(type, data) {
-                var array = null;
-
-                if (type === 'error') array = errorCb;
-                if (type === 'message') array = messageCb;
-
-                for (var i = 0; i < array.length; i++) {
-                    array[i](data);
-                }
-            }
-
-            this.on = function (event, func) {
-                if (typeof func !== "function") return;
-                if (event === 'error') errorCb.push(func);
-                if (event === 'message') messageCb.push(func);
-            };
-
-
-            function GetMessage(data, message) {
-                message = message.toString();
-
-                var matches = message.match(regexp);
-                var props = {};
-
-                if (matches) {
-                    for (var i = 0; i < matches.length; i++) {
-                        var matchname = matches[i].match(regexpname)[0];
-                        if (matchname) props[matchname] = {
-                            replace: matches[i],
-                            data: data[matchname].toString()
-                        }
-                    }
-                }
-                for (var prop in props) {
-
-                    if (!props.hasOwnProperty(prop)) continue;
-
-                    message = message.replace(props[prop].replace, props[prop].data);
-                }
-
-                message = string + message;
-
-                return message;
-            }
-
-            this.error = function (data, message) {
-                if (typeof data === "string") {
-                    message = data;
-                    data = {};
-                }
-
-                message = GetMessage(data, message);
-
-                ResolveEvent('error', message);
-
-                throw new Error(message);
-            };
-
-            this.warn = function (data, message) {
-
-                if (!warnings) return;
-
-                if (typeof data === "string") {
-                    message = data;
-                    data = {};
-                }
-                message = GetMessage(data, message);
-
-                ResolveEvent('message', message);
-
-                console.warn(message)
-            }
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 2/2/2017.
- */
-$R.service(
-    ['@Canvas', 'Canvas', '@Ticker', '$Finder',
-        function Dispatcher(CanvasRoot, Canvas, Ticker, Finder) {
-            var target = {
-                    current: null,
-                    previous: null
-                },
-                mousedown = {
-                    current: false,
-                    previous: false
-                },
-                cursor = {
-                    old: [0, 0],
-                    current: [0, 0]
-                },
-                drag = {
-                    start: [0, 0],
-                    current: [0, 0],
-                    delta: [0, 0]
-                },
-                checked = true,
-                active = false,
-                focused = false;
-
-            Canvas.on('mousedown', function () {
-                if (!active || !focused) return;
-                mousedown.previous = mousedown.current;
-                mousedown.current = true;
-                checked = false;
-            });
-            Canvas.on('mouseup', function () {
-                if (!active || !focused) return;
-                mousedown.previous = mousedown.current;
-                mousedown.current = false;
-                checked = false;
-            });
-            Canvas.on('mousemove', function (e) {
-                if (!active || !focused) return;
-                cursor.current[0] = e.mouse.position[0];
-                cursor.current[1] = e.mouse.position[1];
-                checked = false;
-            });
-
-            Canvas.on('mouseleave', function () {
-                focused = false;
-            });
-
-            Canvas.on('mouseenter', function () {
-                focused = true;
-            });
-
-            function DefaultREvent(type, target) {
-                var _type = type, propagate = true, _target = target, _originalTarget = target;
-                this.type = function () {
-                    return _type;
-                };
-
-                this.date = new Date();
-
-                this.stopPropagation = function () {
-                    propagate = false;
-                };
-                this.propagate = function () {
-                    return propagate;
-                };
-                this.target = function () {
-                    return _target;
-                };
-                this.propagated = function () {
-                    _target.$$PROPAGATIONSEARCH = true;
-                    var result = _originalTarget.$$PROPAGATIONSEARCH;
-                    delete _target.$$PROPAGATIONSEARCH;
-                    return result ? result : false;
-                };
-                this.originalTarget = function () {
-                    if (this.$$MOUSEPROPAGATIONSETTER) {
-                        var event = getEventByType(_type, _target);
-                        event.originalTarget.call({$$RESETTARGET: this.$$MOUSEPROPAGATIONSETTER});
-                        return event;
-                    }
-                    if (this.$$RESETTARGET) {
-                        _target = this.$$RESETTARGET;
-                    }
-                    return _originalTarget;
-                }
-            }
-
-            function MouseEvent(type, target) {
-                DefaultREvent.apply(this, [type, target]);
-                this.cursor = [cursor.current[0], cursor.current[1]];
-            }
-
-            function DragEvent(type, target) {
-                DefaultREvent.apply(this, [type, target]);
-                this.drag = {
-                    start: [drag.start[0], drag.start[1]],
-                    current: [drag.current[0], drag.current[1]],
-                    delta: [drag.delta[0], drag.delta[1]]
-                };
-            }
-
-            function getEventByType(type, target) {
-                if (type === 'mousemove' || type === 'mouseleave'
-                    || type === 'mouseenter' || type === 'mousedown'
-                    || type === 'mouseup') {
-                    return new MouseEvent(type, target);
-                }
-                if (type === 'dragstart' || type === 'dragend' || type === 'dragmove') {
-                    return new DragEvent(type, target);
-                }
-            }
-
-            function Dispatch(event, target) {
-
-                var targetMouse = target.extension('Mouse');
-
-                if (!targetMouse) return;
-
-                if (targetMouse.hasEvent(event)) {
-                    targetMouse.resolve(target, event, getEventByType(event));
-                }
-            }
-
-            function resolveEventByType(type) {
-                if ((type === 'mouseenter' || type === 'drastart' || type === 'dragend' || type === 'dragmove' ||
-                    type === 'mousemove' || type === 'mouseup' || type === 'mousedown') && target.current) {
-                    Dispatch(type, target.current);
-                }
-                if (type === 'mouseleave' && target.previous) {
-                    Dispatch(type, target.previous);
-                }
-            }
-
-            function DispatchEvents() {
-                if (mousedown.current !== mousedown.old && mousedown.current) {
-                    resolveEventByType('mousedown');
-                }
-
-                if (cursor.old[0] !== cursor.current[0] || cursor.old[1] !== cursor.current[1]) {
-
-                    if (target.current && !target.previous) {
-                        resolveEventByType('mouseenter');
-                    }
-                    else if (!target.current && target.previous) {
-                        resolveEventByType('mouseleave');
-                    }
-                    else if (target.current && target.previous) {
-                        target.current.$$MOUSESEARCH = true;
-                        var result = false;
-
-                        if (!target.previous.$$MOUSESEARCH) result = true;
-                        delete target.current.$$MOUSESEARCH;
-
-                        if (result) {
-                            resolveEventByType('mouseleave');
-                            resolveEventByType('mouseenter');
-                        }
-                    }
-
-                    if (mousedown.current && mousedown.current !== mousedown.old) {
-                        drag.start[0] = cursor[0];
-                        drag.start[1] = cursor[1];
-                        resolveEventByType('dragstart');
-                    }
-                    else if (mousedown.current && mousedown.current === mousedown.old) {
-                        drag.current[0] = cursor[0];
-                        drag.current[1] = cursor[1];
-                        drag.delta[0] = drag.start[0] - drag.current[0];
-                        drag.delta[1] = drag.start[1] - drag.current[1];
-                        resolveEventByType('dragmove');
-                    }
-                    else if (!mousedown.current && mousedown.current !== mousedown.old) {
-                        drag.current[0] = cursor[0];
-                        drag.current[1] = cursor[1];
-                        drag.delta[0] = drag.start[0] - drag.current[0];
-                        drag.delta[1] = drag.start[1] - drag.current[1];
-                        resolveEventByType('dragend');
-                    }
-                    else if (!mousedown.current && mousedown.current === mousedown.old) {
-                        resolveEventByType('mousemove');
-                    }
-                }
-
-                if (mousedown.current !== mousedown.old && !mousedown.current) {
-                    resolveEventByType('mouseup');
-                }
-
-                target.previous = target.current;
-                mousedown.old = mousedown.current;
-                cursor.old[0] = cursor.current[0];
-                cursor.old[1] = cursor.current[1];
-            }
-
-            function UpdateTargets() {
-                target.previous = target.current;
-                target.current = Finder.check(cursor.current);
-            }
-
-            var tick = false;
-
-            function eventDispatcherTick() {
-                tick = !tick;
-                if (tick) {
-                    if (checked) return;
-                    UpdateTargets();
-                    DispatchEvents();
-                }
-            }
-
-            CanvasRoot.queue(-1, eventDispatcherTick);
-
-            Ticker.on('start', function () {
-                active = true;
-            });
-            Ticker.on('stop', function () {
-                active = false;
-            });
-            Ticker.on('error', function () {
-                active = false;
-            });
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.service(
-    ['@inject', '+Easing', '@Canvas', 'Debug',
-        function Morphine(inject, Easings, Canvas, Debug) {
-
-            var morphines = [];
-
-            this.create = function (start, end, func, easing, duration, rpt) {
-
-                if (typeof start !== "number" || typeof end !== "number") {
-                    Debug.error({}, 'Morphine / Unable to create. Start value is wrong!');
-                    return;
-                }
-
-                if (typeof func !== "function") {
-                    Debug.error({}, 'Morphine / Unable to create. End value is wrong!');
-                    return;
-                }
-
-                if (typeof easing !== "string") {
-                    Debug.error({}, 'Morphine / Unable to create. Easing is not a string!');
-                    return;
-                }
-
-                if (typeof  duration !== "number" || duration <= 0) {
-                    Debug.error({}, 'Morphine / Unable to create. Duration is less than 0 or not a number');
-                }
-
-                var efunc = Easings.get(easing);
-
-                if (!efunc) {
-                    Debug.error({easing: easing}, ' Morphine / Unable to create. No such easing {easing}');
-                }
-
-
-                var morphine = inject('$Morphine');
-
-                var tickF = morphine.config(start, end, func, duration, efunc, rpt);
-
-                if (!tickF || typeof tickF !== "function") {
-                    Debug.error({}, 'Morphine / Unable to config morphine. Due to some error.');
-                    return;
-                }
-
-                tickF.$m = morphine;
-
-                morphines.push(tickF);
-
-                return morphine;
-
-            };
-
-            Canvas.queue(-2, function processMorphines(context, date) {
-                var date = date.getTime(),
-                    _morphines = [];
-
-                for (var i = 0; i < morphines.length; i++) {
-                    if (!morphines[i].$m.done()) {
-                        morphines[i](date);
-                        _morphines.push(morphines[i]);
-                    }
-                }
-                morphines = _morphines;
-            });
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 5/11/2017.
- */
-$R.service(
-    ['@app', '@Canvas', '@inject', 'Debug',
-        function Keyboard(app, canvas, inject, Debug) {
-
-            var callbacks = {},
-                active = false,
-                enabled = true,
-                focused = true,
-                queue = [];
-
-            this.keydown = function (code, func) {
-                return this.on(code, 'keydown', func);
-            };
-
-            this.keyup = function (code, func) {
-                return this.on(code, 'keyup', func);
-            };
-
-            this.disable = function () {
-                enabled = false;
-                return this;
-            };
-
-            this.enable = function () {
-                enabled = true;
-                return this;
-            };
-
-            this.on = function (code, event, func) {
-                if (typeof code === "number" && typeof event === "string") {
-                    if (event === 'keyup' || event === 'keydown') {
-                        if (typeof func === "function") {
-                            if (!callbacks[code]) callbacks[code] = {};
-                            if (!callbacks[event]) callbacks[code][event] = [];
-                            callbacks[code][event].push(func);
-                        }
-                        else {
-                            Debug.warn('Event callback is not a function');
-                        }
-                    }
-                    else {
-                        Debug.warn({e: event}, 'No such type of event as [{e}]');
-                    }
-                }
-                else {
-                    Debug.warn({c: code}, 'Wrong key code [{c}]');
-                }
-                return this;
-            };
-
-            function OnAppTick() {
-                for (var i = 0; i < queue.length; i++) {
-                    queue[i]();
-                }
-                queue = [];
-            }
-
-            function getQueueFunc(e) {
-                return function () {
-                    var keycode = e.keyCode;
-                    if (callbacks[keycode] && callbacks[keycode][e.type]) {
-                        for (var i = 0; i < callbacks[keycode][e.type].length; i++) {
-                            var event = inject('$KeyboardEvent').build(e);
-                            callbacks[keycode][e.type][i].apply(event, [keycode, e.type]);
-                        }
-                    }
-                }
-            }
-
-            var canvasClicked = false;
-
-            canvas.element().addEventListener('mousedown', function () {
-                canvasClicked = true;
-            });
-
-            window.addEventListener('mousedown', function () {
-                if (canvasClicked) {
-                    focused = true;
-                }
-                else {
-                    focused = false;
-                }
-                canvasClicked = false;
-            });
-
-            window.addEventListener('keydown', function (e) {
-                if (!active || !enabled || !focused) return;
-                queue.push(getQueueFunc(e));
-            });
-            window.addEventListener('keyup', function (e) {
-                if (!active || !enabled || !focused) return;
-                queue.push(getQueueFunc(e));
-            });
-
-            app.$on('start', function () {
-                active = true;
-            });
-            app.$on('stop', function () {
-                active = false;
-            });
-            app.$('tick', OnAppTick);
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 5/11/2017.
- */
-$R.service.class('Keyboard',
-    [
-        function KeyboardEvent() {
-
-            var keycode = null,
-                ctrlPressed = false,
-                altPressed = false,
-                shiftPressed = false,
-                event = false,
-                type = null;
-
-            this.build = function (e) {
-                keycode = e.keyCode;
-                ctrlPressed = e.ctrlKey;
-                altPressed = e.altKey;
-                shiftPressed = e.shiftKey;
-                event = e;
-                type = e.type;
-                delete this.build;
-                return this;
-            };
-
-            this.type = function (string) {
-                if (typeof string == "string") {
-                    return type === string;
-                }
-                else  return type;
-            };
-
-            this.code = function () {
-                return keycode;
-            };
-
-            this.shift = function () {
-                return shiftPressed;
-            };
-            this.alt = function () {
-                return altPressed;
-            };
-            this.ctrl = function () {
-                return ctrlPressed;
-            };
-            this.original = function () {
-                return event;
-            };
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-
-$R.service.class('Objects',
-    ['@extend', '@inject', '<Plugins',
-        function Graphics(extend, inject, plugins) {
-
-            var type = null,
-                resolved_plugins = {};
-
-            this.extension = function (name) {
-                return resolved_plugins[name];
-            };
-
-            this.type = function () {
-                return type;
-            };
-
-            this.defineType = function (t) {
-                if (typeof t !== "string") return;
-
-                delete this.defineType;
-
-                type = t;
-
-                var list = plugins.list();
-                for (var i = 0; i < list.length; i++) {
-                    resolved_plugins[list[i]] = inject('$Plugin');
-                    resolved_plugins[list[i]].defineObject(this);
-                    extend(resolved_plugins[list[i]], '<' + list[i]);
-                    if (resolved_plugins[list[i]].matchType(type)) {
-                        resolved_plugins[list[i]].wrap(this);
-                    }
-                    else {
-                        delete resolved_plugins[list[i]];
-                    }
-                }
-                extend(this, '$' + t + 'ObjectModel');
-                extend(this, '$DefaultObjectDrawer');
-                extend(this, '$' + t + 'ObjectDrawer');
-                extend(this, '$DefaultObjectType');
-                extend(this, '$' + t + 'ObjectClass');
-
-            };
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.service(
-    ['@inject', 'Tree',
-        function Objects(inject, Tree) {
-
-            function InjectByType(type, config) {
-                var result = inject('$Graphics');
-
-                result.defineType(type);
-
-                if (config && config.length) {
-                    result.style.apply(result, config);
-                }
-                return result;
-            }
-
-            this.group = function () {
-                return InjectByType('Group', arguments);
-            };
-
-            this.line = function () {
-                return InjectByType('Line', arguments);
-            };
-
-            this.rect = function () {
-                return InjectByType('Rectangle', arguments);
-            };
-
-            this.circle = function () {
-                return InjectByType('Circle', arguments);
-            };
-
-            this.image = function () {
-                return InjectByType('Image', arguments);
-            };
-
-            this.sprite = function () {
-                return InjectByType('Sprite', arguments);
-            };
-
-            this.text = function () {
-                return InjectByType('Text', arguments);
-            };
-
-            this.area = function () {
-                return InjectByType('Area', arguments);
-            };
-
-            Tree.root(this.group());
-
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 1/12/2017.
- */
-$R.service(
-    ['@Canvas', '@inject', 'Debug',
-        function Resource(Canvas, inject, Debug) {
-
-            var all = [],
-                container = {
-                    images: [],
-                    sprites: [],
-                    fonts: [],
-                    audios: []
-                },
-                loadCounter = 0,
-                self = this,
-                request = null;
-
-            function GetResourceByURL(type, search) {
-                if (type === 'font') search = search[0];
-
-                var result = null,
-                    array = container[type + 's'];
-
-                if (!array) return result;
-
-                for (var i = 0; i < array.length; i++) {
-                    if (array[i].url() === search) {
-                        result = array[i];
-                        break;
-                    }
-                }
-
-                return result;
-            }
-
-            function InjectByType(type, src) {
-                var existed = GetResourceByURL(type, src);
-                if (existed) {
-                    return existed;
-                }
-                else {
-                    var _type = type;
-
-                    var result = inject('$' + type.charAt(0).toUpperCase() + type.slice(1));
-
-                    result.on('load', function () {
-                        loadCounter--;
-                        ResolveEvent('load', [this, loadCounter, all.length]);
-                    });
-
-                    result.on('error', function () {
-                        loadCounter--;
-                        ResolveEvent('error', [this, loadCounter, all.length]);
-                    });
-
-                    result.url(src);
-
-
-                    container[_type + 's'].push(result);
-
-                    all.push(result);
-
-                    loadCounter++;
-
-                    ResolveEvent('add', [result, loadCounter, all.length]);
-
-                    return result;
-                }
-            }
-
-            this.image = function (src) {
-                return InjectByType('image', src);
-            };
-
-            this.sprite = function (src) {
-                return InjectByType('sprite', src);
-            };
-
-            this.audio = function (src) {
-                return InjectByType('audio', src);
-            };
-
-            function preloadRequest(data) {
-                if (data.images && data.images.constructor === Array) {
-                    for (var i = 0; i < data.images.length; i++) {
-                        if (typeof data.images[i] === "string") {
-                            if (/^([./_\da-zA-Z]+)(\[(\d+)\])$/.test(data.images[i])) {
-                                self.sprite(data.images[i]);
-                            }
-                            else {
-                                self.image(data.images[i]);
-                            }
-                        }
-
-                    }
-                }
-                if (data.audio && data.constructor === Array) {
-                    for (var i = 0; i < data.audio.length; i++) {
-                        if (typeof data.audio[i] === "string") {
-                            self.audio(data.audio[i]);
-                        }
-                    }
-                }
-                if (data.fonts && data.fonts.constructor === Array) {
-                    for (var i = 0; i < data.fonts.length; i++) {
-                        if (data.fonts[i] && typeof data.fonts[i] === "object"
-                            && typeof data.fonts[i].name === "string" && data.fonts[i].name.length) {
-
-                            var weight = data.fonts[i].weight && typeof data.fonts[i].weight === "number" ?
-                                    data.fonts[i].weight : 400,
-                                style = data.fonts[i].style === 'italic' ? data.fonts[i].style : 'normal';
-
-                            self.font(data.fonts[i].name, weight, style);
-                        }
-                    }
-                }
-            }
-
-            this.preload = function (config) {
-                preloadRequest(config);
-            };
-
-            this.preloadByUrl = function (url) {
-                if (request) request.abort();
-                if (typeof url === "string" && url.length > 0) {
-                    request = new XMLHttpRequest();
-                    request.addEventListener('load', function () {
-                        var result = {};
-
-                        try {
-                            result = JSON.parse(response.responseText);
-                        }
-                        catch (e) {
-                            Debug.error({url: url}, 'Unable to parse JSON from [{url}]. Unknown response format.');
-                        }
-                        preloadRequest(result);
-                    });
-                    request.addEventListener('error', function () {
-                        Debug.error({url: url}, 'Unable to get resources from [{url}] to preload. Server error.');
-                        preloadRequest({});
-                    });
-                    request.addEventListener('abort', function () {
-                        Debug.warn({url: url}, 'Unable to get resources from [{url}] to preload. Request aborted.');
-                        preloadRequest({});
-                    });
-
-                    request.open('GET', url, true);
-                    request.setRequestHeader('Content-Type', 'application/json');
-                    request.send();
-                }
-            };
-
-            this.font = function (src, weight, style) {
-                return InjectByType('font', [src, weight, style]);
-            };
-
-            var cBContainer = {
-                load: [],
-                error: [],
-                add: []
-            };
-
-            this.on = function (event, func) {
-                if (typeof event === "string") {
-                    var array = cBContainer[event];
-                    if (array) {
-                        if (typeof func === "function") {
-                            array.push(func);
-                        }
-                        else {
-                            Debug.warn({event: event}, 'Unable to set event [{event}] callback. func is not a function!');
-                        }
-                    }
-                    else {
-                        Debug.warn({event: event}, 'Unable to set event [{event}]. No such event');
-                    }
-                }
-                else {
-                    Debug.warn('Unable to set event callback. Event name is not a string');
-                }
-            };
-
-            this.off = function (event, func) {
-                if (typeof event === "string") {
-                    var array = cBContainer[event];
-                    if (array) {
-                        if (typeof func === "function") {
-                            var narray = [];
-                            func.$$SEARCH = true;
-                            for (var i = 0; i < array.length; i++) {
-                                if (!array[i].$$SEARCH) {
-                                    narray.push(array[i])
-                                }
-                            }
-                            delete func.$$SEARCH;
-                            cBContainer[event] = narray;
-                        }
-                    }
-                    else {
-                        Debug.warn({event: event}, 'Unable to unset callback for event [{event}]. No such event');
-                    }
-                }
-                else {
-                    Debug.warn('Unable to unset event. Event is not a string');
-                }
-            };
-
-            this.list = function () {
-                return [].concat(container.images).concat(container.audios).concat(container.fonts).concat(container.sprites);
-            };
-
-            function ResolveEvent(type, data) {
-                var array = cBContainer[type];
-                if (!array) return;
-
-                for (var i = 0; i < array.length; i++) {
-                    array[i].apply(self, data);
-                }
-            }
-
-            Canvas.queue(-2, function updateResources (canvas, date) {
-                var time = date.getTime();
-                for (var i = 0; i < container.sprites.length; i++) {
-                    if (container.sprites[i].ready() && container.sprites[i].loaded() === 1) {
-                        container.sprites[i].tick(time);
-                    }
-                }
-            });
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service(
-    ['@Audio', '@inject', '@Config', 'Debug',
-        function Sound(context, inject, config, Debug) {
-
-            config.define('filters', ['Delay', 'Gain'], {isArray: true});
-
-            console.log(config.watch('filters', function () {}));
-
-            var destination = inject('$Audio').build('$$DESTINATION', 'destination'),
-                sounds = {},
-                soundcount = 0,
-                channelcount = 0,
-                channels = {
-                    $$DESTINATION: destination
-                },
-                self = this;
-
-
-
-            this.sample = function (url, channel, name) {
-                if (typeof url === "string" && url.length > 0) {
-                    if (sounds[url]) return sounds[url];
-                    if (typeof name !== "string" || name.length === 0) name = 'UserSound[' + soundcount + ']';
-                    soundcount++;
-                    var result = inject('$Audio').build(name, url);
-                    if (typeof channel !== "string" || channel.length === 0) channel = '$$DESTINATION';
-                    var out = this.channel(channel);
-                    result.connect(out);
-                    sounds[result.url()] = result;
-                    return result;
-                }
-                else {
-                    Debug.warn({url: url}, '[{url}] is not valid audio url or empty.');
-                }
-            };
-
-            this.channel = function (name) {
-                if (typeof name === "string" && name.length > 0) {
-                    if (channels[name]) return channels[name];
-
-                    var result = inject('$Audio').build(name);
-
-                    result.connect(destination);
-                    channels[name] = result;
-                    channelcount++;
-                    return result;
-                }
-            };
-
-            this.channels = function (byurl) {
-                var list = {},
-                    byurl = !!byurl;
-
-                for (var channel in channels) {
-                    if (channels.hasOwnProperty(channel)) {
-                        if (channel !== '$$DESTINATION') {
-                            if (byurl) {
-                                list[channel.url()] = channel[channel];
-                            }
-                            else {
-                                list[channel] = channels[channel];
-                            }
-
-                        }
-                    }
-                }
-
-                return list;
-            };
-
-            this.sounds = function (byurl) {
-                var list = {},
-                    byurl = !!byurl;
-
-                for (var prop in sounds) {
-                    if (sounds.hasOwnProperty(prop)) {
-                        if (byurl) {
-                            list[prop] = sounds[prop];
-                        }
-                        else {
-                            list[sounds[prop].name()] = sounds[prop];
-                        }
-                    }
-                }
-
-                return list;
-            };
-
-            this.destination = function () {
-                return channels.$$DESTINATION;
-            };
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/24/2016.
- */
-$R.service(['@inject',
-        function State(inject) {
-
-            var states = {};
-
-
-            function ParseAddress(address) {
-                var result = address.match(/^([a-zA-Z]+).([a-zA-Z]+)$/),
-                    state = result[0],
-                    prop = result[1];
-
-                if (state && prop) return {state: state, prop: prop};
-
-            }
-
-
-            this.watch = function (address, func) {
-
-                if (typeof func !== "function") return;
-
-                address = ParseAddress(address);
-
-                if (!address) return;
-
-                if (!states[address.state]) states[address.state] = inject('$State');
-
-                states[address.prop].when(address.prop, func);
-
-            };
-
-            this.define = function (address, value) {
-
-                address = ParseAddress(address);
-
-                if (!address) return;
-
-                if (!states[address.state]) states[address.state] = inject('$State');
-
-                states[address.state].define(address.prop, value);
-            };
-
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.service(
-    ['Debug', '@Canvas', '@Config',
-        function Tree(Debug, Canvas, Config) {
-
-            var root = null, rootDrawer = null, rootStyle = null,
-                clear = Config.define('clear', false, {isBool: true}).watch(function (v) {
-                    clear = v;
-                });
-
-            this.root = function (object) {
-                if (!root) {
-                    if (!object.type || typeof object.type !== "function" || object.type() !== 'Group') {
-                        Debug.error({}, 'Tree / Unable to set tree root! Wrong object type!');
-                        return;
-                    }
-
-                    root = object;
-
-                    var drawer = root.extension('Drawer');
-
-                    if (!drawer) {
-                        Debug.error({}, 'Tree / Unable to get Drawer extension!');
-                        return;
-                    }
-                    if (!drawer.draw || typeof drawer.draw !== "function") {
-                        Debug.error({}, 'Tree / Unable to register root Drawer. Drawer.draw is not a function!');
-                        return;
-                    }
-
-                    rootDrawer = drawer;
-
-                    rootStyle = root.extension('Style');
-
-                    return root;
-                }
-                else {
-                    return root;
-                }
-            };
-
-            Canvas.queue(0, function drawGraphicsTree(context, date, frame) {
-                if (!root || !rootDrawer) return;
-                if (clear) context.clearRect(0, 0, context.canvas.offsetWidth, context.canvas.offsetHeight);
-                rootDrawer.draw.apply(root, arguments);
-            });
-
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
 $R.plugin('Objects',
     ['@inject', 'Debug',
         function Animation(inject, Debug) {
@@ -3381,6 +1997,64 @@ $R.plugin('Objects',
  * Created by bx7kv_000 on 1/5/2017.
  */
 $R.plugin('Objects',
+    ['Debug',
+        function Cache(Debug) {
+
+            var values = {};
+
+            this.value = function (name, func) {
+                if (typeof name !== "string") {
+                    Debug.error('Object Value Cache / name is not a string!');
+                    return;
+                }
+                if (typeof func !== "function") {
+                    Debug.error('Object Value Cache / func is not a function');
+                    return;
+                }
+
+                if (!values[name]) {
+                    values[name] = {
+                        value: func(),
+                        func: func,
+                        relevant: true
+                    }
+                }
+
+                return this.get(name);
+            };
+
+            this.purge = function (name) {
+                if (typeof name !== "string") {
+                    Debug.error('Object Value Cache / Can not purge cache of non string name');
+                    return;
+                }
+                if (values[name]) {
+                    values[name].relevant = false;
+                }
+            };
+
+            this.get = function (name) {
+                if (typeof name !== "string") {
+                    Debug.error('Object Value Cache / Can not get value of non-string name');
+                    return;
+                }
+                if (values[name]) {
+                    if (!values[name].relevant) {
+                        values[name].value = values[name].func();
+                        values[name].relevant = true;
+                    }
+
+                    return values[name].value;
+                }
+            }
+
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 1/5/2017.
+ */
+$R.plugin('Objects',
     ['Debug', '@inject',
         function Box(Debug, inject) {
 
@@ -3486,64 +2160,6 @@ $R.plugin('Objects',
     ]
 );
 /**
- * Created by bx7kv_000 on 1/5/2017.
- */
-$R.plugin('Objects',
-    ['Debug',
-        function Cache(Debug) {
-
-            var values = {};
-
-            this.value = function (name, func) {
-                if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / name is not a string!');
-                    return;
-                }
-                if (typeof func !== "function") {
-                    Debug.error('Object Value Cache / func is not a function');
-                    return;
-                }
-
-                if (!values[name]) {
-                    values[name] = {
-                        value: func(),
-                        func: func,
-                        relevant: true
-                    }
-                }
-
-                return this.get(name);
-            };
-
-            this.purge = function (name) {
-                if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / Can not purge cache of non string name');
-                    return;
-                }
-                if (values[name]) {
-                    values[name].relevant = false;
-                }
-            };
-
-            this.get = function (name) {
-                if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / Can not get value of non-string name');
-                    return;
-                }
-                if (values[name]) {
-                    if (!values[name].relevant) {
-                        values[name].value = values[name].func();
-                        values[name].relevant = true;
-                    }
-
-                    return values[name].value;
-                }
-            }
-
-        }
-    ]
-);
-/**
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.plugin('Objects',
@@ -3637,42 +2253,6 @@ $R.plugin('Objects',
     ]
 );
 /**
- * Created by Viktor Khodosevich on 2/6/2017.
- */
-$R.plugin('Objects',
-    ['Debug',
-        function Matrix(Debug) {
-
-            var f = null, object = this.object();
-
-            this.f = function (func) {
-                if (typeof func === "function") {
-                    f = func;
-                    delete this.f;
-                }
-            };
-
-            function MatrixWrapper() {
-                return f.call(object);
-            }
-
-            this.register('matrix', function () {
-                return this.extension('Cache').value('transformMatrix', MatrixWrapper);
-            });
-
-            this.purge = function () {
-                object.extension('Cache').purge('transformMatrix');
-                if (object.type() === 'Group') {
-                    var layers = object.extension('Layers');
-                    layers.forEach(function () {
-                        this.extension('Cache').purge('transformMatrix');
-                    });
-                }
-            };
-        }
-    ]
-);
-/**
  * Created by Viktor Khodosevich on 2/2/2017.
  */
 $R.plugin('Objects',
@@ -3680,7 +2260,7 @@ $R.plugin('Objects',
         function Mouse(MouseHelper, Dispatcher, Tree, Debug) {
 
             var callbacks = {
-                    drag: [],
+                    dragmove: [],
                     dragstart: [],
                     dragend: [],
                     mousemove: [],
@@ -3846,7 +2426,6 @@ $R.plugin('Objects',
             };
 
             this.resolve = function (target, event, eventObj) {
-
                 if (disabled) return;
 
                 var array = GetEventArray(event);
@@ -3871,6 +2450,42 @@ $R.plugin('Objects',
                 callbacks[i].$$OFF = false;
             }
 
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 2/6/2017.
+ */
+$R.plugin('Objects',
+    ['Debug',
+        function Matrix(Debug) {
+
+            var f = null, object = this.object();
+
+            this.f = function (func) {
+                if (typeof func === "function") {
+                    f = func;
+                    delete this.f;
+                }
+            };
+
+            function MatrixWrapper() {
+                return f.call(object);
+            }
+
+            this.register('matrix', function () {
+                return this.extension('Cache').value('transformMatrix', MatrixWrapper);
+            });
+
+            this.purge = function () {
+                object.extension('Cache').purge('transformMatrix');
+                if (object.type() === 'Group') {
+                    var layers = object.extension('Layers');
+                    layers.forEach(function () {
+                        this.extension('Cache').purge('transformMatrix');
+                    });
+                }
+            };
         }
     ]
 );
@@ -4386,46 +3001,1939 @@ $R.plugin('Objects',
     ]
 );
 /**
- * Created by Viktor Khodosevich on 2/2/2017.
+ * Created by bx7kv_000 on 12/25/2016.
  */
-$R.service.class('Dispatcher',
-    ['Tree', 'Debug',
-        function Finder(Tree, Debug) {
+$R.service(
+    ['@Canvas', '@Config', 'Debug',
+        function Canvas(Canvas, Config, Debug) {
 
-            function CheckElement(e, cursor) {
-                if (e.type() === 'Group') {
-                    var result = null,
-                        layers = e.extension('Layers');
+            var callbacks = [], width = 0, height = 0, dimms = [0, 0], xunits = 'px', yunits = 'px',
+                offset = [0, 0], scroll = [0, 0], output = Canvas.element(), self = this;
 
-                    layers.forEach(function () {
-                        if (!this.disabled()) {
-                            if (this.type() === 'Group') {
-                                var _result = CheckElement(this, cursor);
-                                if (_result) result = _result;
+            Config.define(
+                'size',
+                [0, 0],
+                {
+                    isArray: true,
+                    custom: function (v) {
+                        if ((typeof v[0] === "string" || typeof v[0] === Array)
+                            &&
+                            (typeof v[0] === "string" || typeof v[1] === "number")) {
+                            return true;
+                        }
+                    }
+                })
+                .watch(
+                    function (v) {
+                        if (typeof v[0] === "number") {
+                            width = v[0];
+                        }
+                        else if (typeof v[0] === "string") {
+                            if (v[0].match(/^[\d]+%$/)) {
+                                width = parseInt(v[0]);
+                                xunits = '%';
                             }
                             else {
-                                var mouseext = this.extension('Mouse'),
-                                    _result = mouseext.check(this, cursor);
-
-                                if (_result) {
-                                    result = _result
-                                }
+                                width = 1000;
+                                xunits = 'px';
+                                Debug.warn({width: v[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
                             }
                         }
+                        else {
+                            width = 1000;
+                            Debug.warn({width: v[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
+                        }
+
+                        if (typeof v[1] === "number") {
+                            height = v[1];
+                        }
+                        else if (typeof v[1] === "string") {
+                            if (v[1].match(/^[\d]+%$/)) {
+                                height = parseInt(v[1]);
+                                yunits = '%';
+                            }
+                            else {
+                                height = 800;
+                                Debug.warn({height: v[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
+                            }
+                        }
+                        else {
+                            height = 800;
+                            Debug.warn({height: v[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
+                        }
+                        WindowResizeCallback();
+                    }
+                );
+
+            var pW = 0, pH = 0, resizeTO = null;
+
+            function compareOnResize(success) {
+                if (xunits === '%' || yunits === '%') {
+                    var _pW = pW, _pH = pH;
+                    Canvas.size(0, 0);
+                    if (resizeTO) clearTimeout(resizeTO);
+
+                    resizeTO = setTimeout(function () {
+                        var parentNode = Canvas.element().parentNode,
+                            styles = window.getComputedStyle(parentNode, null);
+
+                        pH = parseInt(styles.getPropertyValue('height'));
+                        pW = parseInt(styles.getPropertyValue('width'));
+
+                        if (_pW !== pW) {
+                            if (xunits === '%' && _pW !== pW) {
+                                dimms[0] = Math.floor(pW * (width / 100));
+                            }
+                        }
+                        if (_pH !== pH) {
+                            if (yunits === '%') {
+                                dimms[1] = Math.floor(pH * (height / 100));
+                            }
+                        }
+                        Canvas.size(dimms[0], dimms[1]);
+                        resizeTO = null;
+                        success();
+                    }, 200);
+                }
+                else {
+                    dimms[0] = width;
+                    dimms[1] = height;
+                    Canvas.size(dimms[0], dimms[1]);
+
+                    return false;
+                }
+            }
+
+            function GetCanvasOffset(x) {
+                var offsetProp = x ? 'offsetLeft' : 'offsetTop';
+
+                var result = 0, element = Canvas.element();
+
+                do {
+                    if (!isNaN(element[offsetProp])) {
+                        result += element[offsetProp];
+                    }
+                } while (element = element.offsetParent);
+
+                return result;
+            }
+
+            function WindowResizeCallback() {
+                if (!output) return;
+                compareOnResize(function () {
+                    offset[0] = GetCanvasOffset(0);
+                    offset[1] = GetCanvasOffset(1);
+                    for (var i = 0; i < callbacks.length; i++) {
+                        callbacks[i](dimms[0], dimms[1]);
+                    }
+                    ResolveCanvasEventArray('canvasresize', [new RCanvasResizeEvent()]);
+                });
+
+            }
+
+            function CanvasSwitchCallback() {
+                offset[0] = GetCanvasOffset(0);
+                offset[1] = GetCanvasOffset(1);
+                ResolveCanvasEventArray('canvasswitch', [new RCanvasSwitchEvent()]);
+                WindowResizeCallback();
+            }
+
+            this.resize = function (func) {
+                if (typeof func !== "function") return;
+                callbacks.push(func);
+            };
+
+            this.width = function () {
+                if (xunits === '%') {
+                    return pW * (width / 100);
+                }
+                else {
+                    return width;
+                }
+
+            };
+
+            this.height = function () {
+                if (xunits === '%') {
+                    return pH * (height / 100);
+                }
+                else {
+                    return height;
+                }
+            };
+
+            var canvasEventCallbacks = {
+                mousemove: [],
+                mousedown: [],
+                mouseup: [],
+                mouseleave: [],
+                mouseenter: [],
+                canvasresize: [],
+                canvasswitch: []
+            };
+
+            function GetCanvasEventArray(event) {
+                return canvasEventCallbacks[event];
+            }
+
+            function ResolveCanvasEventArray(event, data) {
+                if (typeof data !== "object" || data.constructor !== Array) {
+                    Debug.warn({e: event}, 'Canvas : unable to resolve event array [{e}]. Data is not an array!');
+                    return;
+                }
+
+                var array = GetCanvasEventArray(event);
+
+                if (!array) {
+                    Debug.warn({e: event}, 'Unable to resolve event [{e}] no such event!');
+                    return;
+                }
+                for (var i = 0; i < array.length; i++) {
+                    array[i].apply(self, data);
+                }
+            }
+
+            this.on = function (event, func) {
+                var array = GetCanvasEventArray(event);
+                if (!array) {
+                    Debug.warn({e: event}, 'Canvas : Unable to set event handler for event [{e}]');
+                    return;
+                }
+                if (typeof func !== "function") {
+                    Debug.warn({f: event}, 'Canvas : Unable to set event handler [{f}]');
+                }
+                array.push(func);
+            };
+
+            function GetMouseRelativePosition(e) {
+                return [e.pageX - offset[0] - scroll[0], e.pageY - offset[1] - scroll[1]];
+            }
+
+            function RCanvasMouse(e) {
+                this.page = [e.pageX, e.pageY];
+                this.sceen = [e.pageX - scroll[0], e.pageY - scroll[1]];
+                this.position = GetMouseRelativePosition(e);
+            }
+
+            function RCanvasMouseEvent(e) {
+                this.original = e;
+                this.type = e.type;
+                this.mouse = new RCanvasMouse(e);
+                this.canvas = self;
+            }
+
+            function RCanvasResizeEvent() {
+                this.type = 'canvasresize';
+                this.canvas = self;
+                this.offset = [offset[0], offset[1]];
+                this.size = [width, height];
+                this.original = [width, height];
+                this.units = [xunits, yunits];
+                if (xunits === '%') {
+                    this.size[0] = pW * (width / 100);
+                }
+                if (yunits === '%') {
+                    this.size[1] = pH * (height / 100);
+                }
+            }
+
+            function RCanvasSwitchEvent() {
+                this.type = 'canvasswitch';
+                this.canvas = self;
+                this.offset = [offset[0], offset[1]];
+                this.size = [width, height];
+                this.original = [width, height];
+                this.units = [xunits, yunits];
+                if (xunits === '%') {
+                    this.size[0] = pW * (width / 100);
+                }
+                if (yunits === '%') {
+                    this.size[1] = pH * (height / 100);
+                }
+            }
+
+            var listeners = {
+                mousemove: function (e) {
+                    ResolveCanvasEventArray('mousemove', [new RCanvasMouseEvent(e)]);
+                },
+                mousedown: function (e) {
+                    ResolveCanvasEventArray('mousedown', [new RCanvasMouseEvent(e)]);
+                },
+                mouseup: function (e) {
+                    ResolveCanvasEventArray('mouseup', [new RCanvasMouseEvent(e)]);
+                },
+                mouseleave: function (e) {
+                    ResolveCanvasEventArray('mouseleave', [new RCanvasMouseEvent(e)]);
+                },
+                mouseenter: function (e) {
+                    ResolveCanvasEventArray('mouseenter', [new RCanvasMouseEvent(e)]);
+                }
+            };
+
+            Canvas.switch(function () {
+                if (output) {
+                    for (var event in listeners) {
+                        if (listeners.hasOwnProperty(event)) {
+                            output.removeEventListener(event, listeners[event]);
+                        }
+                    }
+                }
+
+                output = this.element();
+                for (var event in listeners) {
+                    if (listeners.hasOwnProperty(event)) {
+                        output.addEventListener(event, listeners[event]);
+                    }
+                }
+                CanvasSwitchCallback();
+            });
+
+
+            window.addEventListener('scroll', function () {
+                scroll[1] = window.pageXOffset || document.documentElement.scrollLeft;
+                scroll[0] = window.pageYOffset || document.documentElement.scrollTop;
+            });
+
+            window.addEventListener('resize', WindowResizeCallback);
+        }
+
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.service(
+    ['@Config',
+        function Debug(config) {
+
+            var string = '$R [Debug] : ',
+                regexp = /{[a-zA-Z]+}/g,
+                regexpname = /[a-zA-Z]+/g,
+                warnings = config.define('warnings', false, {isBool: true}, function (v) {
+                    warnings = v;
+                });
+
+
+            var errorCb = [], messageCb = [];
+
+            function ResolveEvent(type, data) {
+                var array = null;
+
+                if (type === 'error') array = errorCb;
+                if (type === 'message') array = messageCb;
+
+                for (var i = 0; i < array.length; i++) {
+                    array[i](data);
+                }
+            }
+
+            this.on = function (event, func) {
+                if (typeof func !== "function") return;
+                if (event === 'error') errorCb.push(func);
+                if (event === 'message') messageCb.push(func);
+            };
+
+
+            function GetMessage(data, message) {
+                message = message.toString();
+
+                var matches = message.match(regexp);
+                var props = {};
+
+                if (matches) {
+                    for (var i = 0; i < matches.length; i++) {
+                        var matchname = matches[i].match(regexpname)[0];
+                        if (matchname) props[matchname] = {
+                            replace: matches[i],
+                            data: data[matchname].toString()
+                        }
+                    }
+                }
+                for (var prop in props) {
+
+                    if (!props.hasOwnProperty(prop)) continue;
+
+                    message = message.replace(props[prop].replace, props[prop].data);
+                }
+
+                message = string + message;
+
+                return message;
+            }
+
+            this.error = function (data, message) {
+                if (typeof data === "string") {
+                    message = data;
+                    data = {};
+                }
+
+                message = GetMessage(data, message);
+
+                ResolveEvent('error', message);
+
+                throw new Error(message);
+            };
+
+            this.warn = function (data, message) {
+
+                if (!warnings) return;
+
+                if (typeof data === "string") {
+                    message = data;
+                    data = {};
+                }
+                message = GetMessage(data, message);
+
+                ResolveEvent('message', message);
+
+                console.warn(message)
+            }
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 5/11/2017.
+ */
+$R.service(
+    ['@app', '@Canvas', '@inject', 'Debug',
+        function Keyboard(app, canvas, inject, Debug) {
+
+            var callbacks = {},
+                active = false,
+                enabled = true,
+                focused = true,
+                queue = [];
+
+            this.keydown = function (code, func) {
+                return this.on(code, 'keydown', func);
+            };
+
+            this.keyup = function (code, func) {
+                return this.on(code, 'keyup', func);
+            };
+
+            this.disable = function () {
+                enabled = false;
+                return this;
+            };
+
+            this.enable = function () {
+                enabled = true;
+                return this;
+            };
+
+            this.on = function (code, event, func) {
+                if (typeof code === "number" && typeof event === "string") {
+                    if (event === 'keyup' || event === 'keydown') {
+                        if (typeof func === "function") {
+                            if (!callbacks[code]) callbacks[code] = {};
+                            if (!callbacks[event]) callbacks[code][event] = [];
+                            callbacks[code][event].push(func);
+                        }
+                        else {
+                            Debug.warn('Event callback is not a function');
+                        }
+                    }
+                    else {
+                        Debug.warn({e: event}, 'No such type of event as [{e}]');
+                    }
+                }
+                else {
+                    Debug.warn({c: code}, 'Wrong key code [{c}]');
+                }
+                return this;
+            };
+
+            function OnAppTick() {
+                for (var i = 0; i < queue.length; i++) {
+                    queue[i]();
+                }
+                queue = [];
+            }
+
+            function getQueueFunc(e) {
+                return function () {
+                    var keycode = e.keyCode;
+                    if (callbacks[keycode] && callbacks[keycode][e.type]) {
+                        for (var i = 0; i < callbacks[keycode][e.type].length; i++) {
+                            var event = inject('$KeyboardEvent').build(e);
+                            callbacks[keycode][e.type][i].apply(event, [keycode, e.type]);
+                        }
+                    }
+                }
+            }
+
+            var canvasClicked = false;
+
+            canvas.element().addEventListener('mousedown', function () {
+                canvasClicked = true;
+            });
+
+            window.addEventListener('mousedown', function () {
+                if (canvasClicked) {
+                    focused = true;
+                }
+                else {
+                    focused = false;
+                }
+                canvasClicked = false;
+            });
+
+            window.addEventListener('keydown', function (e) {
+                if (!active || !enabled || !focused) return;
+                queue.push(getQueueFunc(e));
+            });
+            window.addEventListener('keyup', function (e) {
+                if (!active || !enabled || !focused) return;
+                queue.push(getQueueFunc(e));
+            });
+
+            app.$on('start', function () {
+                active = true;
+            });
+            app.$on('stop', function () {
+                active = false;
+            });
+            app.$('tick', OnAppTick);
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 5/11/2017.
+ */
+$R.service.class('Keyboard',
+    [
+        function KeyboardEvent() {
+
+            var keycode = null,
+                ctrlPressed = false,
+                altPressed = false,
+                shiftPressed = false,
+                event = false,
+                type = null;
+
+            this.build = function (e) {
+                keycode = e.keyCode;
+                ctrlPressed = e.ctrlKey;
+                altPressed = e.altKey;
+                shiftPressed = e.shiftKey;
+                event = e;
+                type = e.type;
+                delete this.build;
+                return this;
+            };
+
+            this.type = function (string) {
+                if (typeof string == "string") {
+                    return type === string;
+                }
+                else  return type;
+            };
+
+            this.code = function () {
+                return keycode;
+            };
+
+            this.shift = function () {
+                return shiftPressed;
+            };
+            this.alt = function () {
+                return altPressed;
+            };
+            this.ctrl = function () {
+                return ctrlPressed;
+            };
+            this.original = function () {
+                return event;
+            };
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.service(
+    ['@inject', '+Easing', '@Canvas', 'Debug',
+        function Morphine(inject, Easings, Canvas, Debug) {
+
+            var morphines = [];
+
+            this.create = function (start, end, func, easing, duration, rpt) {
+
+                if (typeof start !== "number" || typeof end !== "number") {
+                    Debug.error({}, 'Morphine / Unable to create. Start value is wrong!');
+                    return;
+                }
+
+                if (typeof func !== "function") {
+                    Debug.error({}, 'Morphine / Unable to create. End value is wrong!');
+                    return;
+                }
+
+                if (typeof easing !== "string") {
+                    Debug.error({}, 'Morphine / Unable to create. Easing is not a string!');
+                    return;
+                }
+
+                if (typeof  duration !== "number" || duration <= 0) {
+                    Debug.error({}, 'Morphine / Unable to create. Duration is less than 0 or not a number');
+                }
+
+                var efunc = Easings.get(easing);
+
+                if (!efunc) {
+                    Debug.error({easing: easing}, ' Morphine / Unable to create. No such easing {easing}');
+                }
+
+
+                var morphine = inject('$Morphine');
+
+                var tickF = morphine.config(start, end, func, duration, efunc, rpt);
+
+                if (!tickF || typeof tickF !== "function") {
+                    Debug.error({}, 'Morphine / Unable to config morphine. Due to some error.');
+                    return;
+                }
+
+                tickF.$m = morphine;
+
+                morphines.push(tickF);
+
+                return morphine;
+
+            };
+
+            Canvas.queue(-2, function processMorphines(context, date) {
+                var date = date.getTime(),
+                    _morphines = [];
+
+                for (var i = 0; i < morphines.length; i++) {
+                    if (!morphines[i].$m.done()) {
+                        morphines[i](date);
+                        _morphines.push(morphines[i]);
+                    }
+                }
+                morphines = _morphines;
+            });
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 2/2/2017.
+ */
+$R.service(
+    ['@Canvas', 'Canvas', '@Ticker', '$Finder',
+        function Dispatcher(CanvasRoot, Canvas, Ticker, Finder) {
+            var target = {
+                    current: null,
+                    previous: null
+                },
+                mousedown = {
+                    current: false,
+                    previous: false
+                },
+                cursor = {
+                    old: [0, 0],
+                    current: [0, 0]
+                },
+                drag = {
+                    start: [0, 0],
+                    current: [0, 0],
+                    delta: [0, 0]
+                },
+                checked = true,
+                active = false,
+                focused = false,
+                dragged = false;
+
+            Canvas.on('mousedown', function () {
+                if (!active || !focused) return;
+                mousedown.previous = mousedown.current;
+                mousedown.current = true;
+                checked = false;
+            });
+            Canvas.on('mouseup', function () {
+                if (!active || !focused) return;
+                mousedown.previous = mousedown.current;
+                mousedown.current = false;
+                checked = false;
+            });
+            Canvas.on('mousemove', function (e) {
+                if (!active || !focused) return;
+                cursor.current[0] = e.mouse.position[0];
+                cursor.current[1] = e.mouse.position[1];
+                checked = false;
+            });
+
+            Canvas.on('mouseleave', function () {
+                focused = false;
+            });
+
+            Canvas.on('mouseenter', function () {
+                focused = true;
+            });
+
+            function DefaultREvent(type, target) {
+                var _type = type, propagate = true, _target = target, _originalTarget = target;
+                this.type = function () {
+                    return _type;
+                };
+
+                this.date = new Date();
+
+                this.stopPropagation = function () {
+                    propagate = false;
+                };
+                this.propagate = function () {
+                    return propagate;
+                };
+                this.target = function () {
+                    return _target;
+                };
+                this.propagated = function () {
+                    _target.$$PROPAGATIONSEARCH = true;
+                    var result = _originalTarget.$$PROPAGATIONSEARCH;
+                    delete _target.$$PROPAGATIONSEARCH;
+                    return result ? result : false;
+                };
+                this.originalTarget = function () {
+                    if (this.$$MOUSEPROPAGATIONSETTER) {
+                        var event = getEventByType(_type, _target);
+                        event.originalTarget.call({$$RESETTARGET: this.$$MOUSEPROPAGATIONSETTER});
+                        return event;
+                    }
+                    if (this.$$RESETTARGET) {
+                        _target = this.$$RESETTARGET;
+                    }
+                    return _originalTarget;
+                }
+            }
+
+            function MouseEvent(type, target) {
+                DefaultREvent.apply(this, [type, target]);
+                this.cursor = [cursor.current[0], cursor.current[1]];
+            }
+
+            function DragEvent(type, target) {
+                DefaultREvent.apply(this, [type, target]);
+                this.drag = {
+                    start: [drag.start[0], drag.start[1]],
+                    current: [drag.current[0], drag.current[1]],
+                    delta: [drag.delta[0], drag.delta[1]]
+                };
+            }
+
+            function getEventByType(type, target) {
+                if (type === 'mousemove' || type === 'mouseleave'
+                    || type === 'mouseenter' || type === 'mousedown'
+                    || type === 'mouseup') {
+                    return new MouseEvent(type, target);
+                }
+                if (type === 'dragstart' || type === 'dragend' || type === 'dragmove') {
+                    return new DragEvent(type, target);
+                }
+            }
+
+            function Dispatch(event, target) {
+
+                var targetMouse = target.extension('Mouse');
+
+                if (!targetMouse) return;
+
+                if (targetMouse.hasEvent(event)) {
+                    targetMouse.resolve(target, event, getEventByType(event));
+                }
+            }
+
+            function resolveEventByType(type) {
+                if ((type === 'mouseenter' || type === 'drastart' || type === 'dragend' || type === 'dragmove' ||
+                    type === 'mousemove' || type === 'mouseup' || type === 'mousedown') && target.current) {
+                    Dispatch(type, target.current);
+                }
+                if ((type === 'mouseleave' || type === 'dragend') && target.previous) {
+                    Dispatch(type, target.previous);
+                }
+            }
+
+            function resolveDragStart() {
+                dragged = true;
+                drag.start[0] = cursor.current[0];
+                drag.start[1] = cursor.current[1];
+                resolveEventByType('dragstart');
+            }
+
+            function resolveDragEnd() {
+                drag.current[0] = cursor.current[0];
+                drag.current[1] = cursor.current[1];
+                drag.delta[0] = drag.start[0] - drag.current[0];
+                drag.delta[1] = drag.start[1] - drag.current[1];
+                resolveEventByType('dragend');
+                dragged = false;
+            }
+
+            function DispatchEvents() {
+                if (mousedown.current !== mousedown.old && mousedown.current) {
+                    resolveEventByType('mousedown');
+                }
+                if (mousedown.current && mousedown.current !== mousedown.old && !dragged) {
+                    resolveDragStart();
+                }
+                if (cursor.old[0] !== cursor.current[0] || cursor.old[1] !== cursor.current[1]) {
+
+                    if (target.current && !target.previous) {
+                        resolveEventByType('mouseenter');
+                    }
+                    if (!target.current && target.previous) {
+                        resolveEventByType('mouseleave');
+                        resolveDragEnd();
+                    }
+                    if (target.current && target.previous) {
+                        target.current.$$MOUSESEARCH = true;
+                        var result = false;
+
+                        if (!target.previous.$$MOUSESEARCH) result = true;
+                        delete target.current.$$MOUSESEARCH;
+
+                        if (result) {
+                            resolveDragEnd();
+                            resolveEventByType('mouseleave');
+                            resolveEventByType('mouseenter');
+                            resolveDragStart();
+                        }
+                    }
+                    if (mousedown.current && mousedown.current === mousedown.old && dragged) {
+                        drag.current[0] = cursor.current[0];
+                        drag.current[1] = cursor.current[1];
+                        drag.delta[0] = drag.start[0] - drag.current[0];
+                        drag.delta[1] = drag.start[1] - drag.current[1];
+                        resolveEventByType('dragmove');
+                    }
+
+
+                    if (!mousedown.current && mousedown.current === mousedown.old) {
+                        resolveEventByType('mousemove');
+                    }
+                }
+                if (!mousedown.current && mousedown.current !== mousedown.old && dragged) {
+                    resolveDragEnd();
+                }
+                if (!mousedown.current && mousedown.current !== mousedown.old) {
+                    resolveEventByType('mouseup');
+                    dragged = false
+                }
+
+                target.previous = target.current;
+                mousedown.old = mousedown.current;
+                cursor.old[0] = cursor.current[0];
+                cursor.old[1] = cursor.current[1];
+            }
+
+            function UpdateTargets() {
+                target.previous = target.current;
+                target.current = Finder.check(cursor.current);
+            }
+
+            var tick = false;
+
+            function eventDispatcherTick() {
+                tick = !tick;
+                if (tick) {
+                    if (checked) return;
+                    UpdateTargets();
+                    DispatchEvents();
+                }
+            }
+
+            CanvasRoot.queue(-1, eventDispatcherTick);
+
+            Ticker.on('start', function () {
+                active = true;
+            });
+            Ticker.on('stop', function () {
+                active = false;
+            });
+            Ticker.on('error', function () {
+                active = false;
+            });
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+
+$R.service.class('Objects',
+    ['@extend', '@inject', '<Plugins',
+        function Graphics(extend, inject, plugins) {
+
+            var type = null,
+                resolved_plugins = {};
+
+            this.extension = function (name) {
+                return resolved_plugins[name];
+            };
+
+            this.type = function () {
+                return type;
+            };
+
+            this.defineType = function (t) {
+                if (typeof t !== "string") return;
+
+                delete this.defineType;
+
+                type = t;
+
+                var list = plugins.list();
+                for (var i = 0; i < list.length; i++) {
+                    resolved_plugins[list[i]] = inject('$Plugin');
+                    resolved_plugins[list[i]].defineObject(this);
+                    extend(resolved_plugins[list[i]], '<' + list[i]);
+                    if (resolved_plugins[list[i]].matchType(type)) {
+                        resolved_plugins[list[i]].wrap(this);
+                    }
+                    else {
+                        delete resolved_plugins[list[i]];
+                    }
+                }
+                extend(this, '$' + t + 'ObjectModel');
+                extend(this, '$DefaultObjectDrawer');
+                extend(this, '$' + t + 'ObjectDrawer');
+                extend(this, '$DefaultObjectType');
+                extend(this, '$' + t + 'ObjectClass');
+
+            };
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.service(
+    ['@inject', 'Tree',
+        function Objects(inject, Tree) {
+
+            function InjectByType(type, config) {
+                var result = inject('$Graphics');
+
+                result.defineType(type);
+
+                if (config && config.length) {
+                    result.style.apply(result, config);
+                }
+                return result;
+            }
+
+            this.group = function () {
+                return InjectByType('Group', arguments);
+            };
+
+            this.line = function () {
+                return InjectByType('Line', arguments);
+            };
+
+            this.rect = function () {
+                return InjectByType('Rectangle', arguments);
+            };
+
+            this.circle = function () {
+                return InjectByType('Circle', arguments);
+            };
+
+            this.image = function () {
+                return InjectByType('Image', arguments);
+            };
+
+            this.sprite = function () {
+                return InjectByType('Sprite', arguments);
+            };
+
+            this.text = function () {
+                return InjectByType('Text', arguments);
+            };
+
+            this.area = function () {
+                return InjectByType('Area', arguments);
+            };
+
+            Tree.root(this.group());
+
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 1/12/2017.
+ */
+$R.service(
+    ['@Canvas', '@inject', 'Debug',
+        function Resource(Canvas, inject, Debug) {
+
+            var all = [],
+                container = {
+                    images: [],
+                    sprites: [],
+                    fonts: [],
+                    audios: []
+                },
+                loadCounter = 0,
+                self = this,
+                request = null;
+
+            function GetResourceByURL(type, search) {
+                if (type === 'font') search = search[0];
+
+                var result = null,
+                    array = container[type + 's'];
+
+                if (!array) return result;
+
+                for (var i = 0; i < array.length; i++) {
+                    if (array[i].url() === search) {
+                        result = array[i];
+                        break;
+                    }
+                }
+
+                return result;
+            }
+
+            function InjectByType(type, src) {
+                var existed = GetResourceByURL(type, src);
+                if (existed) {
+                    return existed;
+                }
+                else {
+                    var _type = type;
+
+                    var result = inject('$' + type.charAt(0).toUpperCase() + type.slice(1));
+
+                    result.on('load', function () {
+                        loadCounter--;
+                        ResolveEvent('load', [this, loadCounter, all.length]);
                     });
+
+                    result.on('error', function () {
+                        loadCounter--;
+                        ResolveEvent('error', [this, loadCounter, all.length]);
+                    });
+
+                    result.url(src);
+
+
+                    container[_type + 's'].push(result);
+
+                    all.push(result);
+
+                    loadCounter++;
+
+                    ResolveEvent('add', [result, loadCounter, all.length]);
+
                     return result;
                 }
             }
 
-            this.check = function (cursor) {
-                var root = Tree.root();
-                if (!root) return null;
-                if (typeof cursor !== "object" || cursor.constructor !== Array || cursor.length !== 2 || typeof cursor[0] !== "number" || typeof cursor[1] !== "number") {
-                    Debug.warn({c: cursor}, 'ObjectFinder ; {[c]} is not a valid cursor value.');
-                    return null;
+            this.image = function (src) {
+                return InjectByType('image', src);
+            };
+
+            this.sprite = function (src) {
+                return InjectByType('sprite', src);
+            };
+
+            this.audio = function (src) {
+                return InjectByType('audio', src);
+            };
+
+            function preloadRequest(data) {
+                if (data.images && data.images.constructor === Array) {
+                    for (var i = 0; i < data.images.length; i++) {
+                        if (typeof data.images[i] === "string") {
+                            if (/^([./_\da-zA-Z]+)(\[(\d+)\])$/.test(data.images[i])) {
+                                self.sprite(data.images[i]);
+                            }
+                            else {
+                                self.image(data.images[i]);
+                            }
+                        }
+
+                    }
                 }
-                return CheckElement(root, cursor);
+                if (data.audio && data.constructor === Array) {
+                    for (var i = 0; i < data.audio.length; i++) {
+                        if (typeof data.audio[i] === "string") {
+                            self.audio(data.audio[i]);
+                        }
+                    }
+                }
+                if (data.fonts && data.fonts.constructor === Array) {
+                    for (var i = 0; i < data.fonts.length; i++) {
+                        if (data.fonts[i] && typeof data.fonts[i] === "object"
+                            && typeof data.fonts[i].name === "string" && data.fonts[i].name.length) {
+
+                            var weight = data.fonts[i].weight && typeof data.fonts[i].weight === "number" ?
+                                    data.fonts[i].weight : 400,
+                                style = data.fonts[i].style === 'italic' ? data.fonts[i].style : 'normal';
+
+                            self.font(data.fonts[i].name, weight, style);
+                        }
+                    }
+                }
             }
+
+            this.preload = function (config) {
+                preloadRequest(config);
+            };
+
+            this.preloadByUrl = function (url) {
+                if (request) request.abort();
+                if (typeof url === "string" && url.length > 0) {
+                    request = new XMLHttpRequest();
+                    request.addEventListener('load', function () {
+                        var result = {};
+
+                        try {
+                            result = JSON.parse(response.responseText);
+                        }
+                        catch (e) {
+                            Debug.error({url: url}, 'Unable to parse JSON from [{url}]. Unknown response format.');
+                        }
+                        preloadRequest(result);
+                    });
+                    request.addEventListener('error', function () {
+                        Debug.error({url: url}, 'Unable to get resources from [{url}] to preload. Server error.');
+                        preloadRequest({});
+                    });
+                    request.addEventListener('abort', function () {
+                        Debug.warn({url: url}, 'Unable to get resources from [{url}] to preload. Request aborted.');
+                        preloadRequest({});
+                    });
+
+                    request.open('GET', url, true);
+                    request.setRequestHeader('Content-Type', 'application/json');
+                    request.send();
+                }
+            };
+
+            this.font = function (src, weight, style) {
+                return InjectByType('font', [src, weight, style]);
+            };
+
+            var cBContainer = {
+                load: [],
+                error: [],
+                add: []
+            };
+
+            this.on = function (event, func) {
+                if (typeof event === "string") {
+                    var array = cBContainer[event];
+                    if (array) {
+                        if (typeof func === "function") {
+                            array.push(func);
+                        }
+                        else {
+                            Debug.warn({event: event}, 'Unable to set event [{event}] callback. func is not a function!');
+                        }
+                    }
+                    else {
+                        Debug.warn({event: event}, 'Unable to set event [{event}]. No such event');
+                    }
+                }
+                else {
+                    Debug.warn('Unable to set event callback. Event name is not a string');
+                }
+            };
+
+            this.off = function (event, func) {
+                if (typeof event === "string") {
+                    var array = cBContainer[event];
+                    if (array) {
+                        if (typeof func === "function") {
+                            var narray = [];
+                            func.$$SEARCH = true;
+                            for (var i = 0; i < array.length; i++) {
+                                if (!array[i].$$SEARCH) {
+                                    narray.push(array[i])
+                                }
+                            }
+                            delete func.$$SEARCH;
+                            cBContainer[event] = narray;
+                        }
+                    }
+                    else {
+                        Debug.warn({event: event}, 'Unable to unset callback for event [{event}]. No such event');
+                    }
+                }
+                else {
+                    Debug.warn('Unable to unset event. Event is not a string');
+                }
+            };
+
+            this.list = function () {
+                return [].concat(container.images).concat(container.audios).concat(container.fonts).concat(container.sprites);
+            };
+
+            function ResolveEvent(type, data) {
+                var array = cBContainer[type];
+                if (!array) return;
+
+                for (var i = 0; i < array.length; i++) {
+                    array[i].apply(self, data);
+                }
+            }
+
+            Canvas.queue(-2, function updateResources (canvas, date) {
+                var time = date.getTime();
+                for (var i = 0; i < container.sprites.length; i++) {
+                    if (container.sprites[i].ready() && container.sprites[i].loaded() === 1) {
+                        container.sprites[i].tick(time);
+                    }
+                }
+            });
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service(
+    ['@Audio', '@inject', '@Config', 'Debug',
+        function Sound(context, inject, config, Debug) {
+
+            config.define('filters', ['Delay', 'Gain'], {isArray: true});
+
+            var destination = inject('$Audio').build('$$DESTINATION', 'destination'),
+                sounds = {},
+                soundcount = 0,
+                channelcount = 0,
+                channels = {
+                    $$DESTINATION: destination
+                },
+                self = this;
+
+
+
+            this.sample = function (url, channel, name) {
+                if (typeof url === "string" && url.length > 0) {
+                    if (sounds[url]) return sounds[url];
+                    if (typeof name !== "string" || name.length === 0) name = 'UserSound[' + soundcount + ']';
+                    soundcount++;
+                    var result = inject('$Audio').build(name, url);
+                    if (typeof channel !== "string" || channel.length === 0) channel = '$$DESTINATION';
+                    var out = this.channel(channel);
+                    result.connect(out);
+                    sounds[result.url()] = result;
+                    return result;
+                }
+                else {
+                    Debug.warn({url: url}, '[{url}] is not valid audio url or empty.');
+                }
+            };
+
+            this.channel = function (name) {
+                if (typeof name === "string" && name.length > 0) {
+                    if (channels[name]) return channels[name];
+
+                    var result = inject('$Audio').build(name);
+
+                    result.connect(destination);
+                    channels[name] = result;
+                    channelcount++;
+                    return result;
+                }
+            };
+
+            this.channels = function (byurl) {
+                var list = {},
+                    byurl = !!byurl;
+
+                for (var channel in channels) {
+                    if (channels.hasOwnProperty(channel)) {
+                        if (channel !== '$$DESTINATION') {
+                            if (byurl) {
+                                list[channel.url()] = channel[channel];
+                            }
+                            else {
+                                list[channel] = channels[channel];
+                            }
+
+                        }
+                    }
+                }
+
+                return list;
+            };
+
+            this.sounds = function (byurl) {
+                var list = {},
+                    byurl = !!byurl;
+
+                for (var prop in sounds) {
+                    if (sounds.hasOwnProperty(prop)) {
+                        if (byurl) {
+                            list[prop] = sounds[prop];
+                        }
+                        else {
+                            list[sounds[prop].name()] = sounds[prop];
+                        }
+                    }
+                }
+
+                return list;
+            };
+
+            this.destination = function () {
+                return channels.$$DESTINATION;
+            };
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/24/2016.
+ */
+$R.service(['@inject',
+        function State(inject) {
+
+            var states = {};
+
+
+            function ParseAddress(address) {
+                var result = address.match(/^([a-zA-Z]+).([a-zA-Z]+)$/),
+                    state = result[0],
+                    prop = result[1];
+
+                if (state && prop) return {state: state, prop: prop};
+
+            }
+
+
+            this.watch = function (address, func) {
+
+                if (typeof func !== "function") return;
+
+                address = ParseAddress(address);
+
+                if (!address) return;
+
+                if (!states[address.state]) states[address.state] = inject('$State');
+
+                states[address.prop].when(address.prop, func);
+
+            };
+
+            this.define = function (address, value) {
+
+                address = ParseAddress(address);
+
+                if (!address) return;
+
+                if (!states[address.state]) states[address.state] = inject('$State');
+
+                states[address.state].define(address.prop, value);
+            };
+
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.service(
+    ['Debug', '@Canvas', '@Config',
+        function Tree(Debug, Canvas, Config) {
+
+            var root = null, rootDrawer = null, rootStyle = null,
+                clear = Config.define('clear', false, {isBool: true}).watch(function (v) {
+                    clear = v;
+                });
+
+            this.root = function (object) {
+                if (!root) {
+                    if (!object.type || typeof object.type !== "function" || object.type() !== 'Group') {
+                        Debug.error({}, 'Tree / Unable to set tree root! Wrong object type!');
+                        return;
+                    }
+
+                    root = object;
+
+                    var drawer = root.extension('Drawer');
+
+                    if (!drawer) {
+                        Debug.error({}, 'Tree / Unable to get Drawer extension!');
+                        return;
+                    }
+                    if (!drawer.draw || typeof drawer.draw !== "function") {
+                        Debug.error({}, 'Tree / Unable to register root Drawer. Drawer.draw is not a function!');
+                        return;
+                    }
+
+                    rootDrawer = drawer;
+
+                    rootStyle = root.extension('Style');
+
+                    return root;
+                }
+                else {
+                    return root;
+                }
+            };
+
+            Canvas.queue(0, function drawGraphicsTree(context, date, frame) {
+                if (!root || !rootDrawer) return;
+                if (clear) context.clearRect(0, 0, context.canvas.offsetWidth, context.canvas.offsetHeight);
+                rootDrawer.draw.apply(root, arguments);
+            });
+
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.plugin.class('Objects', 'Animation',
+    ['+Animation', 'Morphine',
+        function Animation(AnimationHelper, Morphine) {
+
+            var progress = 0,
+                duration = null,
+                easing = null,
+                done = false,
+                stack = null,
+                morphine = null,
+                target = null,
+                stepsCb = null,
+                queue = false,
+                active = false,
+                clear = null,
+                stepTypeStr = 'type',
+                completeTypeStr = 'complete',
+                config = null;
+
+            function Resolve(type) {
+                if (type == stepTypeStr) {
+                    for (var i = 0; i < stack.length; i++) {
+                        if (stepsCb.hasOwnProperty(stack[i].morph.property())) {
+                            stepsCb[stack[i].morph.property()].apply(target, [progress, stack[i].result]);
+                        }
+                    }
+                }
+                else if (type == completeTypeStr) {
+                    done = true;
+                    var results = {};
+                    for (var i = 0; i < stack.length; i++) {
+                        results[stack[i].morph.property()] = stack[i].result;
+                    }
+                    config.done(1, results);
+                    clear();
+                }
+            }
+
+            this.target = function () {
+                return target
+            };
+
+            this.queue = function () {
+                return queue;
+            };
+
+            this.active = function () {
+                return active;
+            };
+
+            this.done = function () {
+                return done;
+            };
+
+            this.hasProperty = function (property) {
+                var result = 0;
+                for (var i = 0; i < stack.length; i++) {
+                    if (stack[i].morph.property() == property) {
+                        result = i + 1;
+                        break;
+                    }
+                }
+                return result;
+            };
+
+            this.properties = function () {
+                var array = [];
+                for (var i = 0; i < stack.length; i++) {
+                    array.push(stack[i].morph.property());
+                }
+                return array;
+            };
+
+            this.stop = function (property) {
+                if (property) {
+                    var index = this.hasProperty(property);
+                    if (index) {
+                        index = index - 1;
+                        stack.splice(index, 1)
+                    }
+                }
+                else {
+                    stack = [];
+                }
+            };
+
+            this.start = function () {
+                if (active) return;
+
+                active = true;
+
+                var _stack = [];
+
+                for (var i = 0; i < stack.length; i++) {
+                    var morph = stack[i].morph.get(stack[i].value);
+
+                    if (morph !== undefined && morph.start() !== false && morph.end() !== false) {
+                        _stack.push(stack[i]);
+                    }
+                }
+
+                stack = _stack;
+
+                var tick_function = AnimationHelper.getTickFunction();
+
+                morphine = Morphine.create(0, 1, function (complete, value) {
+                    if (stack.length === 0) {
+                        Resolve(completeTypeStr);
+                        morphine.stop();
+                    }
+                    else {
+                        for (var i = 0; i < stack.length; i++) {
+                            stack[i].result = tick_function(value, complete, stack[i].morph.start(), stack[i].morph.end());
+                            stack[i].morph.apply(complete, stack[i].result);
+                        }
+
+                        Resolve(stepTypeStr);
+
+                        if (complete === 1) {
+                            Resolve(completeTypeStr);
+                        }
+
+                    }
+                }, easing, duration, 0);
+            };
+
+            this.config = function (t, m, cfg, f) {
+                AnimationHelper.normalizeConfig(cfg);
+
+                duration = cfg.duration;
+
+                easing = cfg.easing;
+
+                stepsCb = cfg.step;
+
+                queue = cfg.queue;
+
+                clear = f;
+
+                stack = m;
+
+                target = t;
+
+                config = cfg;
+            }
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.plugin.class('Objects', 'Animation',
+    ['Debug',
+        function Morph(Debug) {
+
+            var property = null,
+                setter = null,
+                getter = null,
+                applier = null,
+                start, end,
+                object = null,
+                valid = false,
+                ordering = 0;
+
+            function SetStartValue(val) {
+                start = val;
+            }
+
+            function SetEndValue(val) {
+                end = val;
+            }
+
+            this.start = function () {
+                return start;
+            };
+
+            this.end = function () {
+                return end;
+            };
+
+            this.property = function () {
+                return property;
+            };
+
+            this.ordering = function () {
+                return ordering;
+            };
+
+            this.get = function (value) {
+                setter.apply(object, [SetStartValue, SetEndValue, value]);
+                return this;
+            };
+
+            this.valid = function () {
+                return valid;
+            };
+
+            this.apply = function (progress, value) {
+                object.style(property, applier.apply(object, [value, progress]));
+            };
+
+            this.config = function (name, obj, ord, set, apl) {
+                if (typeof name !== "string") {
+                    Debug.error({name: name}, 'Unable to config Morph. arg1 [{name}] is not a string!');
+                    return;
+                }
+                if (typeof obj !== "object") {
+                    Debug.error({name: name}, 'Unable to config Morph. arg3 is not an object!');
+                    return;
+                }
+                if (typeof set !== "function") {
+                    Debug.error({name: name}, 'Unable to config Morph. arg4 is not a function!');
+                    return;
+                }
+                if (typeof ord !== "number") {
+                    Debug.error({name: name}, 'Unable to config Morph. arg2 is not a number!');
+                    return;
+                }
+                if (typeof apl !== "function") {
+                    Debug.error({name: name}, 'Unable to config Morph. arg5 is not a function!');
+                    return;
+                }
+
+                property = name;
+                setter = set;
+                applier = apl;
+                ordering = ord;
+                object = obj;
+
+                valid = true;
+            }
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 2/7/2017.
+ */
+$R.plugin.class('Objects',
+    'Box',
+    [function Box() {
+        var container = {
+                size: [0, 0],
+                position: [0, 0]
+            },
+            sprite = {
+                margin: [0, 0, 0, 0],
+                position: [0, 0],
+                size: [0, 0]
+            };
+
+        this.get = function () {
+            return {
+                size: [container.size[0], container.size[1]],
+                position: [container.position[0], container.position[1]]
+            }
+        };
+
+        this.set = function (x, y, width, height, top, right, bottom, left) {
+            container.size[0] = width;
+            container.size[1] = height;
+            container.position[0] = x;
+            container.position[1] = y;
+            sprite.margin[0] = top;
+            sprite.margin[1] = right;
+            sprite.margin[2] = bottom;
+            sprite.margin[3] = left;
+            sprite.size[0] = left + width + right;
+            sprite.size[1] = top + height + bottom;
+            sprite.position[0] = x - left;
+            sprite.position[1] = y - top;
+        };
+
+        this.value = function () {
+            return container;
+        };
+        this.sprite = function () {
+            return sprite;
+        };
+
+    }]
+);
+/**
+ * Created by Viktor Khodosevich on 3/28/2017.
+ */
+$R.plugin.class('Objects', 'Text',
+    ['@extend', '@inject', '+Drawer',
+        function TextLineClass(extend, inject, DrawerHelper) {
+            extend(this, '$TextElementClass');
+
+            var width = 0,
+                words = [],
+                space = inject('$TextSpaceClass'),
+                length = 0,
+                widthUpdated = false;
+
+            function getWidth() {
+                if (widthUpdated) {
+                    width = 0;
+                    for (var i = 0; i < words.length; i++) {
+                        width += words[i].width();
+                    }
+                    widthUpdated = false;
+                    return width;
+                }
+                return width;
+            }
+
+            this.width = function () {
+                return DrawerHelper.measureText(getWidth)
+            };
+
+            this.length = function () {
+                return length;
+            };
+
+            this.words = function (array) {
+                if (array && typeof array === "object" && array.constructor === Array) {
+                    for (var i = 0; i < array.length; i++) {
+                        words.push(array[i]
+                            .size(this.size())
+                            .height(this.height())
+                            .style(this.style())
+                            .weight(this.weight())
+                            .color(this.color())
+                            .font(this.font()));
+                    }
+                    length = words.length;
+                    var _arr = [];
+                    for (var i = 0; i < words.length; i++) {
+                        _arr.push(words[i]);
+                    }
+                    this.propertyChanged('string', _arr);
+                    return this;
+                }
+                widthUpdated = true;
+                return words;
+            };
+
+            this.push = function (word) {
+                if (words.length > 0) words.push(space);
+                words.push(
+                    word.size(this.size())
+                        .height(this.height())
+                        .style(this.style())
+                        .weight(this.weight())
+                        .color(this.color())
+                        .font(this.font())
+                );
+                widthUpdated = true;
+                return this;
+            };
+
+            this.string = function () {
+                var string = '';
+
+                for (var i = 0; i < words.length; i++) {
+                    string += words[i].string();
+                }
+                return string;
+            };
+
+            this.onPropertyChange(function (property, val) {
+                if (property !== 'string') {
+                    space[property](val);
+                }
+            });
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 3/28/2017.
+ */
+$R.plugin.class('Objects', 'Text',
+    ['@extend', '+Drawer',
+        function TextSpaceClass(extend, DrawerHelper) {
+            extend(this, '$TextElementClass');
+
+            var string = ' ',
+                width = 0,
+                self = this;
+
+            function getWidth(context) {
+                context.font = self.extractFontString();
+                return context.measureText(string).width;
+            }
+
+            this.string = function () {
+                return string;
+            };
+
+            this.width = function (context) {
+                return DrawerHelper.measureText(getWidth);
+            }
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 3/28/2017.
+ */
+$R.plugin.class('Objects', 'Text',
+    ['+Color',
+        function TextElementClass(ColorHelper) {
+            var color = 'rgba(0,0,0,1)',
+                font = 'sans-serif',
+                fontWeight = 400,
+                fontSize = 14,
+                lineHeight = 14,
+                fontStyle = 'normal',
+                cb = [],
+                self = this;
+
+            function resolve(property, val) {
+                for (var i = 0; i < cb.length; i++) {
+                    cb[i].apply(self, [property, val]);
+                }
+            }
+
+            this.size = function (val) {
+                if (typeof val === "number") {
+                    if (val < 0) val = 0;
+                    fontSize = val;
+                    resolve('size', fontSize);
+                    return this;
+                }
+                else {
+                    return fontSize;
+                }
+            };
+
+            this.height = function (val) {
+                if (typeof val === "number") {
+                    if (val < 0) val = 0;
+                    lineHeight = val;
+                    resolve('height', lineHeight);
+                    return this;
+                }
+                else {
+                    return lineHeight;
+                }
+            };
+
+            this.weight = function (val) {
+                if (typeof val === "number") {
+                    if (val < 100) val = 100;
+                    if (val > 900) val = 900;
+                    if (val % 100 !== 0) val = val - (val % 100);
+                    fontWeight = val;
+                    resolve('weight', fontWeight);
+                    return this;
+                }
+                return fontWeight;
+            };
+
+            this.font = function (val) {
+                if (typeof val === "string" && val.length > 0) {
+                    font = val;
+                    resolve('font', font);
+                    return this;
+                }
+                return font;
+            };
+
+            this.color = function (val) {
+                if (typeof val === "string") {
+                    if (ColorHelper.colorToArray(val)) {
+                        color = val;
+                        resolve('color', color);
+                    }
+                    return this;
+                }
+                return color;
+            };
+
+            this.style = function (val) {
+                if (val === 'normal' || val === 'italic' || val === 'oblique') {
+                    fontStyle = val;
+                    resolve('style', fontStyle);
+                    return this;
+                }
+                return fontStyle;
+            };
+
+            this.extractFontString = function () {
+                return fontStyle + ' ' + fontSize + 'px "' + font + '-' + fontWeight + '"';
+            };
+
+            this.onPropertyChange = function (func) {
+                if (typeof func === "function") {
+                    cb.push(func);
+                }
+            };
+
+            this.propertyChanged = function (name, val) {
+                resolve(name, val);
+            }
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 3/26/2017.
+ */
+$R.plugin.class('Objects', 'Text',
+    ['+Color', '@extend', '+Drawer',
+        function TextWordClass(ColorHelper, extend, DrawerHelper) {
+
+            extend(this, '$TextElementClass');
+
+            var string = '',
+                self = this;
+
+            this.string = function (val) {
+                if (typeof val === "string") {
+                    string = val;
+                    this.propertyChanged('string', val);
+                    return this;
+                }
+                return string;
+            };
+
+            function getWidth(context) {
+                context.font = self.extractFontString();
+                return context.measureText(string).width;
+            }
+
+            this.width = function () {
+                return DrawerHelper.measureText(getWidth);
+            };
+
+
+            this.draw = function (context, x, y) {
+                if (typeof x !== "number") x = 0;
+                if (typeof y !== "number") y = 0;
+                context.save();
+                context.fillStyle = this.color();
+                context.font = this.extractFontString();
+                context.fillText(string, x, y);
+                context.restore();
+
+                return this;
+            };
+
         }
     ]
 );
@@ -4519,87 +5027,6 @@ $R.service.class('Morphine', [
                 return Tick;
             }
 
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 5/1/2017.
- */
-$R.service.class('Objects', [function AreaObjectClass() {
-
-}]);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.service.class('Objects',
-    ['+Mouse',
-        function CircleObjectClass(MouseHelper) {
-            this.mouseCheckFunction(MouseHelper.circleCheckFunction);
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.service.class('Objects',
-    ['Tree',
-        function DefaultObjectType(Tree) {
-            Tree.root(this).append(this);
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/26/2016.
- */
-$R.service.class('Objects',
-    function GroupObjectClass() {
-
-    }
-);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.service.class('Objects',
-    ['+Mouse',
-        function ImageObjectClass(MouseHelper) {
-            this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.service.class('Objects',
-    function LineObjectClass() {
-
-    }
-);
-$R.service.class('Objects',
-    ['+Mouse',
-        function RectangleObjectClass(MouseHelper) {
-            this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-            var mouse = this.extension('Mouse');
-            mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 1/13/2017.
- */
-$R.service.class('Objects',
-    ['+Mouse',
-        function SpriteObjectClass(MouseHelper) {
-            this.mouseCheckFunction(MouseHelper.rectCheckFunction);
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 3/25/2017.
- */
-$R.service.class('Objects',
-    ['+Mouse',
-        function TextObjectClass(MouseHelper) {
-            this.mouseCheckFunction(MouseHelper.rectCheckFunction);
         }
     ]
 );
@@ -4885,6 +5312,131 @@ $R.service.class('Objects',
             }
         };
     }
+);
+/**
+ * Created by Viktor Khodosevich on 2/2/2017.
+ */
+$R.service.class('Dispatcher',
+    ['Tree', 'Debug',
+        function Finder(Tree, Debug) {
+
+            function CheckElement(e, cursor) {
+                if (e.type() === 'Group') {
+                    var result = null,
+                        layers = e.extension('Layers');
+
+                    layers.forEach(function () {
+                        if (!this.disabled()) {
+                            if (this.type() === 'Group') {
+                                var _result = CheckElement(this, cursor);
+                                if (_result) result = _result;
+                            }
+                            else {
+                                var mouseext = this.extension('Mouse'),
+                                    _result = mouseext.check(this, cursor);
+
+                                if (_result) {
+                                    result = _result
+                                }
+                            }
+                        }
+                    });
+                    return result;
+                }
+            }
+
+            this.check = function (cursor) {
+                var root = Tree.root();
+                if (!root) return null;
+                if (typeof cursor !== "object" || cursor.constructor !== Array || cursor.length !== 2 || typeof cursor[0] !== "number" || typeof cursor[1] !== "number") {
+                    Debug.warn({c: cursor}, 'ObjectFinder ; {[c]} is not a valid cursor value.');
+                    return null;
+                }
+                return CheckElement(root, cursor);
+            }
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 5/1/2017.
+ */
+$R.service.class('Objects', [function AreaObjectClass() {
+
+}]);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.service.class('Objects',
+    ['+Mouse',
+        function CircleObjectClass(MouseHelper) {
+            this.mouseCheckFunction(MouseHelper.circleCheckFunction);
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.service.class('Objects',
+    ['Tree',
+        function DefaultObjectType(Tree) {
+            Tree.root(this).append(this);
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/26/2016.
+ */
+$R.service.class('Objects',
+    function GroupObjectClass() {
+
+    }
+);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.service.class('Objects',
+    ['+Mouse',
+        function ImageObjectClass(MouseHelper) {
+            this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 12/25/2016.
+ */
+$R.service.class('Objects',
+    function LineObjectClass() {
+
+    }
+);
+$R.service.class('Objects',
+    ['+Mouse',
+        function RectangleObjectClass(MouseHelper) {
+            this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+            var mouse = this.extension('Mouse');
+            mouse.cursorTransformFunction(MouseHelper.rectCursorTransformFunction);
+        }
+    ]
+);
+/**
+ * Created by bx7kv_000 on 1/13/2017.
+ */
+$R.service.class('Objects',
+    ['+Mouse',
+        function SpriteObjectClass(MouseHelper) {
+            this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 3/25/2017.
+ */
+$R.service.class('Objects',
+    ['+Mouse',
+        function TextObjectClass(MouseHelper) {
+            this.mouseCheckFunction(MouseHelper.rectCheckFunction);
+        }
+    ]
 );
 /**
  * Created by Viktor Khodosevich on 4/10/2017.
@@ -5948,6 +6500,160 @@ $R.service.class('Sound',
  * Created by Viktor Khodosevich on 4/16/2017.
  */
 $R.service.class('Sound',
+    ['@Audio', '@extend',
+        function DelayNode(audio, extend) {
+
+            extend(this, '$AudioNode');
+
+            var timeCFG = 0, forceCFG = 0, killDelay = 10000,
+                globalGain = audio.context().createGain(),
+                delay = audio.context().createDelay(),
+                feedback = audio.context().createGain(),
+                bq = audio.context().createBiquadFilter();
+
+            globalGain.gain.value = 1;
+            bq.frequency.value = 2000;
+            feedback.gain.value = forceCFG;
+            delay.delayTime.value = timeCFG;
+
+            delay.connect(feedback);
+            feedback.connect(bq);
+            bq.connect(delay);
+            feedback.connect(globalGain);
+
+            this.build('delay', [globalGain, feedback], globalGain);
+
+            this.property('delay', [0, 0],
+                function (value) {
+                    if (typeof value == "object" && value.constructor === Array &&
+                        value.length == 2 && typeof value[0] == "number" && typeof value[1] == "number") {
+                        var time = value[0],
+                            force = value[1];
+
+                        if (time > 1) time = 1;
+                        if (time < 0) time = 0;
+                        if (force > .8) force = .8;
+                        if (force < 0) force = 0;
+                        timeCFG = time;
+                        forceCFG = force;
+                        delay.delayTime.value = timeCFG;
+                        feedback.gain.value = forceCFG;
+                        return [force, time];
+                    }
+                },
+                function (value) {
+                    return [value[0], value[1]];
+                },
+                function (value) {
+                    var time = value[0],
+                        force = value[1];
+
+                    if (time > 1) time = 1;
+                    if (time < 0) time = 0;
+                    if (force > .8) force = .8;
+                    if (force < 0) force = 0;
+
+                    return [force, time];
+                }
+            );
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@Audio', '@extend',
+        function DestinationNode(audio, extend) {
+
+            extend(this, '$AudioNode');
+
+            this.build('destination', audio.context().destination, false);
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@Audio', '@extend',
+        function GainNode(audio, extend) {
+
+            extend(this, '$AudioNode');
+
+            var volume = 1,
+                gain = audio.context().createGain();
+
+            gain.gain.value = volume;
+
+            this.build('gain', gain, gain);
+
+            this.property('volume', 1,
+                function (value) {
+                    if (typeof value == "number") {
+                        if (value < 0) value = 0;
+                        if (value > 1) value = 1;
+                        volume = value;
+                        gain.gain.value = volume;
+                        return value;
+                    }
+                },
+                function (value) {
+                    return value;
+                },
+                function (value) {
+                    if (value < 0) value = 0;
+                    if (value > 1) value = 1;
+                    return value;
+                }
+            );
+
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
+    ['@Audio', '@extend',
+        function LowpassNode(audio, extend) {
+
+            extend(this, '$AudioNode');
+
+            var bqf = audio.context().createBiquadFilter(),
+
+                frequency = 22050;
+
+            bqf.type = 'lowpass';
+            bqf.frequency.value = frequency;
+
+            this.build('lowpass', bqf, bqf);
+
+            this.property('lowpass', 22050,
+                function (value) {
+                    if (value < 0) value = 0;
+                    if (value > 22050) value = 22050;
+                    frequency = value;
+                    bqf.frequency.value = value;
+                    return value;
+                },
+                function (value) {
+                    return value;
+                },
+                function (value) {
+                    if (value < 0) value = 0;
+                    if (value > 22050) value = 22050;
+                    return value;
+                }
+            );
+        }
+    ]
+);
+/**
+ * Created by Viktor Khodosevich on 4/16/2017.
+ */
+$R.service.class('Sound',
     ['@inject', 'Debug',
         function AudioNode(inject, Debug) {
 
@@ -6365,160 +7071,6 @@ $R.service.class('Sound',
     ]
 );
 /**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@extend',
-        function DelayNode(audio, extend) {
-
-            extend(this, '$AudioNode');
-
-            var timeCFG = 0, forceCFG = 0, killDelay = 10000,
-                globalGain = audio.context().createGain(),
-                delay = audio.context().createDelay(),
-                feedback = audio.context().createGain(),
-                bq = audio.context().createBiquadFilter();
-
-            globalGain.gain.value = 1;
-            bq.frequency.value = 2000;
-            feedback.gain.value = forceCFG;
-            delay.delayTime.value = timeCFG;
-
-            delay.connect(feedback);
-            feedback.connect(bq);
-            bq.connect(delay);
-            feedback.connect(globalGain);
-
-            this.build('delay', [globalGain, feedback], globalGain);
-
-            this.property('delay', [0, 0],
-                function (value) {
-                    if (typeof value == "object" && value.constructor === Array &&
-                        value.length == 2 && typeof value[0] == "number" && typeof value[1] == "number") {
-                        var time = value[0],
-                            force = value[1];
-
-                        if (time > 1) time = 1;
-                        if (time < 0) time = 0;
-                        if (force > .8) force = .8;
-                        if (force < 0) force = 0;
-                        timeCFG = time;
-                        forceCFG = force;
-                        delay.delayTime.value = timeCFG;
-                        feedback.gain.value = forceCFG;
-                        return [force, time];
-                    }
-                },
-                function (value) {
-                    return [value[0], value[1]];
-                },
-                function (value) {
-                    var time = value[0],
-                        force = value[1];
-
-                    if (time > 1) time = 1;
-                    if (time < 0) time = 0;
-                    if (force > .8) force = .8;
-                    if (force < 0) force = 0;
-
-                    return [force, time];
-                }
-            );
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@extend',
-        function DestinationNode(audio, extend) {
-
-            extend(this, '$AudioNode');
-
-            this.build('destination', audio.context().destination, false);
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@extend',
-        function GainNode(audio, extend) {
-
-            extend(this, '$AudioNode');
-
-            var volume = 1,
-                gain = audio.context().createGain();
-
-            gain.gain.value = volume;
-
-            this.build('gain', gain, gain);
-
-            this.property('volume', 1,
-                function (value) {
-                    if (typeof value == "number") {
-                        if (value < 0) value = 0;
-                        if (value > 1) value = 1;
-                        volume = value;
-                        gain.gain.value = volume;
-                        return value;
-                    }
-                },
-                function (value) {
-                    return value;
-                },
-                function (value) {
-                    if (value < 0) value = 0;
-                    if (value > 1) value = 1;
-                    return value;
-                }
-            );
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 4/16/2017.
- */
-$R.service.class('Sound',
-    ['@Audio', '@extend',
-        function LowpassNode(audio, extend) {
-
-            extend(this, '$AudioNode');
-
-            var bqf = audio.context().createBiquadFilter(),
-
-                frequency = 22050;
-
-            bqf.type = 'lowpass';
-            bqf.frequency.value = frequency;
-
-            this.build('lowpass', bqf, bqf);
-
-            this.property('lowpass', 22050,
-                function (value) {
-                    if (value < 0) value = 0;
-                    if (value > 22050) value = 22050;
-                    frequency = value;
-                    bqf.frequency.value = value;
-                    return value;
-                },
-                function (value) {
-                    return value;
-                },
-                function (value) {
-                    if (value < 0) value = 0;
-                    if (value > 22050) value = 22050;
-                    return value;
-                }
-            );
-        }
-    ]
-);
-/**
  * Created by bx7kv_000 on 12/24/2016.
  */
 $R.service.class('State',
@@ -6582,556 +7134,6 @@ $R.service.class('State',
                 if (!props[property]) this.def(property, null);
 
                 callbacks[property].push(func);
-            };
-
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.plugin.class('Objects', 'Animation',
-    ['+Animation', 'Morphine',
-        function Animation(AnimationHelper, Morphine) {
-
-            var progress = 0,
-                duration = null,
-                easing = null,
-                done = false,
-                stack = null,
-                morphine = null,
-                target = null,
-                stepsCb = null,
-                queue = false,
-                active = false,
-                clear = null,
-                stepTypeStr = 'type',
-                completeTypeStr = 'complete',
-                config = null;
-
-            function Resolve(type) {
-                if (type == stepTypeStr) {
-                    for (var i = 0; i < stack.length; i++) {
-                        if (stepsCb.hasOwnProperty(stack[i].morph.property())) {
-                            stepsCb[stack[i].morph.property()].apply(target, [progress, stack[i].result]);
-                        }
-                    }
-                }
-                else if (type == completeTypeStr) {
-                    done = true;
-                    var results = {};
-                    for (var i = 0; i < stack.length; i++) {
-                        results[stack[i].morph.property()] = stack[i].result;
-                    }
-                    config.done(1, results);
-                    clear();
-                }
-            }
-
-            this.target = function () {
-                return target
-            };
-
-            this.queue = function () {
-                return queue;
-            };
-
-            this.active = function () {
-                return active;
-            };
-
-            this.done = function () {
-                return done;
-            };
-
-            this.hasProperty = function (property) {
-                var result = 0;
-                for (var i = 0; i < stack.length; i++) {
-                    if (stack[i].morph.property() == property) {
-                        result = i + 1;
-                        break;
-                    }
-                }
-                return result;
-            };
-
-            this.properties = function () {
-                var array = [];
-                for (var i = 0; i < stack.length; i++) {
-                    array.push(stack[i].morph.property());
-                }
-                return array;
-            };
-
-            this.stop = function (property) {
-                if (property) {
-                    var index = this.hasProperty(property);
-                    if (index) {
-                        index = index - 1;
-                        stack.splice(index, 1)
-                    }
-                }
-                else {
-                    stack = [];
-                }
-            };
-
-            this.start = function () {
-                if (active) return;
-
-                active = true;
-
-                var _stack = [];
-
-                for (var i = 0; i < stack.length; i++) {
-                    var morph = stack[i].morph.get(stack[i].value);
-
-                    if (morph !== undefined && morph.start() !== false && morph.end() !== false) {
-                        _stack.push(stack[i]);
-                    }
-                }
-
-                stack = _stack;
-
-                var tick_function = AnimationHelper.getTickFunction();
-
-                morphine = Morphine.create(0, 1, function (complete, value) {
-                    if (stack.length === 0) {
-                        Resolve(completeTypeStr);
-                        morphine.stop();
-                    }
-                    else {
-                        for (var i = 0; i < stack.length; i++) {
-                            stack[i].result = tick_function(value, complete, stack[i].morph.start(), stack[i].morph.end());
-                            stack[i].morph.apply(complete, stack[i].result);
-                        }
-
-                        Resolve(stepTypeStr);
-
-                        if (complete === 1) {
-                            Resolve(completeTypeStr);
-                        }
-
-                    }
-                }, easing, duration, 0);
-            };
-
-            this.config = function (t, m, cfg, f) {
-                AnimationHelper.normalizeConfig(cfg);
-
-                duration = cfg.duration;
-
-                easing = cfg.easing;
-
-                stepsCb = cfg.step;
-
-                queue = cfg.queue;
-
-                clear = f;
-
-                stack = m;
-
-                target = t;
-
-                config = cfg;
-            }
-        }
-    ]
-);
-/**
- * Created by bx7kv_000 on 12/25/2016.
- */
-$R.plugin.class('Objects', 'Animation',
-    ['Debug',
-        function Morph(Debug) {
-
-            var property = null,
-                setter = null,
-                getter = null,
-                applier = null,
-                start, end,
-                object = null,
-                valid = false,
-                ordering = 0;
-
-            function SetStartValue(val) {
-                start = val;
-            }
-
-            function SetEndValue(val) {
-                end = val;
-            }
-
-            this.start = function () {
-                return start;
-            };
-
-            this.end = function () {
-                return end;
-            };
-
-            this.property = function () {
-                return property;
-            };
-
-            this.ordering = function () {
-                return ordering;
-            };
-
-            this.get = function (value) {
-                setter.apply(object, [SetStartValue, SetEndValue, value]);
-                return this;
-            };
-
-            this.valid = function () {
-                return valid;
-            };
-
-            this.apply = function (progress, value) {
-                object.style(property, applier.apply(object, [value, progress]));
-            };
-
-            this.config = function (name, obj, ord, set, apl) {
-                if (typeof name !== "string") {
-                    Debug.error({name: name}, 'Unable to config Morph. arg1 [{name}] is not a string!');
-                    return;
-                }
-                if (typeof obj !== "object") {
-                    Debug.error({name: name}, 'Unable to config Morph. arg3 is not an object!');
-                    return;
-                }
-                if (typeof set !== "function") {
-                    Debug.error({name: name}, 'Unable to config Morph. arg4 is not a function!');
-                    return;
-                }
-                if (typeof ord !== "number") {
-                    Debug.error({name: name}, 'Unable to config Morph. arg2 is not a number!');
-                    return;
-                }
-                if (typeof apl !== "function") {
-                    Debug.error({name: name}, 'Unable to config Morph. arg5 is not a function!');
-                    return;
-                }
-
-                property = name;
-                setter = set;
-                applier = apl;
-                ordering = ord;
-                object = obj;
-
-                valid = true;
-            }
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 2/7/2017.
- */
-$R.plugin.class('Objects',
-    'Box',
-    [function Box() {
-        var container = {
-                size: [0, 0],
-                position: [0, 0]
-            },
-            sprite = {
-                margin: [0, 0, 0, 0],
-                position: [0, 0],
-                size: [0, 0]
-            };
-
-        this.get = function () {
-            return {
-                size: [container.size[0], container.size[1]],
-                position: [container.position[0], container.position[1]]
-            }
-        };
-
-        this.set = function (x, y, width, height, top, right, bottom, left) {
-            container.size[0] = width;
-            container.size[1] = height;
-            container.position[0] = x;
-            container.position[1] = y;
-            sprite.margin[0] = top;
-            sprite.margin[1] = right;
-            sprite.margin[2] = bottom;
-            sprite.margin[3] = left;
-            sprite.size[0] = left + width + right;
-            sprite.size[1] = top + height + bottom;
-            sprite.position[0] = x - left;
-            sprite.position[1] = y - top;
-        };
-
-        this.value = function () {
-            return container;
-        };
-        this.sprite = function () {
-            return sprite;
-        };
-
-    }]
-);
-/**
- * Created by Viktor Khodosevich on 3/28/2017.
- */
-$R.plugin.class('Objects', 'Text',
-    ['@extend', '@inject', '+Drawer',
-        function TextLineClass(extend, inject, DrawerHelper) {
-            extend(this, '$TextElementClass');
-
-            var width = 0,
-                words = [],
-                space = inject('$TextSpaceClass'),
-                length = 0,
-                widthUpdated = false;
-
-            function getWidth() {
-                if (widthUpdated) {
-                    width = 0;
-                    for (var i = 0; i < words.length; i++) {
-                        width += words[i].width();
-                    }
-                    widthUpdated = false;
-                    return width;
-                }
-                return width;
-            }
-
-            this.width = function () {
-                return DrawerHelper.measureText(getWidth)
-            };
-
-            this.length = function () {
-                return length;
-            };
-
-            this.words = function (array) {
-                if (array && typeof array === "object" && array.constructor === Array) {
-                    for (var i = 0; i < array.length; i++) {
-                        words.push(array[i]
-                            .size(this.size())
-                            .height(this.height())
-                            .style(this.style())
-                            .weight(this.weight())
-                            .color(this.color())
-                            .font(this.font()));
-                    }
-                    length = words.length;
-                    var _arr = [];
-                    for (var i = 0; i < words.length; i++) {
-                        _arr.push(words[i]);
-                    }
-                    this.propertyChanged('string', _arr);
-                    return this;
-                }
-                widthUpdated = true;
-                return words;
-            };
-
-            this.push = function (word) {
-                if (words.length > 0) words.push(space);
-                words.push(
-                    word.size(this.size())
-                        .height(this.height())
-                        .style(this.style())
-                        .weight(this.weight())
-                        .color(this.color())
-                        .font(this.font())
-                );
-                widthUpdated = true;
-                return this;
-            };
-
-            this.string = function () {
-                var string = '';
-
-                for (var i = 0; i < words.length; i++) {
-                    string += words[i].string();
-                }
-                return string;
-            };
-
-            this.onPropertyChange(function (property, val) {
-                if (property !== 'string') {
-                    space[property](val);
-                }
-            });
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 3/28/2017.
- */
-$R.plugin.class('Objects', 'Text',
-    ['@extend', '+Drawer',
-        function TextSpaceClass(extend, DrawerHelper) {
-            extend(this, '$TextElementClass');
-
-            var string = ' ',
-                width = 0,
-                self = this;
-
-            function getWidth(context) {
-                context.font = self.extractFontString();
-                return context.measureText(string).width;
-            }
-
-            this.string = function () {
-                return string;
-            };
-
-            this.width = function (context) {
-                return DrawerHelper.measureText(getWidth);
-            }
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 3/28/2017.
- */
-$R.plugin.class('Objects', 'Text',
-    ['+Color',
-        function TextElementClass(ColorHelper) {
-            var color = 'rgba(0,0,0,1)',
-                font = 'sans-serif',
-                fontWeight = 400,
-                fontSize = 14,
-                lineHeight = 14,
-                fontStyle = 'normal',
-                cb = [],
-                self = this;
-
-            function resolve(property, val) {
-                for (var i = 0; i < cb.length; i++) {
-                    cb[i].apply(self, [property, val]);
-                }
-            }
-
-            this.size = function (val) {
-                if (typeof val === "number") {
-                    if (val < 0) val = 0;
-                    fontSize = val;
-                    resolve('size', fontSize);
-                    return this;
-                }
-                else {
-                    return fontSize;
-                }
-            };
-
-            this.height = function (val) {
-                if (typeof val === "number") {
-                    if (val < 0) val = 0;
-                    lineHeight = val;
-                    resolve('height', lineHeight);
-                    return this;
-                }
-                else {
-                    return lineHeight;
-                }
-            };
-
-            this.weight = function (val) {
-                if (typeof val === "number") {
-                    if (val < 100) val = 100;
-                    if (val > 900) val = 900;
-                    if (val % 100 !== 0) val = val - (val % 100);
-                    fontWeight = val;
-                    resolve('weight', fontWeight);
-                    return this;
-                }
-                return fontWeight;
-            };
-
-            this.font = function (val) {
-                if (typeof val === "string" && val.length > 0) {
-                    font = val;
-                    resolve('font', font);
-                    return this;
-                }
-                return font;
-            };
-
-            this.color = function (val) {
-                if (typeof val === "string") {
-                    if (ColorHelper.colorToArray(val)) {
-                        color = val;
-                        resolve('color', color);
-                    }
-                    return this;
-                }
-                return color;
-            };
-
-            this.style = function (val) {
-                if (val === 'normal' || val === 'italic' || val === 'oblique') {
-                    fontStyle = val;
-                    resolve('style', fontStyle);
-                    return this;
-                }
-                return fontStyle;
-            };
-
-            this.extractFontString = function () {
-                return fontStyle + ' ' + fontSize + 'px "' + font + '-' + fontWeight + '"';
-            };
-
-            this.onPropertyChange = function (func) {
-                if (typeof func === "function") {
-                    cb.push(func);
-                }
-            };
-
-            this.propertyChanged = function (name, val) {
-                resolve(name, val);
-            }
-
-        }
-    ]
-);
-/**
- * Created by Viktor Khodosevich on 3/26/2017.
- */
-$R.plugin.class('Objects', 'Text',
-    ['+Color', '@extend', '+Drawer',
-        function TextWordClass(ColorHelper, extend, DrawerHelper) {
-
-            extend(this, '$TextElementClass');
-
-            var string = '',
-                self = this;
-
-            this.string = function (val) {
-                if (typeof val === "string") {
-                    string = val;
-                    this.propertyChanged('string', val);
-                    return this;
-                }
-                return string;
-            };
-
-            function getWidth(context) {
-                context.font = self.extractFontString();
-                return context.measureText(string).width;
-            }
-
-            this.width = function () {
-                return DrawerHelper.measureText(getWidth);
-            };
-
-
-            this.draw = function (context, x, y) {
-                if (typeof x !== "number") x = 0;
-                if (typeof y !== "number") y = 0;
-                context.save();
-                context.fillStyle = this.color();
-                context.font = this.extractFontString();
-                context.fillText(string, x, y);
-                context.restore();
-
-                return this;
             };
 
         }
@@ -7702,11 +7704,9 @@ $R.service.class('Objects',
                 canvas = inject('$Canvas'),
                 matrix = this.extension('Matrix'),
                 require_update = false, interpolated = false,
-                strokefix = 1, interpolationfix = 0;
-
-            var drawer = this.extension('Drawer');
-
-            var xshift = 0, yshift = 0;
+                strokefix = 1, interpolationfix = 0,
+                drawer = this.extension('Drawer'),
+                xshift = 0, yshift = 0;
 
             box.f(function (boxContainer) {
                 var position = style.get('position'),
@@ -7746,10 +7746,10 @@ $R.service.class('Objects',
                     }
                 }
 
-                if (minx == Infinity) minx = 0;
-                if (miny == Infinity) miny = 0;
-                if (maxx == -Infinity) maxx = 0;
-                if (maxy == -Infinity) maxx = 0;
+                if (minx === Infinity) minx = 0;
+                if (miny === Infinity) miny = 0;
+                if (maxx === -Infinity) maxx = 0;
+                if (maxy === -Infinity) maxx = 0;
 
                 xshift = minx;
                 yshift = miny;
@@ -7758,16 +7758,16 @@ $R.service.class('Objects',
                     width = Math.abs(maxx - minx),
                     height = Math.abs(maxy - miny);
 
-                if (anchor[0] == 'center') {
+                if (anchor[0] === 'center') {
                     x -= width ? width / 2 : 0;
                 }
-                if (anchor[0] == 'right') {
+                if (anchor[0] === 'right') {
                     x -= width ? width : 0;
                 }
-                if (anchor[1] == 'middle') {
+                if (anchor[1] === 'middle') {
                     y -= height ? height / 2 : 0;
                 }
-                if (anchor[1] == 'bottom') {
+                if (anchor[1] === 'bottom') {
                     y -= height ? height : 0
                 }
                 boxContainer.set(
@@ -7843,18 +7843,11 @@ $R.service.class('Objects',
 
                 ctx.clearRect(0, 0, sprite.size[0], sprite.size[1]);
                 ctx.save();
-                ctx.fillStyle = 'rgba(255,0,0,.5)';
-                ctx.beginPath();
-                ctx.rect(0, 0, sprite.size[0], sprite.size[1]);
-                ctx.fill();
-                ctx.restore();
 
                 if (!interpolated) {
                     PathHelper.interpolate(path, interpolation);
                     interpolated = true;
                 }
-
-                ctx.save();
 
                 ctx.translate(sprite.margin[3] - xshift, sprite.margin[0] - yshift);
 
@@ -9228,7 +9221,7 @@ $R.service.class('Objects',
                                     else {
                                         if (old[i]) {
                                             result.push(old[i]);
-                                            Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, mo changes made!');
+                                            Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, no changes made!');
                                         }
                                         else {
                                             result.push(old[old.length - 1]);
@@ -9239,7 +9232,7 @@ $R.service.class('Objects',
                                 else {
                                     if (old[i]) {
                                         result.push(old[i]);
-                                        Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, mo changes made!');
+                                        Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, no changes made!');
                                     }
                                     else {
                                         result.push(old[old.length - 1]);
@@ -9250,7 +9243,7 @@ $R.service.class('Objects',
                             else {
                                 if (old[i]) {
                                     result.push(old[i]);
-                                    Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, mo changes made!');
+                                    Debug.warn({val: value[i]}, 'Line Model / {val} is not a color, no changes made!');
                                 }
                                 else {
                                     result.push(old[old.length - 1]);
@@ -9479,7 +9472,7 @@ $R.service.class('Objects',
                             return false;
                         }
                     }
-                    else if (typeof value == "object" && value.constructor == Array) {
+                    else if (typeof value == "object" && value.constructor === Array) {
                         if (ColorHelper.isColor(value)) {
                             return ColorHelper.arrayToColor(value);
                         }
@@ -9541,8 +9534,8 @@ $R.service.class('Objects',
                             return [Resource.image(value)];
                         }
                     }
-                    else if (typeof value == "object" || value.constructor == Array) {
-                        if (value.length == 2 && typeof value[0] == "string" && typeof value[1] == "number") {
+                    else if (typeof value == "object" || value.constructor === Array) {
+                        if (value.length === 2 && typeof value[0] == "string" && typeof value[1] == "number") {
                             if (value[1] > 0) {
                                 var resource = Resource.sprite(value[0]);
                                 resource.config(value[1]);
@@ -11447,8 +11440,8 @@ $R.helper.system(
                     context.moveTo(x2, y2);
                 }
                 else {
-                    context.moveTo(x1, y1);
                     context.beginPath();
+                    context.moveTo(x1, y1);
                     context.strokeStyle = strokeColor[i];
                     context.lineWidth = strokeWidth[i];
                     context.setLineDash(strokeStyle[i]);
@@ -11539,19 +11532,19 @@ $R.helper.system(
                 context.setLineDash(strokeStyle[i]);
 
 
-                if (i == 0) {
+                if (i === 0) {
                     _x = x + w;
                     _y = y;
                 }
-                if (i == 1) {
+                if (i === 1) {
                     _x = x + w;
                     _y = y + h;
                 }
-                if (i == 2) {
+                if (i === 2) {
                     _x = x;
                     _y = y + h;
                 }
-                if (i == 3) {
+                if (i === 3) {
                     _x = x;
                     _y = y;
                 }
@@ -12228,4 +12221,4 @@ $R.helper.system(
 
                 return result;
             }
-        }]); module.exports = $R;
+        }]); export default core

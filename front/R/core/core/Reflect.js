@@ -42,10 +42,8 @@ Core.get = function (module, payload) {
     if (typeof module === "string") {
         if (modules[module]) {
             return modules[module].get.apply(modules[module], payload);
-        }
-        else throw new Error('Module [' + module + '] was not found');
-    }
-    else throw new Error('Module name is not a string. Wrong arguments');
+        } else throw new Error('Module [' + module + '] was not found');
+    } else throw new Error('Module name is not a string. Wrong arguments');
 };
 
 Core.is = function (target, name) {
@@ -60,18 +58,15 @@ Core.inject = function (module, payload) {
     if (typeof module === "string") {
         if (modules[module]) {
             return modules[module].create(payload);
-        }
-        else throw new Error('Nodule [' + module + '] was not found.');
-    }
-    else throw new Error('Module name is not a string. Wrong Arguments');
+        } else throw new Error('Nodule [' + module + '] was not found.');
+    } else throw new Error('Module name is not a string. Wrong Arguments');
 };
 
 Core.extend = function (module, target, payload) {
     if (typeof modules[module] === "string") {
         if (typeof target === "object") {
             return modules[module].extend(target, payload);
-        }
-        else throw new Error('Unable to extend target of tyoe [' + (typeof target) + '] bu module constructor [' + module + '].');
+        } else throw new Error('Unable to extend target of tyoe [' + (typeof target) + '] bu module constructor [' + module + '].');
     }
 };
 
@@ -126,8 +121,7 @@ function Injection(f) {
         if (typeof payload === "object" && payload.constructor === Array) {
             f.apply(target, payload);
             return target;
-        }
-        else {
+        } else {
             f.call(target);
             return target;
         }

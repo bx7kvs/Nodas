@@ -11,29 +11,26 @@ Core(function Helpers() {
             var helper = Core.inject('Injection', [cfg]);
             if (helpers[helper.name()]) console.warn('helper [' + helper.name() + '] override.');
             helpers[helper.name()] = helper;
-        }
-        catch (e) {
+        } catch (e) {
             throw new Error('Unable to create Helper.');
         }
     }
 
     Core.define('helper', helper);
 
-    helper.system = function (cfg, public) {
+    helper.system = function (cfg, is_public) {
         try {
             var helper = Core.inject('Injection', [cfg]);
-            if(sysHelpers[helper.name()]) console.warn('System Helper ['+helper.name()+'] Duplicate declaration override.');
+            if (sysHelpers[helper.name()]) console.warn('System Helper [' + helper.name() + '] Duplicate declaration override.');
             sysHelpers[helper.name()] = helper;
-            if(public) {
-                if(helpers[helper.name()]) {
-                    console.warn('System Helper ['+helper.name()+'] overrides user helper. Skipped system helper.');
-                }
-                else {
+            if (is_public) {
+                if (helpers[helper.name()]) {
+                    console.warn('System Helper [' + helper.name() + '] overrides user helper. Skipped system helper.');
+                } else {
                     helpers[helper.name()] = helper;
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
 
         }
     }
@@ -47,7 +44,7 @@ Core(function Helpers() {
 
     this.getPublicHelpers = function (defaults) {
         var container = Core.inject('Container', [helpers]);
-        container.source(container,'+');
+        container.source(container, '+');
         container.source(defaults, '@');
         return container;
     };
