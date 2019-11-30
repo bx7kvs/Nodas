@@ -33,7 +33,7 @@ $R.service(
             };
 
 
-            function GetMessage(data, message) {
+            function GetMessage(data, message, source) {
                 message = message.toString();
 
                 var matches = message.match(regexp);
@@ -57,31 +57,36 @@ $R.service(
 
                 message = string + message;
 
+                if(source && source.constructor && source.constructor.name) {
+                    message = '['+source.constructor.name+'] : ' + message;
+                }
                 return message;
             }
 
-            this.error = function (data, message) {
+            this.error = function (data, message, source) {
                 if (typeof data === "string") {
+                    source = message;
                     message = data;
                     data = {};
                 }
 
-                message = GetMessage(data, message);
+                message = GetMessage(data, message, source);
 
                 ResolveEvent('error', message);
 
                 throw new Error(message);
             };
 
-            this.warn = function (data, message) {
+            this.warn = function (data, message, source) {
 
                 if (!warnings) return;
 
                 if (typeof data === "string") {
+                    source = message;
                     message = data;
                     data = {};
                 }
-                message = GetMessage(data, message);
+                message = GetMessage(data, message, source);
 
                 ResolveEvent('message', message);
 

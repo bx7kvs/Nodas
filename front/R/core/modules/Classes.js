@@ -56,14 +56,13 @@ Core(function Classes() {
 
     this.getApplicationClasses = function (app) {
         if (typeof app === "string") {
+            var container = Core.inject('Container', [globalClasses]);
             if (applicationClasses[app]) {
-                var container = Core.inject('Container', [globalClasses]);
                 container.source(container, '.');
                 container.merge(applicationClasses);
                 return container;
             }
             else {
-                var container = Core.inject('Container', [globalClasses]);
                 container.source(container, '.');
                 return container;
             }

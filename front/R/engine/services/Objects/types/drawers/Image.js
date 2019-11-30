@@ -13,7 +13,6 @@ $R.service.class('Objects',
             var width = null, height = null,
                 image = null;
 
-
             this.watch('src', function (o, n) {
                 if (o !== n) {
                     image = Resource.image(n);

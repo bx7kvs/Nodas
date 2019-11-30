@@ -6,6 +6,7 @@ Core(function Fonts(Config, app) {
     var element = document.createElement('style');
 
     var families = {},
+        fontsDefined = false,
         format = Config.define('fontFormats', ['eot', 'svg', 'ttf', 'woff'], {
             isArray: true, custom: function (v) {
                 var result = true;
@@ -18,6 +19,7 @@ Core(function Fonts(Config, app) {
                 return result;
             }
         }).watch(function (v) {
+            fontsDefined = true;
             format = v;
             update();
         }),
@@ -41,13 +43,14 @@ Core(function Fonts(Config, app) {
 
     document.getElementsByTagName('head')[0].appendChild(element);
 
-    function fontString(font, root) {
+    function fontString(font) {
 
+        if(!fontsDefined) return false;
         var result = '';
 
         for (var w = 0; w < font.weight.length; w++) {
             for (var s = 0; s < font.style.length; s++) {
-                var filestring = root + '/' + font.name + '-' + font.weight[w] + '-' + font.style[s];
+                var filestring = Config.get('fontDir') + '/' + font.name + '-' + font.weight[w] + '-' + font.style[s];
                 var string = '@font-face {' +
                     'font-family: "' + self.format(font.name) + '-' + font.weight[w] + '";' +
                     'src:';
