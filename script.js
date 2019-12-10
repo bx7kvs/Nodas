@@ -8,19 +8,19 @@
     and start() called for the first time.
 
     Every application has own independent instances of services that can be injected as seen below.
-    These services proved functionality to make your app running.
+    These services proved functionality to make your sources running.
 
     You can create you own services for your applications using $R.service() interface and classes for them,
     using $R.service.cls interface
 
     You can also create your own classes using $R.cls() for global classes used in all applications
-    and $R.csl.app() interface to create class isolated for the corresponding app
+    and $R.csl.sources() interface to create class isolated for the corresponding sources
 
     In this example we can see three services Objects, Sound, Tree
 
     Those services let you do some useful things :) like:
 
-    Object : Creates graphical on the scene of class Graphics, like:
+    Object : Creates graphical on the Primitives of class Graphics, like:
             Objects.rect() - creates a rectangle
             Objects.circle() - creates a circle
             Objects.group() - creates a group
@@ -70,7 +70,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
             calling .rect() as seen above is equivalent to Object.rect().style({...your styles});
 
             Our object will be of size 100x100 and its position will be also x:100, y:100 from the left top corner
-            of the scene.
+            of the Primitives.
 
             And it will be filled red.
 
@@ -87,7 +87,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
         */
         sample = $S.sample('./front/audio/blink.mp3'),
 
-        /* Lets create some other objects on our scene and start with a sprite
+        /* Lets create some other objects on our Primitives and start with a sprite
         *  As you can see the passed src is rather unusual. [92] at the end of URL says that this sprite has 92 frames
         * rendered consequently. By default all sprites render with 12 fps.
         * sprite is loaded with a single file. It should be squred and splitted into equal parts horizontally and
@@ -310,7 +310,7 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
     buttonsGroup.append(lineButton3);
     buttonsGroup.append(lineButton4);
 
-    /* Lets position out buttons somewhere on the scene */
+    /* Lets position out buttons somewhere on the Primitives */
 
     buttonsGroup.style({
         position: [20, 200]
@@ -329,8 +329,8 @@ $R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
 
 /* We have discribed out application :)
 * It is time to run it!
-* We have already registered our application constructor at the very beginning using $R.app()
-* Now we just need to say Reflect, which app it should run by calling $R.run() and passing application's
+* We have already registered our application constructor at the very beginning using $R.sources()
+* Now we just need to say Reflect, which sources it should run by calling $R.run() and passing application's
 * constructor function name.
 *  */
 
@@ -342,7 +342,7 @@ var test = $R.run('TestApp');
     We will call a config function and pass some useful arguments in there.
  */
 test.config({
-    canvas: 'test-canvas', /* the id of the canvas at the page we would like to display our app. */
+    canvas: 'test-canvas', /* the id of the canvas at the page we would like to display our sources. */
     size: ['100%', '100%'], /* size of the canvas. It can be percents (of the parent element) or pixels (just numbers)*/
     warnings: true, /* Do we want our application to show warnings while it is working. Let them be. But there will be none :0*/
     clear: true, /* Should we erase the canvas each frame?

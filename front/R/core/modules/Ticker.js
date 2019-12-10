@@ -31,7 +31,7 @@ Core(function Ticker() {
                 clearInterval(interval);
                 resolve('error', e);
                 throw new Error('Unable to run ticker anymore. ' +
-                    'Error emerged during app ticker progress.\n ' +
+                    'Error emerged during sources ticker progress.\n ' +
                     'Frame :' + frame + '\n' +
                     'Date  : ' + args[0] + '\n' +
                     e.message

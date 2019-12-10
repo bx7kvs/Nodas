@@ -1,6 +1,8 @@
 /**
  * Created by Viktor Khodosevich on 14/08/2017.
  */
+
+
 function Reflect() {
 }
 
@@ -128,4 +130,5 @@ function Injection(f) {
     }
 }
 
-window.$R = core;
+var $R = core;
+

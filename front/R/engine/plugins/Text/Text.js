@@ -65,48 +65,50 @@ $R.plugin('Objects',
                         w = 0,
                         h = 0;
 
+                    console.log(string);
+                    if(pieces) {
+                        var font = style.get('systemFont'),
+                            fontSize = style.get('fontSize'),
+                            lineHeight = style.get('lineHeight'),
+                            fontWeight = style.get('weight'),
+                            color = style.get('color'),
+                            fontStyle = style.get('style');
 
-                    var font = style.get('systemFont'),
-                        fontSize = style.get('fontSize'),
-                        lineHeight = style.get('lineHeight'),
-                        fontWeight = style.get('weight'),
-                        color = style.get('color'),
-                        fontStyle = style.get('style');
-
-                    lines = [];
+                        lines = [];
 
 
-                    for (var i = 0; i < pieces.length; i++) {
+                        for (var i = 0; i < pieces.length; i++) {
 
-                        var usernewline = pieces[i].match(/\n/g),
-                            str = pieces[i].match(/\S+/g),
-                            word = inject('$TextWordClass').string(str[0]);
+                            var usernewline = pieces[i].match(/\n/g),
+                                str = pieces[i].match(/\S+/g),
+                                word = inject('$TextWordClass').string(str[0]);
 
-                        if (!lines[l]) lines[l] = inject('$TextLineClass')
-                            .font(font)
-                            .size(fontSize)
-                            .height(lineHeight)
-                            .color(color)
-                            .style(fontStyle)
-                            .weight(fontWeight);
+                            if (!lines[l]) lines[l] = inject('$TextLineClass')
+                                .font(font)
+                                .size(fontSize)
+                                .height(lineHeight)
+                                .color(color)
+                                .style(fontStyle)
+                                .weight(fontWeight);
 
-                        lines[l].push(word);
-                        lineWidth = lines[l].width();
+                            lines[l].push(word);
+                            lineWidth = lines[l].width();
 
-                        if (lineWidth >= limits[0] || usernewline) {
-                            l++;
+                            if (lineWidth >= limits[0] || usernewline) {
+                                l++;
+                            }
+                            if (lineWidth > w) w = lineWidth + 4;
                         }
-                        if (lineWidth > w) w = lineWidth + 4;
+                        height = lines.length * style.get('lineHeight');
+                        if (fontSize > lineHeight) {
+                            height += fontSize - lineHeight;
+                        }
+                        else if (fontSize < lineHeight) {
+                            height -= lineHeight - fontSize;
+                        }
+                        width = w;
+                        update = false;
                     }
-                    height = lines.length * style.get('lineHeight');
-                    if (fontSize > lineHeight) {
-                        height += fontSize - lineHeight;
-                    }
-                    else if (fontSize < lineHeight) {
-                        height -= lineHeight - fontSize;
-                    }
-                    width = w;
-                    update = false;
                 }
                 return this;
             };

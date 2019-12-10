@@ -4,7 +4,6 @@
 $R.service(
     ['@Canvas', '@Config', 'Debug',
         function Canvas(Canvas, Config, Debug) {
-
             var callbacks = [], width = 0, height = 0, dimms = [0, 0], xunits = 'px', yunits = 'px',
                 offset = [0, 0], scroll = [0, 0], output = Canvas.element(), self = this;
 

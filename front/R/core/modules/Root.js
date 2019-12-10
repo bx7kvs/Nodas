@@ -36,10 +36,13 @@ Core(function Root() {
         appContainer.source(appClasses, '.');
         appContainer.source(appPubHelpers, '+');
         appContainer.source(appDefaults, '@');
+
         for(var i = 0; i < appServices.length; i++) {
             var list = appServices[i].list();
-            for(var l = 0 ; l < list.length; l++) {
-                appServices[i].resolve(list[l]);
+            for(var prop in list) {
+                if(list.hasOwnProperty(prop)) {
+                    appServices[i].resolve(prop);
+                }
             }
         }
         appContainer.resolve(app);
@@ -68,7 +71,7 @@ Core(function Root() {
             }
         }
         else {
-            throw new Error('Unable to get app. App Id is not a string');
+            throw new Error('Unable to get sources. App Id is not a string');
         }
     });
 });

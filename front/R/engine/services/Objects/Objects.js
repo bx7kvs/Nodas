@@ -47,9 +47,7 @@ $R.service(
             this.area = function () {
                 return InjectByType('Area', arguments);
             };
-
             Tree.root(this.group());
-
         }
     ]
 );

@@ -39,7 +39,7 @@ function compileES6() {
             mangle: {keep_fnames: true},
             compress: {keep_fnames: true}
         }))
-        .pipe(wrap('<%= contents %> export default core'))
+        .pipe(wrap('<%= contents %> export default $R;'))
         .pipe(sourcemaps.write())
         .pipe(gulp.dest('./output'));
 }

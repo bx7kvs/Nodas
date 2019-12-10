@@ -2,8 +2,8 @@
  * Created by Viktor Khodosevich on 5/11/2017.
  */
 $R.service(
-    ['@app', '@Canvas', '@inject', 'Debug',
-        function Keyboard(app, canvas, inject, Debug) {
+    ['@Ticker', 'Canvas', '@inject', 'Debug',
+        function Keyboard(Ticker, Canvas, inject, Debug) {
 
             var callbacks = {},
                 active = false,
@@ -72,7 +72,7 @@ $R.service(
 
             var canvasClicked = false;
 
-            canvas.element().addEventListener('mousedown', function () {
+            Canvas.on('mousedown', function () {
                 canvasClicked = true;
             });
 
@@ -95,13 +95,13 @@ $R.service(
                 queue.push(getQueueFunc(e));
             });
 
-            app.$on('start', function () {
+            Ticker.queue(0, OnAppTick);
+            Ticker.on('start', function () {
                 active = true;
             });
-            app.$on('stop', function () {
+            Ticker.on('stop', function () {
                 active = false;
             });
-            app.$('tick', OnAppTick);
         }
     ]
 );

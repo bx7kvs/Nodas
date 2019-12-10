@@ -18,11 +18,11 @@ $R.service.class('Morphine', [
             };
 
             this.pause = function () {
-                pasued = true;
+                paused = true;
             };
 
             this.paused = function () {
-                return pasued;
+                return paused;
             };
 
             this.stop = function () {
@@ -30,12 +30,12 @@ $R.service.class('Morphine', [
             };
 
             var progress = 0,
-                pasued = false,
+                paused = false,
                 done = false;
 
             function Tick(time) {
                 if (!done) {
-                    if (pasued) {
+                    if (paused) {
                         start_time = new Date().getTime() - (duration * progress);
                         return;
                     }

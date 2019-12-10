@@ -34,7 +34,7 @@ Core(function Classes() {
                 applicationClasses[app][injection.name()] = injection;
             }
             catch (e) {
-                throw new Error('Unable to create and register ApplicationClass for app [' + app + '].');
+                throw new Error('Unable to create and register ApplicationClass for sources [' + app + '].');
             }
         }
         else {

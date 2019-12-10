@@ -44,7 +44,7 @@ $R.service(
                         var matchname = matches[i].match(regexpname)[0];
                         if (matchname) props[matchname] = {
                             replace: matches[i],
-                            data: data[matchname].toString()
+                            data: '[' +data[matchname].toString() + ']'
                         }
                     }
                 }
@@ -55,11 +55,10 @@ $R.service(
                     message = message.replace(props[prop].replace, props[prop].data);
                 }
 
-                message = string + message;
-
                 if(source && source.constructor && source.constructor.name) {
                     message = '['+source.constructor.name+'] : ' + message;
                 }
+                message = string + message;
                 return message;
             }
 

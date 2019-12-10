@@ -68,7 +68,6 @@ $R.service.class('Objects',
                 context.globalAlpha *= style.get('opacity');
 
                 DrawerHelper.transform(this, context);
-
                 layers.forEach(function () {
                     var odrawer = this.extension('Drawer'),
                         type = this.type();

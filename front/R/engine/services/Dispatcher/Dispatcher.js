@@ -126,7 +126,7 @@ $R.service(
             }
 
             function resolveEventByType(type) {
-                if ((type === 'mouseenter' || type === 'drastart' || type === 'dragend' || type === 'dragmove' ||
+                if ((type === 'mouseenter' || type === 'dragstart' || type === 'dragend' || type === 'dragmove' ||
                     type === 'mousemove' || type === 'mouseup' || type === 'mousedown') && target.current) {
                     Dispatch(type, target.current);
                 }

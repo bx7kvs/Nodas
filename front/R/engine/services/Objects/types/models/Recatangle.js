@@ -558,8 +558,6 @@ $R.service.class('Objects',
                     return value;
                 }
             )
-
-
         }
     ]
 );

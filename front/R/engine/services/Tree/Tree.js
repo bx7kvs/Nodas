@@ -46,7 +46,6 @@ $R.service(
                 if (clear) context.clearRect(0, 0, context.canvas.offsetWidth, context.canvas.offsetHeight);
                 rootDrawer.draw.apply(root, arguments);
             });
-
         }
     ]
 );

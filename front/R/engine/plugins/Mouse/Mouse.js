@@ -2,10 +2,11 @@
  * Created by Viktor Khodosevich on 2/2/2017.
  */
 $R.plugin('Objects',
-    ['+Mouse', 'Dispatcher', 'Tree', 'Debug',
-        function Mouse(MouseHelper, Dispatcher, Tree, Debug) {
+    ['+Mouse', 'Debug',
+        function Mouse(MouseHelper, Debug) {
 
             var callbacks = {
+
                     dragmove: [],
                     dragstart: [],
                     dragend: [],
