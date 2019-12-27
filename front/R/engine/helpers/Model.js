@@ -23,7 +23,7 @@ $R.helper.system(
 
                 for (var i = 0; i < array.length; i++) {
                     if (typeof array[i] == "object") {
-                        if (array[i].constructor == Array) {
+                        if (array[i].constructor === Array) {
                             result.push(this.cloneArray(array[i]))
                         }
                         else {
@@ -33,7 +33,7 @@ $R.helper.system(
                     else if (typeof array[i] == "function") {
                         var text = array[i].toString();
                         result.push(eval(text));
-                        Debug.warn('You clone functions! It can be slow!');
+                        Debug.warn('You\'ve just cloned a function. It may be slow', this);
                     }
                     else {
                         result.push(array[i]);

@@ -42,15 +42,22 @@ $R.service.class('Objects',
                 );
             });
 
-            drawer.f(function (context, time, frame) {
-                if (image && image.loaded() && !image.error()
+            var allow = false;
+            drawer.filter(function (context, time) {
+                allow = image && image.loaded() && !image.error()
                     && image.ready()
                     && width !== null && height !== null
-                    && width > 0 && height > 0) {
-                    DrawerHelper.transform(this, context);
+                    && width > 0 && height > 0;
+                if(allow) {
                     image.tick(time);
-                    context.drawImage(image.export(), 0, 0, width, height);
                 }
+                return allow;
+            });
+
+            drawer.exports(image.export);
+            drawer.f(function (context) {
+                DrawerHelper.transform(this, context);
+                context.drawImage(drawer.export(), 0, 0, width, height);
             });
 
             this.watch('src', function (o, n) {

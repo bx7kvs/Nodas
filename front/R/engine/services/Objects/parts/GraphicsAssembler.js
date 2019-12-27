@@ -23,7 +23,7 @@ $R.service.class('Objects', ['@inject', 'Debug', function GraphicsAssembler(inje
         h = height;
     }
 
-    function compose(ctx) {
+    function compose() {
         if(!resized) {
             if(boxExt) {
                 var sprite = boxExt.box().sprite();
@@ -40,7 +40,7 @@ $R.service.class('Objects', ['@inject', 'Debug', function GraphicsAssembler(inje
             }
             ready = true;
         }
-        ctx.drawImage(output.export(),0,0);
+        return output.export();
     }
 
     this.layer = function (order, name, updateFunc) {
@@ -93,6 +93,6 @@ $R.service.class('Objects', ['@inject', 'Debug', function GraphicsAssembler(inje
         layers[name].update();
     };
 
-    this.draw = compose;
+    this.export = compose;
 
 }]);

@@ -53,8 +53,10 @@ $R.service(
                 focused = true;
             });
 
-            function DefaultREvent(type, target) {
-                var _type = type, propagate = true, _target = target, _originalTarget = target;
+            function DefaultREvent(type, target, data) {
+                var _type = type, propagate = true, _target = target, _originalTarget = target,
+                     data = typeof  data === "object" && data !== null ? JSON.parse(JSON.stringify(data)) : null;
+
                 this.type = function () {
                     return _type;
                 };
@@ -86,12 +88,13 @@ $R.service(
                         _target = this.$$RESETTARGET;
                     }
                     return _originalTarget;
-                }
+                };
             }
 
             function MouseEvent(type, target) {
                 DefaultREvent.apply(this, [type, target]);
                 this.cursor = [cursor.current[0], cursor.current[1]];
+                Object.freeze(this);
             }
 
             function DragEvent(type, target) {
@@ -101,6 +104,7 @@ $R.service(
                     current: [drag.current[0], drag.current[1]],
                     delta: [drag.delta[0], drag.delta[1]]
                 };
+                Object.freeze(this);
             }
 
             function getEventByType(type, target) {
@@ -121,7 +125,7 @@ $R.service(
                 if (!targetMouse) return;
 
                 if (targetMouse.hasEvent(event)) {
-                    targetMouse.resolve(target, event, getEventByType(event));
+                    targetMouse.resolve(target, event, getEventByType(event, target));
                 }
             }
 
@@ -190,7 +194,7 @@ $R.service(
                     }
 
 
-                    if (!mousedown.current && mousedown.current === mousedown.old) {
+                    if (mousedown.current === mousedown.old) {
                         resolveEventByType('mousemove');
                     }
                 }

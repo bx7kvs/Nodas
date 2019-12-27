@@ -46,9 +46,10 @@ $R.service.class('Objects',
                 );
             });
 
+            drawer.exports(assembler.export);
             drawer.f(function (context) {
                 DrawerHelper.transform(this, context);
-                assembler.draw(context);
+                context.drawImage(drawer.export(), 0, 0);
             });
 
             this.watch('size', function (o, n) {
@@ -133,8 +134,7 @@ $R.service.class('Objects',
 
                 if (radius[0] > 0) {
                     context.moveTo(sprite.margin[3] + radius[0], sprite.margin[0]);
-                }
-                else {
+                } else {
                     context.moveTo(sprite.margin[3], sprite.margin[0]);
                 }
 
@@ -155,8 +155,7 @@ $R.service.class('Objects',
                         box.size[0] + sprite.margin[3],
                         sprite.margin[0] + radius[1]
                     );
-                }
-                else {
+                } else {
                     context.lineTo(box.size[0] + sprite.margin[3], sprite.margin[0]);
                 }
 
@@ -185,8 +184,7 @@ $R.service.class('Objects',
                         box.size[1] + sprite.margin[0]
                     );
                     if (stroke) context.stroke();
-                }
-                else {
+                } else {
                     context.lineTo(box.size[0] + sprite.margin[3], box.size[1] + sprite.margin[0]);
                     if (stroke) context.stroke();
                 }
@@ -209,8 +207,7 @@ $R.service.class('Objects',
                         sprite.margin[3],
                         box.size[1] + sprite.margin[0] - radius[3]
                     );
-                }
-                else {
+                } else {
                     context.lineTo(sprite.margin[3], box.size[1] + sprite.margin[0]);
                 }
 
@@ -241,8 +238,7 @@ $R.service.class('Objects',
                         sprite.margin[0]
                     );
                     if (stroke) context.stroke();
-                }
-                else {
+                } else {
                     context.lineTo(sprite.margin[3], sprite.margin[0]);
                     if (stroke) context.stroke();
                 }
@@ -309,8 +305,7 @@ $R.service.class('Objects',
 
                 if (hasRadius()) {
                     drawRectPath(context);
-                }
-                else {
+                } else {
                     context.rect(sprite.margin[3], sprite.margin[0], box.size[0], box.size[1]);
                 }
 
@@ -322,8 +317,7 @@ $R.service.class('Objects',
                         bg[i].on('load', function () {
                             assembler.update('bg');
                         });
-                    }
-                    else {
+                    } else {
                         context.save();
                         var bgwidth = box.size[0] * bgsize[i][0],
                             bgheight = box.size[1] * bgsize[i][1],
@@ -348,8 +342,7 @@ $R.service.class('Objects',
 
                     if (hasRadius()) {
                         drawRectPath(context, true);
-                    }
-                    else {
+                    } else {
                         if (monoStroke()) {
                             var cap = style.get('cap');
                             context.lineCap = cap;
@@ -376,8 +369,7 @@ $R.service.class('Objects',
 
                 if (hasRadius()) {
                     drawRectPath(context);
-                }
-                else {
+                } else {
                     context.rect(sprite.margin[3], sprite.margin[0], box.size[0], box.size[1]);
                 }
                 context.fillStyle = fill;

@@ -60,35 +60,15 @@ $R.service.class('Objects',
                 box.purge();
             });
 
-            drawer.f(function (context, time, frame) {
-
-                var args = arguments;
-                context.save();
-
-                context.globalAlpha *= style.get('opacity');
-
-                DrawerHelper.transform(this, context);
+            var _argumnets;
+            drawer.f(function () {
+                _argumnets = arguments;
+                _argumnets[0].save();
+                DrawerHelper.transform(this, _argumnets[0]);
                 layers.forEach(function () {
-                    var odrawer = this.extension('Drawer'),
-                        type = this.type();
-
-                    if (type === 'Group') {
-                        odrawer.draw.apply(this, args);
-                    }
-                    else {
-                        var ostyle = this.extension('Style');
-
-                        context.save();
-                        context.globalCompositeOperation = ostyle.get('blending');
-                        context.globalAlpha *= ostyle.get('opacity');
-                        odrawer.draw.apply(this, args);
-                        context.restore();
-                    }
-
+                    this.extension('Drawer').draw.apply(this, _argumnets);
                 });
-
-                context.restore();
-
+                _argumnets[0].restore();
             });
         }
     ]

@@ -296,22 +296,21 @@ $R.service.class('Objects',
                     return value;
                 }
             );
-
-            if (this.type() !== 'Group') {
-                style.define(0, 'blending', 'source-over',
-                    function (value) {
-                        if (ModelHelper.validBlending(value)) {
-                            return value;
-                        }
-                        else {
-                            Debug.warn({val: value}, ' [{val}] is not a valid blending!');
-                            return false;
-                        }
-                    },
-                    function (value) {
+            style.define(0, 'blending', 'source-over',
+                function (value) {
+                    if (ModelHelper.validBlending(value)) {
                         return value;
                     }
-                );
+                    else {
+                        Debug.warn({val: value}, ' [{val}] is not a valid blending!');
+                        return false;
+                    }
+                },
+                function (value) {
+                    return value;
+                }
+            );
+            if (this.type() !== 'Group') {
                 style.define(1, 'anchor', ['left', 'top'],
                     function (value) {
                         if (typeof value === "object" && value.constructor === Array && value.length === 2) {

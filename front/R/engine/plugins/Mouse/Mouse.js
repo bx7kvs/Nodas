@@ -6,7 +6,6 @@ $R.plugin('Objects',
         function Mouse(MouseHelper, Debug) {
 
             var callbacks = {
-
                     dragmove: [],
                     dragstart: [],
                     dragend: [],
@@ -115,7 +114,7 @@ $R.plugin('Objects',
                     return this;
                 }
                 if (typeof func !== "function") {
-                    Debug.warn({f: func}, 'Unable to set check function! {[f]} is not a function!');
+                    Debug.warn({f: func}, 'Unable to set check function! {[f]} is not a function!', this);
                     return this;
                 }
                 mouseCheckFunction = func;
@@ -156,7 +155,7 @@ $R.plugin('Objects',
             };
 
             this.hasEvent = function (event) {
-                return callbacks[event] && callbacks[event].length && !callbacks[event].$$OFF;
+                return callbacks[event];
             };
 
             this.propagate = function (target, eventObj) {
@@ -178,15 +177,14 @@ $R.plugin('Objects',
                 var array = GetEventArray(event);
 
                 if (array) {
-                    if (array.$OFF) return;
-
-                    for (var i = 0; i < array.length; i++) {
-                        array[i].call(target, eventObj);
+                    if (!array.$OFF) {
+                        for (var i = 0; i < array.length; i++) {
+                            array[i].call(target, eventObj);
+                        }
                     }
-
-                    if (eventObj.propagate()) {
-                        this.propagate(target, eventObj);
-                    }
+                }
+                if (eventObj.propagate()) {
+                    this.propagate(target, eventObj);
                 }
                 else {
                     Debug.warn({e: event}, 'Unable to resolve event [{e}]. No such event!');

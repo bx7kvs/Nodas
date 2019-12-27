@@ -42,9 +42,10 @@ $R.service(
                 if (matches) {
                     for (var i = 0; i < matches.length; i++) {
                         var matchname = matches[i].match(regexpname)[0];
+                        console.log(data[matchname]);
                         if (matchname) props[matchname] = {
                             replace: matches[i],
-                            data: '[' +data[matchname].toString() + ']'
+                            data: '[' + (data[matchname] === undefined ? 'undefined' : data[matchname].toString()) + ']'
                         }
                     }
                 }
@@ -55,8 +56,8 @@ $R.service(
                     message = message.replace(props[prop].replace, props[prop].data);
                 }
 
-                if(source && source.constructor && source.constructor.name) {
-                    message = '['+source.constructor.name+'] : ' + message;
+                if (source && source.constructor && source.constructor.name) {
+                    message = '[' + source.constructor.name + '] : ' + message;
                 }
                 message = string + message;
                 return message;

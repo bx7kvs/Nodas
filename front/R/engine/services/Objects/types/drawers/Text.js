@@ -32,8 +32,7 @@ $R.service.class('Objects',
 
                 if (fontSize < lineHeight) {
                     topSpan = topSpan - (lineHeight - fontSize);
-                }
-                else {
+                } else {
                     topSpan = topSpan + (fontSize - lineHeight);
                 }
                 text.forEachLine(function (i) {
@@ -44,11 +43,9 @@ $R.service.class('Objects',
                     context.fillStyle = this.color();
                     if (align === 'center') {
                         context.fillText(this.string(), (text.textBlockWidth() - this.width()) / 2, y);
-                    }
-                    else if (align === 'right') {
+                    } else if (align === 'right') {
                         context.fillText(this.string(), text.textBlockWidth() - this.width() - 2, y);
-                    }
-                    else {
+                    } else {
                         context.fillText(this.string(), 2, y);
                     }
                 });
@@ -72,14 +69,20 @@ $R.service.class('Objects',
                 })
             }
 
-            function drawText(context) {
+            drawer.filter = function () {
                 if (require_update) {
                     assembler.size(text.textBlockWidth(), text.textBlockHeight());
                     assembler.update('text');
                     require_update = false;
                 }
+                return true;
+            };
+
+            drawer.exports(assembler.export);
+
+            function drawText(context) {
                 DrawerHelper.transform(this, context);
-                assembler.draw(context);
+                context.drawImage(drawer.export(), 0, 0);
             }
 
             this.watch(['str', 'style', 'font', 'weight', 'size', 'color', 'fontSize', 'lineHeight'], function () {

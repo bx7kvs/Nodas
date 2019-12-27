@@ -172,11 +172,14 @@ $R.service.class('Objects',
 
                 require_update = false;
             }
-
-            drawer.f(function (context) {
+            drawer.filter(function () {
                 if (require_update) UpdateCanvas.call(this);
+                return true;
+            });
+            drawer.exports(canvas.export);
+            drawer.f(function (context) {
                 DrawerHelper.transform(this, context);
-                context.drawImage(canvas.export(), 0, 0);
+                context.drawImage(drawer.export(), 0, 0);
             });
 
         }

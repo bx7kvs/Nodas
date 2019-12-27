@@ -64,14 +64,18 @@ $R.service.class('Objects',
                 }
                 boxContainer.set(x, y, width ? width : 0, height ? height : 0, 0, 0, 0, 0);
             });
-
-            drawer.f(function (context) {
-                if (image && image.loaded() && !image.error() &&
+            drawer.filter(function () {
+                return image && image.loaded() && !image.error() &&
                     width !== null &&
-                    height !== null && width > 0 && height > 0) {
-                    DrawerHelper.transform(this, context);
-                    context.drawImage(image.export(), 0, 0, width, height);
-                }
+                    height !== null && width > 0 && height > 0;
+            });
+
+            drawer.exports(function () {
+                return image.export();
+            });
+            drawer.f(function (context) {
+                DrawerHelper.transform(this, context);
+                context.drawImage(drawer.export(), 0, 0, width, height);
             });
 
         }

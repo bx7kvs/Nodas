@@ -32,7 +32,7 @@ $R.helper.system(
             this.convertSimplePath = function (path) {
 
                 if (path.length < 2) {
-                    Debug.error('Path should consist of at least two points!');
+                    Debug.error('Path should consist of at least two points!', this);
                     return;
                 }
 
@@ -43,7 +43,7 @@ $R.helper.system(
                         y = path[i][1];
 
                     if (typeof x !== "number" || typeof  y !== "number") {
-                        Debug.error('Incorrect Path!');
+                        Debug.error('Incorrect Path!', this);
                         result = undefined;
                         break;
                     }
@@ -74,7 +74,7 @@ $R.helper.system(
 
                     var prev = [], mid = [path[i][0], path[i][1]], next = [path[i][2], path[i][3]], pts = null;
 
-                    if (i == 0) {
+                    if (i === 0) {
                         prev = mid;
                     }
                     else {
@@ -84,7 +84,7 @@ $R.helper.system(
 
                     pts = getControlPoints(prev[0], prev[1], mid[0], mid[1], next[0], next[1], smoothing);
 
-                    if (i == 0) {
+                    if (i === 0) {
                         path[i][4] = pts[2];
                         path[i][5] = pts[3];
                     }
@@ -95,7 +95,7 @@ $R.helper.system(
                         path[i][5] = pts[3];
                     }
 
-                    if (i == path.length - 1) {
+                    if (i === path.length - 1) {
 
                         prev = [path[i][0], path[i][1]];
                         mid = [path[i][2], path[i][3]];
@@ -129,19 +129,19 @@ $R.helper.system(
             this.checkSimplePath = function (path) {
                 if (typeof path !== "object" || path.constructor !== Array) return false;
 
-                var deepcheck = true;
+                var result = true;
 
                 for (var i = 0; i < path.length; i++) {
                     if (
                         typeof path[i] !== "object" || path[i].constructor !== Array || path[i].length !== 2 ||
                         typeof path[i][0] !== "number" || typeof  path[i][1] !== "number"
                     ) {
-                        deepcheck = false;
+                        result = false;
                         break;
                     }
                 }
 
-                return deepcheck;
+                return result;
             };
 
             this.comparePaths = function (path1, path2) {

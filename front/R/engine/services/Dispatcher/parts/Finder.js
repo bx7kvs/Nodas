@@ -21,7 +21,7 @@ $R.service.class('Dispatcher',
                                     _result = mouseext.check(this, cursor);
 
                                 if (_result) {
-                                    result = _result
+                                    result = this;
                                 }
                             }
                         }

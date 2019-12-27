@@ -32,15 +32,25 @@ Core(function Root() {
             appSysClasses = classes.getSystemClasses(app),
             appServices = services.getApplicationServices(appSysHelpers, appSysClasses, appDefaults);
 
+        //Allows application constructor to inject Services
         appContainer.source(appServices, false);
+        //Allows application constructor to inject Classes
         appContainer.source(appClasses, '.');
+        //Allows application constructor to inject public helpers
         appContainer.source(appPubHelpers, '+');
+        //Allows application constructor to inject system injection function and root elements containers
         appContainer.source(appDefaults, '@');
+        //Allows App classes to inject app services
+        appClasses.source(appServices, false);
+        //Allows App classes to inject app defaults
+        appClasses.source(appDefaults, '@');
+        //Allows App classes to inject app helpers
+        appClasses.source(appSysHelpers, '+');
 
-        for(var i = 0; i < appServices.length; i++) {
+        for (var i = 0; i < appServices.length; i++) {
             var list = appServices[i].list();
-            for(var prop in list) {
-                if(list.hasOwnProperty(prop)) {
+            for (var prop in list) {
+                if (list.hasOwnProperty(prop)) {
                     appServices[i].resolve(prop);
                 }
             }
@@ -54,8 +64,7 @@ Core(function Root() {
             var application = Core.inject('Injection', [cfg]);
             if (apps[application.name()]) console.warn('Application [' + application.name() + '] override. Remove duplicates');
             apps[application.name()] = application;
-        }
-        catch (e) {
+        } catch (e) {
             console.error('Unable to register Application constructor.');
             throw e;
         }
@@ -65,12 +74,10 @@ Core(function Root() {
         if (typeof app === "string") {
             if (apps[app]) {
                 return createApplication(app);
-            }
-            else {
+            } else {
                 throw new Error('Application [' + app + '] not found.');
             }
-        }
-        else {
+        } else {
             throw new Error('Unable to get sources. App Id is not a string');
         }
     });
