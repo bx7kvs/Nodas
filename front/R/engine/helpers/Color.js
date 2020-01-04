@@ -60,8 +60,7 @@ $R.helper.system(
         this.normalize = NormalizeColorArray;
         this.isColor = function (array) {
             var error = false;
-            if (array.length == 4) {
-                var valerror = false;
+            if (array.length === 4) {
                 for (var i = 0; i < array.length; i++) {
                     if (typeof array[i] == 'number' || typeof array[i] == 'string') {
                         if (typeof  array[i] == 'string' && isNaN(array[i] * 1)) {
@@ -77,16 +76,16 @@ $R.helper.system(
                 error = true;
             }
             if (error) {
-                console.warn('Silk : Check for color unsuccessful. "' + array + '" is not a color Array.');
+                console.warn({array : array}, 'Invalid Color {array}. Value is not a color Array.', this);
             }
             return !error;
         };
 
         this.arrayToColor = function (array) {
-            if (array && array.length == 4) {
+            if (array && array.length === 4) {
                 var string = 'rgba(';
                 for (var i = 0; i < array.length; i++) {
-                    string += i == 3 ? array[i] + ')' : array[i] + ',';
+                    string += i === 3 ? array[i] + ')' : array[i] + ',';
                 }
                 return string;
             }
@@ -95,4 +94,4 @@ $R.helper.system(
                 return false;
             }
         }
-    })
+    });

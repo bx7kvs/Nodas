@@ -37,11 +37,21 @@ $R.plugin('Objects',
                     parent.extension('Box').purge();
                 }
             };
-
             this.register('box', function () {
                 return this.extension('Cache').value('box', BoxWrapperFunc).get();
             });
-
+            this.register('width', function () {
+                return this.extension('Cache').value('box', BoxWrapperFunc).get().size[0];
+            });
+            this.register('height', function () {
+                return this.extension('Cache').value('box', BoxWrapperFunc).get().size[1];
+            });
+            this.register('left', function () {
+                return this.extension('Cache').value('box', BoxWrapperFunc).get().position[0];
+            });
+            this.register('top', function () {
+                return this.extension('Cache').value('box', BoxWrapperFunc).get().position[1];
+            });
         }
     ]
 );

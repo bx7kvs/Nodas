@@ -68,7 +68,7 @@ $R.helper.system(
                 var result = false;
 
                 for (var i = 0; i < blendings.length; i++) {
-                    if (blendings[i] == value) {
+                    if (blendings[i] === value) {
                         result = true;
                         break;
                     }

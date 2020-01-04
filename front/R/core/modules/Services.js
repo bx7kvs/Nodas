@@ -185,13 +185,16 @@ Core(function Services() {
                             _servicesPlugins[service][plugin] = _plugin;
                             if (pluginsClasses[service][plugin]) {
                                 var _pluginClassesContainer = Core.inject('Container', [pluginsClasses[service][plugin]]);
+
                                 if (!_servicesPluginsClasses[service]) _servicesPluginsClasses[service] = {};
                                 _servicesPluginsClasses[service][plugin] = _pluginClassesContainer;
+
                                 _plugin.source(_pluginClassesContainer, '$');
                                 _pluginClassesContainer.source(_pluginClassesContainer, '$');
                                 _pluginClassesContainer.source(_sysClasses, '.');
                                 _pluginClassesContainer.source(_helpers, '+');
                             }
+                            _plugin.source(_engineDefaults, '@');
                             _plugin.source(_sysClasses, '.');
                             _plugin.source(_helpers, '+');
                             _plugins.push(_plugin);

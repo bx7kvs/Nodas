@@ -3,7 +3,7 @@
  */
 $R.service.class('Resource',
     ['@extend', 'Debug', '@Config', '@Fonts',
-        function Font(extend, Debug, config, Fonts) {
+        function FontResource(extend, Debug, config, Fonts) {
 
             extend(this, '$Resource');
 

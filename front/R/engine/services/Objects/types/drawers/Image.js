@@ -2,11 +2,12 @@
  * Created by bx7kv_000 on 1/13/2017.
  */
 $R.service.class('Objects',
-    ['+Drawer', 'Resource',
-        function ImageObjectDrawer(DrawerHelper, Resource) {
+    ['+Drawer', 'Resource', '@inject',
+        function ImageObjectDrawer(DrawerHelper, Resource, inject) {
 
             var style = this.extension('Style'),
                 box = this.extension('Box'),
+                canvas = inject('$Canvas'),
                 drawer = this.extension('Drawer'),
                 matrix = this.extension('Matrix');
 
@@ -18,13 +19,17 @@ $R.service.class('Objects',
                     image = Resource.image(n);
                     image.on('load', function () {
                         if (width === null) {
-                            width = image.width();
+                            width = style.get('size')[0] ? style.get('size')[0] : image.width();
+                            canvas.width(width);
                         }
                         if (height === null) {
-                            height = image.height();
+                            height = style.get('size')[1] ? style.get('size')[1] : image.height();
+                            canvas.height(height);
                         }
+                        canvas.context().drawImage(image.export(), 0, 0, width, height);
                         matrix.purge();
                         box.purge();
+                        drawer.spriteUpdated.call({$$CALL: true});
                     });
                 }
             });
@@ -33,6 +38,10 @@ $R.service.class('Objects',
                 if (o[0] !== n[0] || o[1] !== n[1]) {
                     width = n[0];
                     height = n[1];
+                    canvas.width(width);
+                    canvas.height(height);
+                    canvas.context().clearRect(0, 0, canvas.width(), canvas.height());
+                    canvas.context().drawImage(image.export(), 0, 0, width, height);
                     box.purge();
                 }
             });
@@ -64,16 +73,16 @@ $R.service.class('Objects',
                 }
                 boxContainer.set(x, y, width ? width : 0, height ? height : 0, 0, 0, 0, 0);
             });
+
             drawer.filter(function () {
                 return image && image.loaded() && !image.error() &&
                     width !== null &&
                     height !== null && width > 0 && height > 0;
             });
 
-            drawer.exports(function () {
-                return image.export();
-            });
-            drawer.f(function (context) {
+            drawer.export(canvas.export);
+
+            drawer.drawFunction(function (context) {
                 DrawerHelper.transform(this, context);
                 context.drawImage(drawer.export(), 0, 0, width, height);
             });

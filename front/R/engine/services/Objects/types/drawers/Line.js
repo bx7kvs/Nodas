@@ -86,7 +86,6 @@ $R.service.class('Objects',
                     fix,
                     fix
                 );
-
             });
 
             this.watch('path', function () {
@@ -161,8 +160,7 @@ $R.service.class('Objects',
                     if (path.length > 0) {
                         DrawerHelper.drawBezierPath(ctx, path, style);
                     }
-                }
-                else {
+                } else {
                     if (path.length > 0) {
                         DrawerHelper.drawLinePath(ctx, path, style);
                     }
@@ -172,12 +170,13 @@ $R.service.class('Objects',
 
                 require_update = false;
             }
+
             drawer.filter(function () {
                 if (require_update) UpdateCanvas.call(this);
                 return true;
             });
-            drawer.exports(canvas.export);
-            drawer.f(function (context) {
+            drawer.export(canvas.export);
+            drawer.drawFunction(function (context) {
                 DrawerHelper.transform(this, context);
                 context.drawImage(drawer.export(), 0, 0);
             });

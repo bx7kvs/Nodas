@@ -13,7 +13,10 @@ $R.service.class('Objects',
                 return resolved_plugins[name];
             };
 
-            this.type = function () {
+            this.type = function (str) {
+                if(typeof str === "string") {
+                    return  type === str;
+                }
                 return type;
             };
 
@@ -41,7 +44,7 @@ $R.service.class('Objects',
                 extend(this, '$' + t + 'ObjectDrawer');
                 extend(this, '$DefaultObjectType');
                 extend(this, '$' + t + 'ObjectClass');
-
+                return this;
             };
         }
     ]

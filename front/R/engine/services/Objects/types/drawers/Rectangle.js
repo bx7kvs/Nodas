@@ -46,8 +46,8 @@ $R.service.class('Objects',
                 );
             });
 
-            drawer.exports(assembler.export);
-            drawer.f(function (context) {
+            drawer.export(assembler.export);
+            drawer.drawFunction(function (context) {
                 DrawerHelper.transform(this, context);
                 context.drawImage(drawer.export(), 0, 0);
             });

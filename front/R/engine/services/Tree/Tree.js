@@ -13,27 +13,25 @@ $R.service(
             this.root = function (object) {
                 if (!root) {
                     if (!object.type || typeof object.type !== "function" || object.type() !== 'Group') {
-                        Debug.error({}, 'Tree / Unable to set tree root! Wrong object type!');
+                        Debug.error({object: object.constructor, type : typeof object.type !== "function" ? object.type() : 'unknownType'}, 'Unable to set tree root as {object}{type}. Object is not a group.', this);
                         return;
                     }
-
                     root = object;
 
                     var drawer = root.extension('Drawer');
 
                     if (!drawer) {
-                        Debug.error({}, 'Tree / Unable to get Drawer extension!');
+                        Debug.error({object : object.type()}, '{object} has no drawer extension', this);
                         return;
                     }
                     if (!drawer.draw || typeof drawer.draw !== "function") {
-                        Debug.error({}, 'Tree / Unable to register root Drawer. Drawer.draw is not a function!');
+                        Debug.error({object : object.type()}, '{object} incompatible drawer extension', this);
                         return;
                     }
 
                     rootDrawer = drawer;
 
                     rootStyle = root.extension('Style');
-
                     return root;
                 }
                 else {

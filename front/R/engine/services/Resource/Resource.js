@@ -7,10 +7,10 @@ $R.service(
 
             var all = [],
                 container = {
-                    images: [],
-                    sprites: [],
-                    fonts: [],
-                    audios: []
+                    ImageResources: [],
+                    SpriteResources: [],
+                    FontResources: [],
+                    AudioResources: []
                 },
                 loadCounter = 0,
                 self = this,
@@ -38,24 +38,21 @@ $R.service(
                 var existed = GetResourceByURL(type, src);
                 if (existed) {
                     return existed;
-                }
-                else {
+                } else {
                     var _type = type;
 
-                    var result = inject('$' + type.charAt(0).toUpperCase() + type.slice(1));
+                    var result = inject('$' + type);
 
                     result.on('load', function () {
                         loadCounter--;
                         ResolveEvent('load', [this, loadCounter, all.length]);
                     });
-
                     result.on('error', function () {
                         loadCounter--;
                         ResolveEvent('error', [this, loadCounter, all.length]);
                     });
 
                     result.url(src);
-
 
                     container[_type + 's'].push(result);
 
@@ -70,15 +67,15 @@ $R.service(
             }
 
             this.image = function (src) {
-                return InjectByType('image', src);
+                return InjectByType('ImageResource', src);
             };
 
             this.sprite = function (src) {
-                return InjectByType('sprite', src);
+                return InjectByType('SpriteResource', src);
             };
 
             this.audio = function (src) {
-                return InjectByType('audio', src);
+                return InjectByType('AudioResource', src);
             };
 
             function preloadRequest(data) {
@@ -86,10 +83,9 @@ $R.service(
                     for (var i = 0; i < data.images.length; i++) {
                         if (typeof data.images[i] === "string") {
                             if (/^([./_\da-zA-Z]+)(\[(\d+)\])$/.test(data.images[i])) {
-                                self.sprite(data.images[i]);
-                            }
-                            else {
-                                self.image(data.images[i]);
+                                this.sprite(data.images[i]);
+                            } else {
+                                this.image(data.images[i]);
                             }
                         }
 
@@ -98,7 +94,7 @@ $R.service(
                 if (data.audio && data.constructor === Array) {
                     for (var i = 0; i < data.audio.length; i++) {
                         if (typeof data.audio[i] === "string") {
-                            self.audio(data.audio[i]);
+                            this.audio(data.audio[i]);
                         }
                     }
                 }
@@ -108,18 +104,16 @@ $R.service(
                             && typeof data.fonts[i].name === "string" && data.fonts[i].name.length) {
 
                             var weight = data.fonts[i].weight && typeof data.fonts[i].weight === "number" ?
-                                    data.fonts[i].weight : 400,
+                                data.fonts[i].weight : 400,
                                 style = data.fonts[i].style === 'italic' ? data.fonts[i].style : 'normal';
 
-                            self.font(data.fonts[i].name, weight, style);
+                            this.font(data.fonts[i].name, weight, style);
                         }
                     }
                 }
             }
 
-            this.preload = function (config) {
-                preloadRequest(config);
-            };
+            this.preload = preloadRequest.bind(this);
 
             this.preloadByUrl = function (url) {
                 if (request) request.abort();
@@ -130,8 +124,7 @@ $R.service(
 
                         try {
                             result = JSON.parse(response.responseText);
-                        }
-                        catch (e) {
+                        } catch (e) {
                             Debug.error({url: url}, 'Unable to parse JSON from [{url}]. Unknown response format.');
                         }
                         preloadRequest(result);
@@ -167,16 +160,13 @@ $R.service(
                     if (array) {
                         if (typeof func === "function") {
                             array.push(func);
-                        }
-                        else {
+                        } else {
                             Debug.warn({event: event}, 'Unable to set event [{event}] callback. func is not a function!');
                         }
-                    }
-                    else {
+                    } else {
                         Debug.warn({event: event}, 'Unable to set event [{event}]. No such event');
                     }
-                }
-                else {
+                } else {
                     Debug.warn('Unable to set event callback. Event name is not a string');
                 }
             };
@@ -196,12 +186,10 @@ $R.service(
                             delete func.$$SEARCH;
                             cBContainer[event] = narray;
                         }
-                    }
-                    else {
+                    } else {
                         Debug.warn({event: event}, 'Unable to unset callback for event [{event}]. No such event');
                     }
-                }
-                else {
+                } else {
                     Debug.warn('Unable to unset event. Event is not a string');
                 }
             };
@@ -218,15 +206,15 @@ $R.service(
                     array[i].apply(self, data);
                 }
             }
-
-            Canvas.queue(-2, function updateResources (canvas, date) {
-                var time = date.getTime();
-                for (var i = 0; i < container.sprites.length; i++) {
-                    if (container.sprites[i].ready() && container.sprites[i].loaded() === 1) {
-                        container.sprites[i].tick(time);
+            function updateResources(canvas, date) {
+                for (var i = 0; i < container.SpriteResources.length; i++) {
+                    if (container.SpriteResources[i].ready() && container.SpriteResources[i].loaded()) {
+                        container.SpriteResources[i].tick(date);
                     }
                 }
-            });
+            }
+
+            Canvas.queue(-2, updateResources);
         }
     ]
 );

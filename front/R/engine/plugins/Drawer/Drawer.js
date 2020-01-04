@@ -5,23 +5,26 @@ $R.plugin('Objects',
     ['Debug',
         function Drawer(Debug) {
 
-            var f = null,
-                cb = {
-                    before: [],
-                    after: []
-                },
+            var draw = null,
+                update = null,
                 object = this.object(),
                 pipe = {},
                 pipeSize = 0,
                 conditions = [],
                 rendering = true,
-                exports = null;
+                exports = null,
+                updateCb = [],
+                cbIterator = 0,
+                callUpdateCb = false;
 
-            function resolve(event, args) {
-                for (var i = 0; i < cb[event].length; i++) {
-                    cb[event].apply(object, args);
+            this.spriteUpdated = function (cb) {
+                if (this.$$CALL) callUpdateCb = true;
+                else {
+                    if (typeof cb === "function") {
+                        updateCb.push(cb);
+                    } else Debug.error({cb: typeof cb}, 'Sprite update callback {cb} is not a function.', this);
                 }
-            }
+            };
 
             function renderAllowed(args) {
                 if (conditions.length > 0) {
@@ -35,20 +38,36 @@ $R.plugin('Objects',
                 }
             }
 
-            this.f = function (func) {
+            this.drawFunction = function (func) {
                 if (typeof func !== "function") {
                     Debug.error({}, 'ObjectDrawer / func is not a function!');
                     delete this.f;
                     return;
                 }
-                f = func;
-                delete this.f;
+                draw = func;
+                delete this.drawFunction;
             };
 
-            this.exports = function () {
+            this.updateFunction = function (func) {
+                if (typeof func !== "function") {
+                    Debug.error({}, 'ObjectDrawer / func is not a function!');
+                    delete this.f;
+                    return;
+                }
+                update = func;
+                delete this.updateFunction;
+            };
+
+            this.export = function () {
                 if (exports === null) {
                     exports = arguments[0];
                     this.export = function () {
+                        if (callUpdateCb) {
+                            for (cbIterator = 0; cbIterator < updateCb.length; cbIterator++) {
+                                updateCb[cbIterator].call(object)
+                            }
+                            callUpdateCb = false;
+                        }
                         return typeof exports === "function" ? exports() : exports;
                     };
                     delete this.exports;
@@ -65,7 +84,7 @@ $R.plugin('Objects',
                 }
             };
 
-            this.register('pipe', function (f, order) {
+            this.pipe = function (f, order) {
                 order = order === undefined ? 0 : order;
                 if (typeof order === "number") {
                     if (typeof f === "function") {
@@ -81,9 +100,9 @@ $R.plugin('Objects',
                     Debug.error({order: order}, 'Invalid pipe function ordering {order}', this);
                 }
                 return object;
-            });
+            };
 
-            this.register('unpipe', function (f) {
+            this.unpipe = function (f) {
                 if (typeof f === "function") {
                     f.$$SEARCH = true;
                     var found = false;
@@ -102,59 +121,73 @@ $R.plugin('Objects',
                     delete f.$$SEARCH;
                 }
                 return object;
-            });
+            };
 
-            this.register('before', function (func) {
-                if (typeof func == "function") {
-                    cb.before.push(func);
-                } else {
-                    Debug.warn('Unable to set event [before Render]. func is not a Function', this)
-                }
-            });
+            this.register('pipe', this.pipe);
 
-            this.register('after', function (func) {
-                if (typeof func == "function") {
-                    cb.after.push(func);
-                } else {
-                    Debug.warn('Unable to set event [after Render]. func is not a Function', this)
-                }
-            });
+            this.register('unpipe', this.unpipe);
 
 
             //Draw function variables
-            var pipeBreak = false,
-                pipeIndex = 0,
-                pipeOrder = 0;
+            var pipeIndex = 0,
+                pipeOrder = 0,
+                originalContext = null,
+                currentContext = null,
+                callbacksResult = null,
+                args = [null, null, null];
 
             this.draw = function () {
+                if (callUpdateCb) {
+                    for (cbIterator = 0; cbIterator < updateCb.length; cbIterator++) {
+                        updateCb[cbIterator].call(object)
+                    }
+                    callUpdateCb = false;
+                }
                 rendering = true;
+
                 if (renderAllowed(arguments)) {
-                    arguments[0].save();
+                    args[0] = arguments[0];
+                    args[1] = arguments[1];
+                    args[2] = arguments[2];
+                    originalContext = args[0];
 
-                    resolve('before', arguments);
+                    originalContext.save();
 
-                    arguments[0].globalCompositeOperation = object.extension('Style').get('blending');
-                    arguments[0].globalAlpha *= object.extension('Style').get('opacity');
+                    if (update) update.apply(this, args);
 
                     if (pipeSize) {
                         for (pipeOrder in pipe) {
                             if (pipe.hasOwnProperty(pipeOrder)) {
                                 for (pipeIndex = 0; pipeIndex < pipe[pipeOrder].length; pipeIndex++) {
-                                    pipeBreak = pipe[pipeOrder][pipeIndex].apply(this, arguments) === false;
-                                    if (pipeBreak) break;
+                                    args[0].save();
+                                    callbacksResult = pipe[pipeOrder][pipeIndex].apply(this, args);
+                                    args[0].restore();
+                                    currentContext = callbacksResult ? callbacksResult : false;
+                                    args[0] = currentContext;
+                                    if (!currentContext) break;
                                 }
                             }
-                            if (pipeBreak) break;
+                            if (!currentContext) break;
+                        }
+                    }
+                    if (args[0]) {
+                        if (args[0] === originalContext) {
+                            args[0].globalCompositeOperation = object.extension('Style').get('blending');
+                            args[0].globalAlpha *= object.extension('Style').get('opacity');
+                            if (draw) draw.apply(this, args);
+                        } else {
+                            originalContext.globalCompositeOperation = object.extension('Style').get('blending');
+                            originalContext.globalAlpha *= object.extension('Style').get('opacity');
+                            if (draw) draw.apply(this, args);
+                            originalContext.drawImage(args[0].canvas,
+                                typeof args[0].canvas === "number" ? args[0].canvas : 0,
+                                typeof args[0].canvas === "number" ? args[0].canvas : 0,
+                                args[0].canvas.width,
+                                args[0].canvas.height);
                         }
                     }
 
-                    if (!pipeBreak) {
-                        if (f) f.apply(this, arguments);
-                    } else pipeBreak = false;
-
-                    resolve('after', arguments);
-
-                    arguments[0].restore();
+                    originalContext.restore();
 
                 }
             };

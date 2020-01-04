@@ -3,7 +3,7 @@
  */
 $R.service.class('Resource',
     ['@extend', 'Debug',
-        function Sprite(extend, Debug) {
+        function SpriteResource(extend, Debug) {
 
             extend(this, '$Resource');
 

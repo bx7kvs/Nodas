@@ -13,8 +13,7 @@ $R.service.class('Objects',
                 font = style.get('font'),
                 weight = style.get('weight'),
                 fstyle = style.get('style'),
-                assembler = inject('$GraphicsAssembler'),
-                object = this;
+                assembler = inject('$GraphicsAssembler');
 
             assembler.layer(0, 'text', UpdateTextLayer);
 
@@ -78,7 +77,7 @@ $R.service.class('Objects',
                 return true;
             };
 
-            drawer.exports(assembler.export);
+            drawer.export(assembler.export);
 
             function drawText(context) {
                 DrawerHelper.transform(this, context);
@@ -134,7 +133,7 @@ $R.service.class('Objects',
                 boxContainer.set(x, y, text.textBlockWidth(), text.textBlockHeight(), 0, 0, 0, 0);
             });
 
-            drawer.f(drawText);
+            drawer.drawFunction(drawText);
         }
     ]
 );

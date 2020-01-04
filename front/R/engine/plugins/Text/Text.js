@@ -65,7 +65,6 @@ $R.plugin('Objects',
                         w = 0,
                         h = 0;
 
-                    console.log(string);
                     if(pieces) {
                         var font = style.get('systemFont'),
                             fontSize = style.get('fontSize'),

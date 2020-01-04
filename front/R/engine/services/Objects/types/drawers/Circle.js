@@ -133,8 +133,8 @@ $R.service.class('Objects',
                 assembler.update('bg');
             });
 
-            drawer.exports(assembler.export);
-            drawer.f(function (context) {
+            drawer.export(assembler.export);
+            drawer.drawFunction(function (context) {
                 DrawerHelper.transform(this, context);
                 context.drawImage(drawer.export(), 0 ,0);
             });

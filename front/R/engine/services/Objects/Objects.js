@@ -5,16 +5,21 @@ $R.service(
     ['@inject', 'Tree',
         function Objects(inject, Tree) {
 
-            function InjectByType(type, config) {
-                var result = inject('$Graphics');
+            function create(type) {
+                return inject('$Graphics').defineType(type);
+            }
 
-                result.defineType(type);
+            function InjectByType(type, config) {
+                var result = create(type);
 
                 if (config && config.length) {
                     result.style.apply(result, config);
                 }
+                Tree.root().append(result);
                 return result;
             }
+
+            this.create = create;
 
             this.group = function () {
                 return InjectByType('Group', arguments);
@@ -47,7 +52,8 @@ $R.service(
             this.area = function () {
                 return InjectByType('Area', arguments);
             };
-            Tree.root(this.group());
+
+            Tree.root(inject('$Graphics').defineType('Group'));
         }
     ]
 );

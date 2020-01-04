@@ -9,17 +9,14 @@ $R.plugin('Objects', ['Debug',
             function checkTree(object) {
                 if (object.$$TREESEARCHVALUE) {
                     return true;
-                }
-                else {
+                } else {
                     if (object.parent()) {
                         if (checkTree(object.parent())) {
                             return true;
-                        }
-                        else {
+                        } else {
                             return false;
                         }
-                    }
-                    else {
+                    } else {
                         return false;
                     }
                 }
@@ -27,28 +24,25 @@ $R.plugin('Objects', ['Debug',
             }
 
             function treeViolation(target, object) {
-                if (target.type() === 'Group') {
+                if (target.type('Group')) {
 
                     object.$$TREESEARCHVALUE = true;
 
                     if (!checkTree(target)) {
                         delete object.$$TREESEARCHVALUE;
                         return false;
-                    }
-                    else {
+                    } else {
                         if (target.$$TREESEARCHVALUE) {
                             if (target.parent()) {
                                 Debug.warn({}, 'You try to append group parent into itself.');
                             }
-                        }
-                        else {
+                        } else {
                             Debug.warn({}, 'You try to append group parent into it\'s children.');
                         }
                         delete object.$$TREESEARCHVALUE;
                         return true;
                     }
-                }
-                else {
+                } else {
                     if (target.type() !== 'Group') {
                         Debug.warn({
                             target: target.type(),
@@ -62,10 +56,9 @@ $R.plugin('Objects', ['Debug',
             var layers = null;
 
             this.register('append', function (object) {
-                if (this.type() !== 'Group') {
+                if (!this.type('Group')) {
                     Debug.watch({type: this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
-                }
-                else if (!treeViolation(this, object)) {
+                } else if (!treeViolation(this, object)) {
 
                     if (!layers) layers = this.extension('Layers');
 
@@ -82,8 +75,7 @@ $R.plugin('Objects', ['Debug',
 
                         object_tree_ext.parent(this);
 
-                    }
-                    else {
+                    } else {
 
                         var object_layer = object.layer();
 
@@ -91,9 +83,7 @@ $R.plugin('Objects', ['Debug',
 
                         object_tree_ext.parent(this);
                     }
-
-                    var box = this.extension('Box');
-                    box.purge();
+                    this.extension('Box').purge();
                 }
                 return this;
             });
@@ -109,13 +99,15 @@ $R.plugin('Objects', ['Debug',
 
 
             this.parent = function (group) {
-                if (!group.type || group.type() !== 'Group') {
-                    Debug.error('Object Tree Extension / Unable to set object as parent. Not a group!');
+                if (typeof group.type !== "function" || !group.type('Group')) {
+                    Debug.error({
+                        group: typeof group,
+                        type: group.type ? group.type() : 'unknownType'
+                    }, 'Unable to set parent as {group}{type}. Object is not a group!', this);
                 }
                 if (group) {
                     parent = group;
-                }
-                else {
+                } else {
                     return parent;
                 }
             };

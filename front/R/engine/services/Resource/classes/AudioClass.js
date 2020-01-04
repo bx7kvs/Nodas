@@ -3,7 +3,7 @@
  */
 $R.service.class('Resource',
     ['@extend', 'Debug',
-        function Audio(extend, Debug) {
+        function AudioResource(extend, Debug) {
             extend(this, '$Resource');
 
 

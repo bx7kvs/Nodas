@@ -16,7 +16,6 @@ $R.plugin('Objects',
                     Debug.error('Object Value Cache / func is not a function');
                     return;
                 }
-
                 if (!values[name]) {
                     values[name] = {
                         value: func(),

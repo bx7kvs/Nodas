@@ -53,9 +53,8 @@ $R.service(
                 focused = true;
             });
 
-            function DefaultREvent(type, target, data) {
-                var _type = type, propagate = true, _target = target, _originalTarget = target,
-                     data = typeof  data === "object" && data !== null ? JSON.parse(JSON.stringify(data)) : null;
+            function DefaultREvent(type, target) {
+                var _type = type, propagate = true, _target = target, _originalTarget = target;
 
                 this.type = function () {
                     return _type;
@@ -119,9 +118,7 @@ $R.service(
             }
 
             function Dispatch(event, target) {
-
                 var targetMouse = target.extension('Mouse');
-
                 if (!targetMouse) return;
 
                 if (targetMouse.hasEvent(event)) {
@@ -192,8 +189,6 @@ $R.service(
                         drag.delta[1] = drag.start[1] - drag.current[1];
                         resolveEventByType('dragmove');
                     }
-
-
                     if (mousedown.current === mousedown.old) {
                         resolveEventByType('mousemove');
                     }
@@ -225,6 +220,7 @@ $R.service(
                     if (checked) return;
                     UpdateTargets();
                     DispatchEvents();
+                    checked = true;
                 }
             }
 

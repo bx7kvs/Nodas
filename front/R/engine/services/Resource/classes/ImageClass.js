@@ -3,11 +3,11 @@
  */
 $R.service.class('Resource',
     ['@extend', 'Debug',
-        function Image(extend, Debug) {
+        function ImageResource(extend, Debug) {
 
             extend(this, '$Resource');
 
-            var url = null, resolveEventFunc = null, stateFunc = null, image = null, width = 0, height = 0;
+            var url = null, resolveEventFunc = null, stateFunc = null, image = new Image(), width = 0, height = 0;
 
             this.type = 'Image';
 
@@ -19,13 +19,10 @@ $R.service.class('Resource',
             });
 
             function CreateImage() {
-                image = document.createElement('img');
                 image.addEventListener('load', function () {
                     stateFunc(1);
-
                     width = image.width;
                     height = image.height;
-
                     resolveEventFunc('load', []);
                 });
                 image.addEventListener('error', function () {
@@ -44,7 +41,6 @@ $R.service.class('Resource',
             this.height = function () {
                 return height;
             };
-
             this.export = function () {
                 return image;
             };

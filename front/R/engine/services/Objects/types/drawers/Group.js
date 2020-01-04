@@ -51,6 +51,7 @@ $R.service.class('Objects',
                     maxy - miny,
                     0, 0, 0, 0
                 );
+
             });
 
             var position = [0, 0];
@@ -61,7 +62,7 @@ $R.service.class('Objects',
             });
 
             var _argumnets;
-            drawer.f(function () {
+            drawer.drawFunction(function () {
                 _argumnets = arguments;
                 _argumnets[0].save();
                 DrawerHelper.transform(this, _argumnets[0]);

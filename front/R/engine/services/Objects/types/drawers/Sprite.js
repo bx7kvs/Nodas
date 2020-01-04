@@ -2,14 +2,14 @@
  * Created by bx7kv_000 on 1/13/2017.
  */
 $R.service.class('Objects',
-    ['+Drawer', '+Model', 'Resource',
-        function SpriteObjectDrawer(DrawerHelper, ModelHelper, Resource) {
+    ['+Drawer', '+Model', 'Resource', '@inject',
+        function SpriteObjectDrawer(DrawerHelper, ModelHelper, Resource, inject) {
 
             var style = this.extension('Style'),
                 box = this.extension('Box'),
                 drawer = this.extension('Drawer'),
                 matrix = this.extension('Matrix'),
-                width = null, height = null, image = null;
+                width = null, height = null, image = inject('$Canvas');
 
             box.f(function (boxContainer) {
                 var position = style.get('position'),
@@ -18,16 +18,16 @@ $R.service.class('Objects',
                 var x = position[0],
                     y = position[1];
 
-                if (anchor[0] == 'center') {
+                if (anchor[0] === 'center') {
                     x -= width ? width / 2 : 0;
                 }
-                if (anchor[0] == 'right') {
+                if (anchor[0] === 'right') {
                     x -= width ? width : 0;
                 }
-                if (anchor[1] == 'middle') {
+                if (anchor[1] === 'middle') {
                     y -= height ? height / 2 : 0;
                 }
-                if (anchor[1] == 'bottom') {
+                if (anchor[1] === 'bottom') {
                     y -= height ? height : 0
                 }
                 boxContainer.set(
@@ -42,20 +42,11 @@ $R.service.class('Objects',
                 );
             });
 
-            var allow = false;
-            drawer.filter(function (context, time) {
-                allow = image && image.loaded() && !image.error()
-                    && image.ready()
-                    && width !== null && height !== null
-                    && width > 0 && height > 0;
-                if(allow) {
-                    image.tick(time);
-                }
-                return allow;
-            });
 
-            drawer.exports(image.export);
-            drawer.f(function (context) {
+            drawer.export(function () {
+                return image.export();
+            });
+            drawer.drawFunction(function (context) {
                 DrawerHelper.transform(this, context);
                 context.drawImage(drawer.export(), 0, 0, width, height);
             });

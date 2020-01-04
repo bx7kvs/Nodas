@@ -11,36 +11,34 @@ $R.service.class('Resource',
                 status = -1; // -1 init, 0 loading, 1 loaded, -2 error
 
             this.loaded = function () {
-                return status == 1;
+                return status === 1;
             };
 
             this.error = function () {
-                return status == -2;
+                return status === -2;
             };
 
             this.loading = function () {
-                return status == 0;
+                return status === 0;
             };
 
             this.url = function (_url) {
-                if (_url == undefined) {
+                if (_url === undefined) {
                     return url;
                 }
                 else {
-                    if (url == undefined) {
-                        url = _url;
-                        status = 0;
-                        if (resolveFunctionPassed) {
-                            ResolveEvent('init', [url]);
-                        }
-                        else {
-                            ResolveEvent('init', [url, ResolveEvent, setStatus]);
-                            resolveFunctionPassed = true;
-                        }
+                    url = _url;
+                    status = 0;
+                    if (resolveFunctionPassed) {
+                        ResolveEvent('init', [url]);
                     }
-
+                    else {
+                        ResolveEvent('init', [url, ResolveEvent, setStatus]);
+                        resolveFunctionPassed = true;
+                    }
                 }
-                return url;
+
+                return this;
             };
 
             var cbContainer = {

@@ -77,9 +77,11 @@ $R.plugin('Objects',
             };
 
             this.forEach = function (func) {
-                for (var layer in layers) {
-                    for (var i = 0; i < layers[layer].length; i++) {
-                        func.apply(layers[layer][i], [i, layer]);
+                var iterator = 0,
+                    layer = null;
+                for (layer in layers) {
+                    for (iterator = 0; iterator < layers[layer].length; iterator++) {
+                        func.call(layers[layer][iterator], layers[layer][iterator]);
                     }
                 }
             };

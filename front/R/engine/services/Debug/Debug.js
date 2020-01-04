@@ -42,7 +42,6 @@ $R.service(
                 if (matches) {
                     for (var i = 0; i < matches.length; i++) {
                         var matchname = matches[i].match(regexpname)[0];
-                        console.log(data[matchname]);
                         if (matchname) props[matchname] = {
                             replace: matches[i],
                             data: '[' + (data[matchname] === undefined ? 'undefined' : data[matchname].toString()) + ']'
