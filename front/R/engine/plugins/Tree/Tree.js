@@ -11,16 +11,11 @@ $R.plugin('Objects', ['Debug',
                     return true;
                 } else {
                     if (object.parent()) {
-                        if (checkTree(object.parent())) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return checkTree(object.parent());
                     } else {
                         return false;
                     }
                 }
-                return false;
             }
 
             function treeViolation(target, object) {
@@ -54,6 +49,12 @@ $R.plugin('Objects', ['Debug',
             }
 
             var layers = null;
+
+            this.register('unmount', function () {
+                this.parent().extension('Layers').remove(this);
+                this.extension('Tree').parent(null);
+                return null;
+            });
 
             this.register('append', function (object) {
                 if (!this.type('Group')) {
@@ -99,13 +100,13 @@ $R.plugin('Objects', ['Debug',
 
 
             this.parent = function (group) {
-                if (typeof group.type !== "function" || !group.type('Group')) {
+                if (group !== null && typeof group.type !== "function" || !group.type('Group')) {
                     Debug.error({
                         group: typeof group,
                         type: group.type ? group.type() : 'unknownType'
                     }, 'Unable to set parent as {group}{type}. Object is not a group!', this);
                 }
-                if (group) {
+                if (group || group === null) {
                     parent = group;
                 } else {
                     return parent;
