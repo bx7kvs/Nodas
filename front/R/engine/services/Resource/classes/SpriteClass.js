@@ -27,19 +27,22 @@ $R.service.class('Resource',
                     height = image.height;
 
                     if (ready) {
-                        CreateCanvasArray();
-                        SetCanvasSize();
+                        createCanvasArray();
+                        setCanvasSize();
                     }
                     resolveEventFunc('load', []);
                 });
                 image.addEventListener('error', function () {
-                    setStausFunc(-2);
+                    setStausFunc(2);
                     resolveEventFunc('error', []);
                 });
-                image.setAttribute('src', url);
+
+                this.on('get', function () {
+                    image.setAttribute('src', url);
+                });
             });
 
-            function CreateCanvasArray() {
+            function createCanvasArray() {
 
                 var elems = 0;
                 for (var r = 0; r < size; r++) {
@@ -53,7 +56,7 @@ $R.service.class('Resource',
                 }
             }
 
-            function SetCanvasSize() {
+            function setCanvasSize() {
                 frameHeight = Math.round(height / size);
                 frameWidth = Math.round(width / size);
 
@@ -92,7 +95,7 @@ $R.service.class('Resource',
 
             this.fps = function (number) {
                 if (typeof number !== "number" || number <= 0) {
-                    Debug.warn({n: number}, '[{n}] is not a correct fps number');
+                    Debug.warn({n: number}, '{n} is not a correct fps number');
                     return false;
                 }
                 fps = number;
@@ -115,7 +118,7 @@ $R.service.class('Resource',
                 if (ready) return;
 
                 if (typeof f !== "number" || f <= 0) {
-                    Debug.warn({rows: f}, '[{rows}] is not a valid frames number');
+                    Debug.warn({rows: f}, '{rows} is not a valid frames number');
                     return;
                 }
 
@@ -127,7 +130,7 @@ $R.service.class('Resource',
 
                 ready = true;
 
-                CreateCanvasArray();
+                createCanvasArray();
             };
 
             this.frames = function () {

@@ -38,7 +38,9 @@ $R.service.class('Resource',
                 weight = url[1];
                 style = url[2];
                 fontLoaderElement.style.fontStyle = style;
-                getFont();
+                this.on('get', function () {
+                    getFont();
+                });
             });
             var checkInterval = null;
 
@@ -61,9 +63,9 @@ $R.service.class('Resource',
                     }
                     repeatCount++;
                     if (repeatCount > repeatTillError) {
-                        state(-2);
+                        state(2);
                         resolve('error', []);
-                        Debug.warn({font: font + '-' + weight}, 'Unable to load font [{font}]. Font pending timed out...');
+                        Debug.warn({font: font + '-' + weight}, 'Unable to load font {font}. Font pending timed out...');
                         document.getElementsByTagName('body')[0].removeChild(fontLoaderElement);
                         appended = false;
                         clearInterval(checkInterval);
