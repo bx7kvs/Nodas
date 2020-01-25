@@ -15,10 +15,10 @@ $R.service.class('Resource',
                 resolveEventFunc = resolveFunc;
                 stateFunc = setStateFunc;
                 url = _url;
-                CreateImage();
+                createImage.call(this);
             });
 
-            function CreateImage() {
+            function createImage() {
                 image.addEventListener('load', function () {
                     stateFunc(1);
                     width = image.width;
@@ -26,12 +26,14 @@ $R.service.class('Resource',
                     resolveEventFunc('load', []);
                 });
                 image.addEventListener('error', function () {
-                    stateFunc(-2);
+                    stateFunc(2);
                     resolveEventFunc('error', []);
-                    Debug.error({url: url}, 'Unable to load image [{url}].');
+                    Debug.error({url: url}, 'Unable to load image {url}.');
                 });
 
-                image.setAttribute('src', url);
+                this.on('get', function () {
+                    image.setAttribute('src', url);
+                });
             }
 
             this.width = function () {

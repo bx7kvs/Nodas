@@ -2,8 +2,8 @@
  * Created by bx7kv_000 on 1/12/2017.
  */
 $R.service(
-    ['@Canvas', '@inject', 'Debug',
-        function Resource(Canvas, inject, Debug) {
+    ['@Canvas', '@inject', 'Debug', '@Config',
+        function Resource(Canvas, inject, Debug, Config) {
 
             var all = [],
                 container = {
@@ -14,9 +14,13 @@ $R.service(
                 },
                 loadCounter = 0,
                 self = this,
-                request = null;
+                loaderMode = 'auto';
 
-            function GetResourceByURL(type, search) {
+            Config.define('loaderMode', false, {isString: true}).watch(function (v) {
+                loaderMode = v === 'manual' || v === 'auto' ? v : 'auto';
+            });
+
+            function getResourceByURL(type, search) {
                 if (type === 'font') search = search[0];
 
                 var result = null,
@@ -34,8 +38,8 @@ $R.service(
                 return result;
             }
 
-            function InjectByType(type, src) {
-                var existed = GetResourceByURL(type, src);
+            function injectByType(type, src) {
+                var existed = getResourceByURL(type, src);
                 if (existed) {
                     return existed;
                 } else {
@@ -60,6 +64,8 @@ $R.service(
 
                     loadCounter++;
 
+                    if(loaderMode === 'auto') result.load();
+
                     ResolveEvent('add', [result, loadCounter, all.length]);
 
                     return result;
@@ -67,85 +73,27 @@ $R.service(
             }
 
             this.image = function (src) {
-                return InjectByType('ImageResource', src);
+                return injectByType('ImageResource', src);
             };
 
             this.sprite = function (src) {
-                return InjectByType('SpriteResource', src);
+                return injectByType('SpriteResource', src);
             };
 
             this.audio = function (src) {
-                return InjectByType('AudioResource', src);
-            };
-
-            function preloadRequest(data) {
-                if (data.images && data.images.constructor === Array) {
-                    for (var i = 0; i < data.images.length; i++) {
-                        if (typeof data.images[i] === "string") {
-                            if (/^([./_\da-zA-Z]+)(\[(\d+)\])$/.test(data.images[i])) {
-                                this.sprite(data.images[i]);
-                            } else {
-                                this.image(data.images[i]);
-                            }
-                        }
-
-                    }
-                }
-                if (data.audio && data.constructor === Array) {
-                    for (var i = 0; i < data.audio.length; i++) {
-                        if (typeof data.audio[i] === "string") {
-                            this.audio(data.audio[i]);
-                        }
-                    }
-                }
-                if (data.fonts && data.fonts.constructor === Array) {
-                    for (var i = 0; i < data.fonts.length; i++) {
-                        if (data.fonts[i] && typeof data.fonts[i] === "object"
-                            && typeof data.fonts[i].name === "string" && data.fonts[i].name.length) {
-
-                            var weight = data.fonts[i].weight && typeof data.fonts[i].weight === "number" ?
-                                data.fonts[i].weight : 400,
-                                style = data.fonts[i].style === 'italic' ? data.fonts[i].style : 'normal';
-
-                            this.font(data.fonts[i].name, weight, style);
-                        }
-                    }
-                }
-            }
-
-            this.preload = preloadRequest.bind(this);
-
-            this.preloadByUrl = function (url) {
-                if (request) request.abort();
-                if (typeof url === "string" && url.length > 0) {
-                    request = new XMLHttpRequest();
-                    request.addEventListener('load', function () {
-                        var result = {};
-
-                        try {
-                            result = JSON.parse(response.responseText);
-                        } catch (e) {
-                            Debug.error({url: url}, 'Unable to parse JSON from [{url}]. Unknown response format.');
-                        }
-                        preloadRequest(result);
-                    });
-                    request.addEventListener('error', function () {
-                        Debug.error({url: url}, 'Unable to get resources from [{url}] to preload. Server error.');
-                        preloadRequest({});
-                    });
-                    request.addEventListener('abort', function () {
-                        Debug.warn({url: url}, 'Unable to get resources from [{url}] to preload. Request aborted.');
-                        preloadRequest({});
-                    });
-
-                    request.open('GET', url, true);
-                    request.setRequestHeader('Content-Type', 'application/json');
-                    request.send();
-                }
+                return injectByType('AudioResource', src);
             };
 
             this.font = function (src, weight, style) {
-                return InjectByType('font', [src, weight, style]);
+                return injectByType('font', [src, weight, style]);
+            };
+
+            this.load = function () {
+                if(loaderMode === 'manual') {
+                    for(var i = 0 ; i < all.length; i++) {
+                        all[i].load();
+                    }
+                }
             };
 
             var cBContainer = {
