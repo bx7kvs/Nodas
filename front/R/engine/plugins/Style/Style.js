@@ -8,7 +8,8 @@ $R.plugin('Objects',
             var properties = {},
                 callbacks = [],
                 setters = {},
-                getters = {};
+                getters = {},
+                self = this;
 
             function GetSetterFunction(name, setter) {
                 return function (value) {
@@ -16,9 +17,8 @@ $R.plugin('Objects',
                         old = properties[name].value;
 
                     if (!result && typeof result === "boolean") {
-                        Debug.warn('Unable to set property [' + name + ']. Invalid value!');
-                    }
-                    else {
+                        Debug.warn({n : name}, 'Unable to set property {n}. Invalid value!', self);
+                    } else {
                         var args = [old, result];
 
                         properties[name].value = result;
@@ -47,9 +47,8 @@ $R.plugin('Objects',
                     Debug.warn({
                         property: a,
                         type: target.type()
-                    }, 'Style / Object type {type} has no property {property}');
-                }
-                else {
+                    }, 'Object type {type} has no property {property}', target);
+                } else {
                     setters[a].apply(target, [b]);
                 }
             }
@@ -66,10 +65,9 @@ $R.plugin('Objects',
                         Debug.warn({
                             property: property,
                             type: target.type()
-                        }, 'Style / Object type {type} has no property {property}');
+                        }, 'Object type {type} has no style property {property}', target);
                         continue;
-                    }
-                    else {
+                    } else {
                         setterstack.push({
                             ordering: properties[property].ordering,
                             property: property,
@@ -84,9 +82,11 @@ $R.plugin('Objects',
                     for (var i = 0; i < setterstack.length; i++) {
                         setterstack[i].setter.apply(target, [object[setterstack[i].property]]);
                     }
-                }
-                else {
-                    Debug.warn('Style / No properties to be applied!');
+                } else {
+                    Debug.warn({
+                        o: JSON.stringify(object),
+                        type: target.type(),
+                    }, 'Object {type} has got no style properties to be applied in {o}', target);
                 }
             }
 
@@ -95,12 +95,11 @@ $R.plugin('Objects',
 
                 if (!getters[name]) {
                     Debug.warn({
-                        property: property,
+                        property: name,
                         type: target.type()
-                    }, 'Style / Object type {type} has no property {property}');
+                    }, 'Object {type} has no property {property}', target);
                     return this;
-                }
-                else {
+                } else {
                     return getters[name].apply(target, [properties[name].value]);
                 }
 
@@ -111,7 +110,7 @@ $R.plugin('Objects',
                 else if (typeof a === "object") StyleType2.apply(this, [a]);
                 else if (typeof a === 'string' && b === undefined) return StyleType3.apply(this, [a]);
                 else {
-                    Debug.error('Style / Invalid style function arguments!');
+                    Debug.error('Invalid .style() arguments', this);
                 }
                 return this;
             });
@@ -120,12 +119,12 @@ $R.plugin('Objects',
 
                 if (typeof property !== "string") {
                     if (typeof property !== "object" || property.constructor !== Array) {
-                        Debug.error('Style / Property is not an array or string');
+                        Debug.error('Property is not an array or string', this);
                         return;
                     }
                 }
-                else if (typeof callback !== "function") {
-                    Debug.error('Style / Callback is not a function!');
+                if (typeof callback !== "function") {
+                    Debug.error({p: property}, 'Style change callback for property {p} is not a function', this);
                     return;
                 }
 
@@ -133,44 +132,39 @@ $R.plugin('Objects',
 
                     for (var i = 0; i < property.length; i++) {
                         if (typeof property[i] !== "string") {
-                            Debug.error({i: i}, 'Style / Property {i} is not a string!');
-                            continue;
-                        }
-                        else {
+                            Debug.error({i: i, p: property[i]}, 'Property {i} is not a string {p}', this);
+                        } else {
                             if (!callbacks[property[i]] || typeof callbacks[property[i]] !== "object" || callbacks[property[i]].constructor !== Array) callbacks[property[i]] = [];
-
                             callbacks[property[i]].push(callback);
                         }
                     }
-                }
-                else if (typeof property === "string") {
+                } else if (typeof property === "string") {
                     if (!callbacks[property] || callbacks[property].constructor !== Array) callbacks[property] = [];
                     callbacks[property].push(callback);
-                }
-                else {
-                    Debug.error('Style / Property is not an array or string');
+                } else {
+                    Debug.error({p: property}, 'Style property {p} is not an array or string', this);
                 }
 
             });
 
             this.define = function (ordering, name, value, setter, getter) {
                 if (properties[name]) {
-                    Debug.error({name: name}, 'Style / Duplicated Property [{name}]');
+                    Debug.error({name: name}, 'Duplicated Style Property {name}', this);
                     return;
                 }
 
                 if (typeof name !== "string" || name.length === 0) {
-                    Debug.error('Style / Property name is not a string!');
+                    Debug.error({n: name}, 'Property {name} is not a string or empty');
                     return;
                 }
 
                 if (typeof getter !== "function" || typeof setter !== "function") {
-                    Debug.error('Style / Unable to define property. Getter or setter is undefined!');
+                    Debug.error({n: name}, 'Unable to define property {n}. Getter or setter is undefined');
                     return;
                 }
 
-                if (typeof  ordering !== "number") {
-                    Debug.error('Style / Unable to define property setter ordering!');
+                if (typeof ordering !== "number") {
+                    Debug.error({n: name}, 'Style property{n} application order in not a number');
                 }
 
                 properties[name] = {ordering: ordering, value: value};
@@ -183,7 +177,7 @@ $R.plugin('Objects',
             this.get = function (name) {
                 if (properties[name]) return properties[name].value;
 
-                Debug.warn('Getting value of property that does not exist!');
+                Debug.warn({n: name}, 'Getting value of property {n} that does not exist');
 
                 return false;
             };
@@ -191,7 +185,7 @@ $R.plugin('Objects',
             this.ordering = function (name) {
                 if (properties[name]) return properties[name].ordering;
 
-                Debug.warn('Getting ordering of property that does not exist!');
+                Debug.warn({n: name}, 'Getting ordering of property{n} that does not exist!');
 
                 return false;
             }

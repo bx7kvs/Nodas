@@ -12,21 +12,15 @@ $R.plugin('Objects',
             this.register('layer', function (val) {
                 if (val === undefined) return layer;
                 else if (typeof val !== "number" || val < 0) {
-                    Debug.warn({n: val}, 'Value {n} is not a number or less than 0');
+                    Debug.warn({n: val}, 'Value {n} is not a number or less than 0', this);
                     return this;
                 }
 
-                var parent = this.parent();
-
-                if (parent) {
-                    var parent_layer_ext = parent.extension('Layers');
-                    layer = val;
+                if (this.parent()) {
+                    var parent_layer_ext = this.parent().extension('Layers');
                     parent_layer_ext.place(val, this);
                 }
-                else {
-                    Debug.warn({}, 'You try to set layer of root group!');
-                }
-
+                layer = val;
                 return this;
 
             });

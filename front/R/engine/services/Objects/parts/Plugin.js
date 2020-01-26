@@ -17,7 +17,7 @@ $R.service.class('Objects',
         };
 
         this.matchType = function (type) {
-            if (applies.length == 0) return true;
+            if (applies.length === 0) return true;
 
             var result = false;
 
@@ -71,7 +71,7 @@ $R.service.class('Objects',
             for (var property in properties) {
                 if (!properties.hasOwnProperty(property)) continue;
 
-                if (prop == property) {
+                if (prop === property) {
                     result = true;
                     break;
                 }

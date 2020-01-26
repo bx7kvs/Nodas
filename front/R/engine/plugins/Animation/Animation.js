@@ -185,6 +185,7 @@ $R.plugin('Objects',
                     Debug.warn('Unable to create animation. Wrong arguments');
                 }
                 CheckAnimationQueue();
+                return this;
             });
 
             this.register('animated', function () {
@@ -195,6 +196,7 @@ $R.plugin('Objects',
                 for (var i = 0; i < animations.length; i++) {
                     animations[i].stop(property);
                 }
+                return this;
             });
 
         }

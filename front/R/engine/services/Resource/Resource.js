@@ -142,6 +142,12 @@ $R.service(
                 }
             };
 
+            this.data = function () {
+                return {
+                    total : all.length,
+                    loaded : loadCounter
+                }
+            };
             this.list = function () {
                 return [].concat(container.images).concat(container.audios).concat(container.fonts).concat(container.sprites);
             };

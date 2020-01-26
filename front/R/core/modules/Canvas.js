@@ -10,29 +10,26 @@ Core(function Canvas(Ticker) {
         switchCb = [],
         self = this,
         queue = [],
-        ready = false;
+        ready = false,
+        args = [null, null, null];
 
     Ticker.queue(0, DrawScene);
 
     function DrawScene(date, frame) {
         if (ready) {
-            var args = [context, date, frame];
-            for(var i = 0 ; i < queue.length; i++) {
+            args[0] = context;
+            args[1] = date;
+            args[2] = frame;
+            for (var i = 0; i < queue.length; i++) {
                 try {
                     queue[i].f.apply(self, args);
-                }
-                catch (e) {
+                } catch (e) {
                     console.error(e);
                     throw new Error('Error emerged while drawing. \n' +
                         'Queue          : [' + queue[i].o + ']\n' +
                         'Queue Ordering : [' + i + ']\n' +
                         'Queue Member   : [' + queue[i].f.name + ']\n' +
                         'Message        : ' + e.message);
-                }
-            }
-            for (var ordering in queue) {
-                for (var i = 0; i < queue[ordering].length; i++) {
-
                 }
             }
         }
@@ -56,13 +53,10 @@ Core(function Canvas(Ticker) {
                     element = e;
                     ready = true;
                     resolve(switchCb);
-                }
-                else throw new Error('Element with id [#' + id + '] is not a canvas. Can not get 2d context.')
+                } else throw new Error('Element with id [#' + id + '] is not a canvas. Can not get 2d context.')
 
-            }
-            else throw new Error('Element with id [#' + id + '] was not found or not a canvas');
-        }
-        else if (id instanceof HTMLElement) {
+            } else throw new Error('Element with id [#' + id + '] was not found or not a canvas');
+        } else if (id instanceof HTMLElement) {
             if (id.getContext) {
 
                 var ctx = id.getContext('2d');
@@ -73,12 +67,9 @@ Core(function Canvas(Ticker) {
                     context = ctx;
                     ready = true;
                     resolve(switchCb);
-                }
-                else throw new Error('Element is not a Canvas. Can not get 2d context.');
-            }
-            else throw new Error('Element is not a Canvas');
-        }
-        else {
+                } else throw new Error('Element is not a Canvas. Can not get 2d context.');
+            } else throw new Error('Element is not a Canvas');
+        } else {
             return element;
         }
     };
@@ -87,18 +78,15 @@ Core(function Canvas(Ticker) {
         if (typeof a === "function") {
             if (!a.name) throw new Error('Unable to enqueue callback. Provide a named function');
             queue.push({o: 0, f: b});
-        }
-        else if (typeof a === "number") {
+        } else if (typeof a === "number") {
             if (typeof b === "function") {
                 if (!b.name) throw new Error('Unable to enqueue callback. Provide a named function.');
                 queue.push({o: a, f: b});
-            }
-            else throw new Error('Unable to enqueue callback. Provide a named function');
-        }
-        else throw new Error('Unable to enqueue callback. Wrong arguments.');
+            } else throw new Error('Unable to enqueue callback. Provide a named function');
+        } else throw new Error('Unable to enqueue callback. Wrong arguments.');
 
-        queue.sort(function (a,b) {
-           return a.o > b.o;
+        queue.sort(function (a, b) {
+            return a.o - b.o;
         });
 
         return this;
@@ -123,16 +111,14 @@ Core(function Canvas(Ticker) {
         if (typeof f === "function") {
             resizeCb.push(f);
             return this;
-        }
-        else throw new Error('Unable to set ressize callback. f argument is not a function');
+        } else throw new Error('Unable to set resize callback. f argument is not a function');
     };
 
     this.switch = function (f) {
         if (typeof f === "function") {
             switchCb.push(f);
             return this;
-        }
-        else throw new Error('Unable to set switch callback. f argument is not a function');
+        } else throw new Error('Unable to set switch callback. f argument is not a function');
     };
 
     this.ready = function () {

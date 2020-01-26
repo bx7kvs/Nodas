@@ -20,24 +20,10 @@ Core(function Application(Canvas, Ticker, Config) {
             if (typeof f !== "function") throw new Error('Application API property [' + n + '] value is not a function');
             this[n] = function () {
                 var result = f.apply(this, arguments);
-                if (result !== undefined) {
-                    return result;
-                }
-                else {
-                    return self;
-                }
+                return result === undefined ? self: result;
             };
         }
         else throw new Error('Unable to set API method. Name is not a string.');
-    };
-
-    this.stop = function () {
-        Ticker.stop();
-        return this;
-    };
-    this.start = function () {
-        Ticker.start();
-        return this;
     };
 
     this.config = function (a, b) {

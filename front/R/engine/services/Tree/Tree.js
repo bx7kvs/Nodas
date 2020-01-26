@@ -11,6 +11,7 @@ $R.service(
                 });
 
             this.root = function (object) {
+
                 if (!root) {
                     if (!object.type || typeof object.type !== "function" || object.type() !== 'Group') {
                         Debug.error({object: object.constructor, type : typeof object.type !== "function" ? object.type() : 'unknownType'}, 'Unable to set tree root as {object}{type}. Object is not a group.', this);
@@ -38,12 +39,12 @@ $R.service(
                     return root;
                 }
             };
-
-            Canvas.queue(0, function drawGraphicsTree(context, date, frame) {
+            function drawGraphicsTree(context, date, frame) {
                 if (!root || !rootDrawer) return;
                 if (clear) context.clearRect(0, 0, context.canvas.offsetWidth, context.canvas.offsetHeight);
                 rootDrawer.draw.apply(root, arguments);
-            });
+            }
+            Canvas.queue(0, drawGraphicsTree);
         }
     ]
 );
