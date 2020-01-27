@@ -15,7 +15,9 @@ $R.plugin('Objects',
                 exports = null,
                 updateCb = [],
                 cbIterator = 0,
-                callUpdateCb = false;
+                callUpdateCb = false,
+                drawerPipeBefore = {},
+                drawerPipeAfter = {};
 
             this.spriteUpdated = function (cb) {
                 if (this.$$CALL) callUpdateCb = true;
@@ -26,10 +28,11 @@ $R.plugin('Objects',
                 }
             };
 
+            var renderAllowIterator = 0;
             function renderAllowed(args) {
                 if (conditions.length > 0) {
-                    for (var i = 0; i < conditions.length; i++) {
-                        rendering = conditions[i].apply(object, args);
+                    for (renderAllowIterator = 0; renderAllowIterator < conditions.length; renderAllowIterator++) {
+                        rendering = conditions[renderAllowIterator].apply(object, args);
                         if (rendering === false) break;
                     }
                     return rendering;
@@ -88,10 +91,18 @@ $R.plugin('Objects',
                 order = order === undefined ? 0 : order;
                 if (typeof order === "number") {
                     if (typeof f === "function") {
-                        if (!pipe[order]) {
-                            pipe[order] = [];
+                        if(order > 100) {
+                            if (!drawerPipeAfter[order]) {
+                                drawerPipeAfter[order] = [];
+                            }
+                            drawerPipeAfter[order].push(f);
                         }
-                        pipe[order].push(f);
+                        else {
+                            if (!drawerPipeBefore[order]) {
+                                drawerPipeBefore[order] = [];
+                            }
+                            drawerPipeBefore[order].push(f);
+                        }
                         pipeSize++;
                     } else {
                         Debug.error({ftype: typeof f}, 'Pipe callback {ftype} is not a function', this);
@@ -105,13 +116,23 @@ $R.plugin('Objects',
             this.unpipe = function (f) {
                 if (typeof f === "function") {
                     f.$$SEARCH = true;
-                    var found = false;
-                    for (var index in pipe) {
-                        if (pipe.hasOwnProperty(index)) {
-                            pipe[index] = pipe[index].filter(function (cb) {
+                    var index;
+                    for (index in drawerPipeBefore) {
+                        if (drawerPipeBefore.hasOwnProperty(index)) {
+                            drawerPipeBefore[index] = drawerPipeBefore[index].filter(function (cb) {
                                 var result = !cb.$$SEARCH;
-                                if (result && !found) {
-                                    found = true;
+                                if (result) {
+                                    pipeSize--;
+                                }
+                                return result;
+                            });
+                        }
+                    }
+                    for (index in drawerPipeAfter) {
+                        if (drawerPipeAfter.hasOwnProperty(index)) {
+                            drawerPipeAfter[index] = drawerPipeAfter[index].filter(function (cb) {
+                                var result = !cb.$$SEARCH;
+                                if (result) {
                                     pipeSize--;
                                 }
                                 return result;
@@ -156,11 +177,11 @@ $R.plugin('Objects',
                     if (update) update.apply(this, args);
 
                     if (pipeSize) {
-                        for (pipeOrder in pipe) {
-                            if (pipe.hasOwnProperty(pipeOrder)) {
-                                for (pipeIndex = 0; pipeIndex < pipe[pipeOrder].length; pipeIndex++) {
+                        for (pipeOrder in drawerPipeBefore) {
+                            if (drawerPipeBefore.hasOwnProperty(pipeOrder)) {
+                                for (pipeIndex = 0; pipeIndex < drawerPipeBefore[pipeOrder].length; pipeIndex++) {
                                     args[0].save();
-                                    callbacksResult = pipe[pipeOrder][pipeIndex].apply(this, args);
+                                    callbacksResult = drawerPipeBefore[pipeOrder][pipeIndex].apply(this, args);
                                     args[0].restore();
                                     currentContext = callbacksResult ? callbacksResult : false;
                                     args[0] = currentContext;
@@ -184,6 +205,21 @@ $R.plugin('Objects',
                                 typeof args[0].canvas === "number" ? args[0].canvas : 0,
                                 args[0].canvas.width,
                                 args[0].canvas.height);
+                        }
+                        if (pipeSize) {
+                            for (pipeOrder in drawerPipeAfter) {
+                                if (drawerPipeAfter.hasOwnProperty(pipeOrder)) {
+                                    for (pipeIndex = 0; pipeIndex < drawerPipeAfter[pipeOrder].length; pipeIndex++) {
+                                        args[0].save();
+                                        callbacksResult = drawerPipeAfter[pipeOrder][pipeIndex].apply(this, args);
+                                        args[0].restore();
+                                        currentContext = callbacksResult ? callbacksResult : false;
+                                        args[0] = currentContext;
+                                        if (!currentContext) break;
+                                    }
+                                }
+                                if (!currentContext) break;
+                            }
                         }
                     }
 
