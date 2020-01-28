@@ -57,7 +57,7 @@ $R.service.class('Resource',
                     Debug.error({val: val}, '{val} is not valid value for status');
                     return;
                 }
-                if (val > 1 || val <= 2) {
+                if (val < 0 || val > 2) {
                     Debug.error({val: val}, '{val} no such status possible!');
                     return;
                 }

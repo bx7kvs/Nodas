@@ -100,7 +100,7 @@ $R.plugin('Objects', ['Debug',
 
 
             this.parent = function (group) {
-                if (group !== null && typeof group.type !== "function" || !group.type('Group')) {
+                if (group !== null && (typeof group.type !== "function" || !group.type('Group'))) {
                     Debug.error({
                         group: typeof group,
                         type: group.type ? group.type() : 'unknownType'
