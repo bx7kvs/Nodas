@@ -29,10 +29,10 @@ $R.plugin('Objects', ['Debug',
                     } else {
                         if (target.$$TREESEARCHVALUE) {
                             if (target.parent()) {
-                                Debug.warn({}, 'You try to append group parent into itself.');
+                                Debug.warn('You try to append group parent into itself.');
                             }
                         } else {
-                            Debug.warn({}, 'You try to append group parent into it\'s children.');
+                            Debug.warn('You try to append group parent into it\'s children.');
                         }
                         delete object.$$TREESEARCHVALUE;
                         return true;
@@ -51,8 +51,10 @@ $R.plugin('Objects', ['Debug',
             var layers = null;
 
             this.register('unmount', function () {
-                this.parent().extension('Layers').remove(this);
-                this.extension('Tree').parent(null);
+                if(this.parent()) {
+                    this.parent().extension('Layers').remove(this);
+                    parent = null;
+                }
                 return null;
             });
 
@@ -60,30 +62,10 @@ $R.plugin('Objects', ['Debug',
                 if (!this.type('Group')) {
                     Debug.watch({type: this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
                 } else if (!treeViolation(this, object)) {
-
+                    object.unmount();
                     if (!layers) layers = this.extension('Layers');
-
-                    var object_old_parent = object.parent(),
-                        object_tree_ext = object.extension('Tree');
-
-                    if (object_old_parent) {
-                        var old_object_parent_layers = object_old_parent.extension('Layers'),
-                            object_layer = object.layer();
-
-                        old_object_parent_layers.remove(object);
-
-                        layers.place(object_layer, object);
-
-                        object_tree_ext.parent(this);
-
-                    } else {
-
-                        var object_layer = object.layer();
-
-                        layers.place(object_layer, object);
-
-                        object_tree_ext.parent(this);
-                    }
+                    layers.place(object.layer(), object);
+                    object.extension('Tree').parent(this);
                     this.extension('Box').purge();
                 }
                 return this;
@@ -100,13 +82,13 @@ $R.plugin('Objects', ['Debug',
 
 
             this.parent = function (group) {
-                if (group !== null && (typeof group.type !== "function" || !group.type('Group'))) {
+                if (typeof group.type !== "function" || !group.type('Group')) {
                     Debug.error({
                         group: typeof group,
                         type: group.type ? group.type() : 'unknownType'
                     }, 'Unable to set parent as {group}{type}. Object is not a group!', this);
                 }
-                if (group || group === null) {
+                if (group) {
                     parent = group;
                 } else {
                     return parent;

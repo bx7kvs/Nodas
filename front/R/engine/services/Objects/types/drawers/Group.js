@@ -54,22 +54,19 @@ $R.service.class('Objects',
 
             });
 
-            var position = [0, 0];
-
             this.watch('position', function (o, n) {
-                position = n;
                 box.purge();
             });
 
             var _argumnets;
             drawer.drawFunction(function () {
                 _argumnets = arguments;
-                _argumnets[0].save();
                 DrawerHelper.transform(this, _argumnets[0]);
                 layers.forEach(function () {
+                    _argumnets[0].save();
                     this.extension('Drawer').draw.apply(this, _argumnets);
+                    _argumnets[0].restore();
                 });
-                _argumnets[0].restore();
             });
         }
     ]

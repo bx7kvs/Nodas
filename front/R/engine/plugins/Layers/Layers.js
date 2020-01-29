@@ -25,49 +25,31 @@ $R.plugin('Objects',
 
             });
 
-            this.place = function (val, object) {
-                object.$$LAYERSEARCHVALUE = true;
-
+            function removeObjectFromLayers(object) {
+                var done = false;
                 for (var layer in layers) {
-
                     if (layers.hasOwnProperty(layer)) {
-                        var done = false;
+                        done = false;
                         for (var i = 0; i < layers[layer].length; i++) {
-                            if (layers[layer][i].$$LAYERSEARCHVALUE) {
-                                layers[layer].splice(i, 1);
+                            if(layers[layer][i] === object) {
                                 done = true;
+                                layers[layer].splice(i, 1);
                                 break;
                             }
                         }
                         if (done) break;
                     }
-
                 }
+            }
 
-                delete object.$$LAYERSEARCHVALUE;
-
-                if (!layers[val]) layers[val] = [];
-                layers[val].push(object);
-
+            this.place = function (layer, object) {
+                removeObjectFromLayers(object);
+                if (!layers[layer]) layers[layer] = [];
+                layers[layer].push(object);
             };
 
             this.remove = function (object) {
-
-                object.$$LAYERSEARCHVALUE = true;
-
-                for (var layer in layers) {
-                    if (layers.hasOwnProperty(layer)) {
-                        var done = false;
-                        for (var i = 0; i < layers[layer].length; i++) {
-                            if (layers[layer][i].$$LAYERSEARCHVALUE) {
-                                done = true;
-                                layers[layer].splice(i, 1);
-                                break;
-                            }
-                        }
-                        if (done) break;
-                    }
-                }
+                removeObjectFromLayers(object);
             };
 
             this.forEach = function (func) {

@@ -8,7 +8,6 @@ $R.plugin('Objects',
             var draw = null,
                 update = null,
                 object = this.object(),
-                pipe = {},
                 pipeSize = 0,
                 conditions = [],
                 rendering = true,
@@ -17,7 +16,9 @@ $R.plugin('Objects',
                 cbIterator = 0,
                 callUpdateCb = false,
                 drawerPipeBefore = {},
-                drawerPipeAfter = {};
+                drawerPipeAfter = {},
+                beforePipeSize = 0,
+                afterPipeSize = 0;
 
             this.spriteUpdated = function (cb) {
                 if (this.$$CALL) callUpdateCb = true;
@@ -29,6 +30,7 @@ $R.plugin('Objects',
             };
 
             var renderAllowIterator = 0;
+
             function renderAllowed(args) {
                 if (conditions.length > 0) {
                     for (renderAllowIterator = 0; renderAllowIterator < conditions.length; renderAllowIterator++) {
@@ -44,7 +46,7 @@ $R.plugin('Objects',
             this.drawFunction = function (func) {
                 if (typeof func !== "function") {
                     Debug.error({}, 'ObjectDrawer / func is not a function!');
-                    delete this.f;
+                    delete this.drawFunction;
                     return;
                 }
                 draw = func;
@@ -54,7 +56,7 @@ $R.plugin('Objects',
             this.updateFunction = function (func) {
                 if (typeof func !== "function") {
                     Debug.error({}, 'ObjectDrawer / func is not a function!');
-                    delete this.f;
+                    delete this.updateFunction;
                     return;
                 }
                 update = func;
@@ -91,17 +93,18 @@ $R.plugin('Objects',
                 order = order === undefined ? 0 : order;
                 if (typeof order === "number") {
                     if (typeof f === "function") {
-                        if(order > 100) {
+                        if (order > 100) {
                             if (!drawerPipeAfter[order]) {
                                 drawerPipeAfter[order] = [];
                             }
                             drawerPipeAfter[order].push(f);
-                        }
-                        else {
+                            afterPipeSize++
+                        } else {
                             if (!drawerPipeBefore[order]) {
                                 drawerPipeBefore[order] = [];
                             }
                             drawerPipeBefore[order].push(f);
+                            beforePipeSize++;
                         }
                         pipeSize++;
                     } else {
@@ -115,31 +118,29 @@ $R.plugin('Objects',
 
             this.unpipe = function (f) {
                 if (typeof f === "function") {
-                    f.$$SEARCH = true;
                     var index;
                     for (index in drawerPipeBefore) {
                         if (drawerPipeBefore.hasOwnProperty(index)) {
                             drawerPipeBefore[index] = drawerPipeBefore[index].filter(function (cb) {
-                                var result = !cb.$$SEARCH;
-                                if (result) {
+                                if (cb === f) {
                                     pipeSize--;
-                                }
-                                return result;
+                                    beforePipeSize--;
+                                    return false;
+                                } else return true;
                             });
                         }
                     }
                     for (index in drawerPipeAfter) {
                         if (drawerPipeAfter.hasOwnProperty(index)) {
                             drawerPipeAfter[index] = drawerPipeAfter[index].filter(function (cb) {
-                                var result = !cb.$$SEARCH;
-                                if (result) {
+                                if (cb === f) {
                                     pipeSize--;
-                                }
-                                return result;
+                                    afterPipeSize--;
+                                    return false;
+                                } else return true;
                             });
                         }
                     }
-                    delete f.$$SEARCH;
                 }
                 return object;
             };
@@ -166,6 +167,7 @@ $R.plugin('Objects',
                 }
                 rendering = true;
 
+
                 if (renderAllowed(arguments)) {
                     args[0] = arguments[0];
                     args[1] = arguments[1];
@@ -176,7 +178,7 @@ $R.plugin('Objects',
 
                     if (update) update.apply(this, args);
 
-                    if (pipeSize) {
+                    if (beforePipeSize) {
                         for (pipeOrder in drawerPipeBefore) {
                             if (drawerPipeBefore.hasOwnProperty(pipeOrder)) {
                                 for (pipeIndex = 0; pipeIndex < drawerPipeBefore[pipeOrder].length; pipeIndex++) {
@@ -191,22 +193,22 @@ $R.plugin('Objects',
                             if (!currentContext) break;
                         }
                     }
+
                     if (args[0]) {
                         if (args[0] === originalContext) {
                             args[0].globalCompositeOperation = object.extension('Style').get('blending');
                             args[0].globalAlpha *= object.extension('Style').get('opacity');
+
                             if (draw) draw.apply(this, args);
                         } else {
                             originalContext.globalCompositeOperation = object.extension('Style').get('blending');
                             originalContext.globalAlpha *= object.extension('Style').get('opacity');
                             if (draw) draw.apply(this, args);
                             originalContext.drawImage(args[0].canvas,
-                                typeof args[0].canvas === "number" ? args[0].canvas : 0,
-                                typeof args[0].canvas === "number" ? args[0].canvas : 0,
-                                args[0].canvas.width,
-                                args[0].canvas.height);
+                                0, 0, args[0].canvas.width, args[0].canvas.height);
+                            args[0] = originalContext;
                         }
-                        if (pipeSize) {
+                        if (afterPipeSize) {
                             for (pipeOrder in drawerPipeAfter) {
                                 if (drawerPipeAfter.hasOwnProperty(pipeOrder)) {
                                     for (pipeIndex = 0; pipeIndex < drawerPipeAfter[pipeOrder].length; pipeIndex++) {
@@ -227,7 +229,6 @@ $R.plugin('Objects',
 
                 }
             };
-
         }
     ]
 );
