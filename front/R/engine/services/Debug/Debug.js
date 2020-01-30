@@ -10,7 +10,12 @@ $R.service(
                 regexpname = /[a-zA-Z]+/g,
                 warnings = config.define('warnings', false, {isBool: true}, function (v) {
                     warnings = v;
-                });
+                }),
+                groupLevel  = config.define('debugLevel', 0, {isNumber: true}, function (v) {
+                    if(v < 0 ) v = 0;
+                    warnings = v;
+                }),
+                currentLevel = 0;
 
 
             var errorCb = [], messageCb = [], infoCb = [], importantCb = [];
@@ -127,7 +132,7 @@ $R.service(
                 }
                 message = GetMessage(data, message, source);
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'padding: 4px 10px; background: #10949C; color: white');
+                console.log('%c' + message, 'padding: 4px 10px; border: 2px solid #10949C; color: white');
             };
 
             this.positive = function (data, message, source) {
@@ -139,7 +144,7 @@ $R.service(
                 }
                 message = GetMessage(data, message, source);
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'padding: 4px 10px; background: rgb(149,202,0); color: rgb(60,80,0)');
+                console.log('%c' + message, 'border: 2px solid rgb(149,202,0); padding: 4px 10px; color:rgb(149,202,0)');
             };
 
             this.negative = function (data, message, source) {
@@ -151,7 +156,16 @@ $R.service(
                 }
                 message = GetMessage(data, message, source);
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'padding: 4px 10px; background: rgb(137,0,0); color: white');
+                console.log('%c' + message, 'border: 2px solid rgb(224,14,0); padding: 4px 10px; color: rgb(224,14,0)');
+            };
+
+            this.group = function (message) {
+                currentLevel >= groupLevel.get() ? console.groupCollapsed(message) : console.group(message);
+                currentLevel ++;
+            };
+            this.groupEnd = function () {
+                currentLevel --;
+                console.groupEnd();
             }
         }
     ]
