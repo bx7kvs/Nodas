@@ -11,8 +11,8 @@ $R.service(
                 warnings = config.define('warnings', false, {isBool: true}, function (v) {
                     warnings = v;
                 }),
-                groupLevel  = config.define('debugLevel', 0, {isNumber: true}, function (v) {
-                    if(v < 0 ) v = 0;
+                groupLevel = config.define('debugLevel', 0, {isNumber: true}, function (v) {
+                    if (v < 0) v = 0;
                     warnings = v;
                 }),
                 currentLevel = 0;
@@ -108,7 +108,7 @@ $R.service(
                 }
                 message = GetMessage(data, message, source);
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'border-left:2px solid rgb(145,178,75); padding :2px 6px; background: rgba(131,189,8,.1); color: rgb(145,178,75)');
+                console.log('%c' + message, 'border-left:2px solid rgb(255,255,255); padding :2px 6px; background: rgba(255,255,255,.05); color: rgb(255,255,255)');
             };
 
             this.message = function (data, message, source) {
@@ -120,9 +120,11 @@ $R.service(
                 }
                 message = GetMessage(data, message, source);
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'padding: 1px 10px; border-left:4px solid #10949C; font-weight:bold; background: rgba(0,175,231,.1); color: #10949C');
+                console.log('%c' + message, 'padding: 1px 10px; border-left:2px solid #10949C; font-weight:bold; background: rgba(0,175,231,.1); color: #10949C');
             };
 
+            var currentSeparatorMessages = {},
+                currentSeparatorLevel = 0;
             this.separator = function (data, message, source) {
                 if (!warnings) return;
                 if (typeof data === "string") {
@@ -131,8 +133,18 @@ $R.service(
                     data = {};
                 }
                 message = GetMessage(data, message, source);
+                currentSeparatorLevel ++;
+                currentSeparatorMessages[currentSeparatorLevel] = message;
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'padding: 4px 10px; border: 2px solid #10949C; color: white');
+                console.log('%c' + '[START] '+ message, 'padding: 4px 10px; border-left: 2px solid #10949C; background:rgba(16,148,156,0.1); color: #10949C');
+            };
+            this.separatorEnd = function () {
+                if (!warnings) return;
+                if(currentSeparatorMessages[currentSeparatorLevel]) {
+                    console.log('%c' + '[END]   ' +currentSeparatorMessages[currentSeparatorLevel], 'padding: 4px 10px; border-left: 2px solid #10949C; background:rgba(16,148,156,0.1); color: #10949C');
+                    currentSeparatorLevel--;
+                }
+                if(currentSeparatorLevel === 0) currentSeparatorMessages = {};
             };
 
             this.positive = function (data, message, source) {
@@ -144,7 +156,7 @@ $R.service(
                 }
                 message = GetMessage(data, message, source);
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'border: 2px solid rgb(149,202,0); padding: 4px 10px; color:rgb(149,202,0)');
+                console.log('%c' + message, 'border-left: 2px solid rgb(149,202,0); background:rgba(149,202,0,.1); padding: 4px 10px; color:rgb(149,202,0)');
             };
 
             this.negative = function (data, message, source) {
@@ -156,15 +168,17 @@ $R.service(
                 }
                 message = GetMessage(data, message, source);
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'border: 2px solid rgb(224,14,0); padding: 4px 10px; color: rgb(224,14,0)');
+                console.log('%c' + message, 'border-left: 2px solid rgb(224,14,0); background:rgba(224,14,0,.1); padding: 4px 10px; color: rgb(224,14,0)');
             };
 
             this.group = function (message) {
+                if (!warnings) return;
                 currentLevel >= groupLevel.get() ? console.groupCollapsed(message) : console.group(message);
-                currentLevel ++;
+                currentLevel++;
             };
             this.groupEnd = function () {
-                currentLevel --;
+                if (!warnings) return;
+                currentLevel--;
                 console.groupEnd();
             }
         }
