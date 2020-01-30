@@ -5,7 +5,7 @@ $R.service(
     ['@Config',
         function Debug(config) {
 
-            var string = '$R [Debug] : ',
+            var string = 'R⤑',
                 regexp = /{[a-zA-Z]+}/g,
                 regexpname = /[a-zA-Z]+/g,
                 warnings = config.define('warnings', false, {isBool: true}, function (v) {
@@ -13,13 +13,14 @@ $R.service(
                 });
 
 
-            var errorCb = [], messageCb = [];
+            var errorCb = [], messageCb = [], infoCb = [], importantCb = [];
 
             function ResolveEvent(type, data) {
-                var array = null;
-
+                var array;
                 if (type === 'error') array = errorCb;
                 if (type === 'message') array = messageCb;
+                if (type === 'info') array = infoCb;
+                if (type === 'important') array = importantCb;
 
                 for (var i = 0; i < array.length; i++) {
                     array[i](data);
@@ -30,6 +31,8 @@ $R.service(
                 if (typeof func !== "function") return;
                 if (event === 'error') errorCb.push(func);
                 if (event === 'message') messageCb.push(func);
+                if (event === 'info') messageCb.push(func);
+                if (event === 'important') messageCb.push(func);
             };
 
 
@@ -56,7 +59,7 @@ $R.service(
                 }
 
                 if (source && source.constructor && source.constructor.name) {
-                    message = '[' + source.constructor.name + '] : ' + message;
+                    message = ' ' + source.constructor.name + '⤑ ' + message;
                 }
                 message = string + message;
                 return message;
@@ -70,9 +73,8 @@ $R.service(
                 }
 
                 message = GetMessage(data, message, source);
-
                 ResolveEvent('error', message);
-
+                console.trace();
                 throw new Error(message);
             };
 
@@ -88,8 +90,68 @@ $R.service(
                 message = GetMessage(data, message, source);
 
                 ResolveEvent('message', message);
+                console.log('%c' + message, 'border-left:4px solid rgb(178,137,75); padding :2px 6px; background: rgba(131,138,0,.1); color: rgb(178,137,75)');
 
-                console.warn(message)
+            };
+
+            this.info = function (data, message, source) {
+                if (!warnings) return;
+                if (typeof data === "string") {
+                    source = message;
+                    message = data;
+                    data = {};
+                }
+                message = GetMessage(data, message, source);
+                ResolveEvent('info', message);
+                console.log('%c' + message, 'border-left:2px solid rgb(145,178,75); padding :2px 6px; background: rgba(131,189,8,.1); color: rgb(145,178,75)');
+            };
+
+            this.message = function (data, message, source) {
+                if (!warnings) return;
+                if (typeof data === "string") {
+                    source = message;
+                    message = data;
+                    data = {};
+                }
+                message = GetMessage(data, message, source);
+                ResolveEvent('info', message);
+                console.log('%c' + message, 'padding: 1px 10px; border-left:4px solid #10949C; font-weight:bold; background: rgba(0,175,231,.1); color: #10949C');
+            };
+
+            this.separator = function (data, message, source) {
+                if (!warnings) return;
+                if (typeof data === "string") {
+                    source = message;
+                    message = data;
+                    data = {};
+                }
+                message = GetMessage(data, message, source);
+                ResolveEvent('info', message);
+                console.log('%c' + message, 'padding: 4px 10px; background: #10949C; color: white');
+            };
+
+            this.positive = function (data, message, source) {
+                if (!warnings) return;
+                if (typeof data === "string") {
+                    source = message;
+                    message = data;
+                    data = {};
+                }
+                message = GetMessage(data, message, source);
+                ResolveEvent('info', message);
+                console.log('%c' + message, 'padding: 4px 10px; background: rgb(149,202,0); color: rgb(60,80,0)');
+            };
+
+            this.negative = function (data, message, source) {
+                if (!warnings) return;
+                if (typeof data === "string") {
+                    source = message;
+                    message = data;
+                    data = {};
+                }
+                message = GetMessage(data, message, source);
+                ResolveEvent('info', message);
+                console.log('%c' + message, 'padding: 4px 10px; background: rgb(137,0,0); color: white');
             }
         }
     ]

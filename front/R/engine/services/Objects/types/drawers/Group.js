@@ -18,23 +18,11 @@ $R.service.class('Objects',
 
 
                 layers.forEach(function () {
-
-
                     var obox = this.extension('Box').box().value();
-
-                    if (obox.position[0] < minx) {
-                        minx = obox.position[0];
-                    }
-                    if (obox.position[1] < miny) {
-                        miny = obox.position[1]
-                    }
-                    if (obox.position[0] + obox.size[0] > maxx) {
-                        maxx = obox.position[0] + obox.size[0];
-                    }
-                    if (obox.position[1] + obox.size[1] > maxy) {
-                        maxy = obox.position[1] + obox.size[1];
-                    }
-
+                    minx = Math.min(minx, obox.position[0]);
+                    miny = Math.min(miny, obox.position[1]);
+                    maxx = Math.max(maxx, obox.position[0] + obox.size[0]);
+                    maxy = Math.max(maxy, obox.position[1] + obox.size[1]);
                 });
 
                 var position = style.get('position');
