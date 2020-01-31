@@ -5,7 +5,7 @@ $R.service(
     ['@Config',
         function Debug(config) {
 
-            var string = 'R⤑',
+            var string = '𝐑',
                 regexp = /{[a-zA-Z]+}/g,
                 regexpname = /[a-zA-Z]+/g,
                 warnings = config.define('warnings', false, {isBool: true}, function (v) {
@@ -64,7 +64,7 @@ $R.service(
                 }
 
                 if (source && source.constructor && source.constructor.name) {
-                    message = ' ' + source.constructor.name + '⤑ ' + message;
+                    message = ' ' + source.constructor.name + ' │ ' + message;
                 }
                 message = string + message;
                 return message;
@@ -108,7 +108,7 @@ $R.service(
                 }
                 message = GetMessage(data, message, source);
                 ResolveEvent('info', message);
-                console.log('%c' + message, 'border-left:2px solid rgb(255,255,255); padding :2px 6px; background: rgba(255,255,255,.05); color: rgb(255,255,255)');
+                console.log('%c' + message, 'border-left:2px solid rgb(149,202,0); padding :2px 6px; background: rgba(255,255,255,.1);');
             };
 
             this.message = function (data, message, source) {
@@ -136,12 +136,12 @@ $R.service(
                 currentSeparatorLevel ++;
                 currentSeparatorMessages[currentSeparatorLevel] = message;
                 ResolveEvent('info', message);
-                console.log('%c' + '[START] '+ message, 'padding: 4px 10px; border-left: 2px solid #10949C; background:rgba(16,148,156,0.1); color: #10949C');
+                console.log('%c' + message+ ' ⌛', 'padding: 4px 10px; border-left: 2px solid #10949C; background:rgba(16,148,156,0.1); color: #10949C');
             };
             this.separatorEnd = function () {
                 if (!warnings) return;
                 if(currentSeparatorMessages[currentSeparatorLevel]) {
-                    console.log('%c' + '[END]   ' +currentSeparatorMessages[currentSeparatorLevel], 'padding: 4px 10px; border-left: 2px solid #10949C; background:rgba(16,148,156,0.1); color: #10949C');
+                    console.log('%c'  +currentSeparatorMessages[currentSeparatorLevel] + ' ✔', 'padding: 4px 10px; border-left: 2px solid #10949C; background:rgba(16,148,156,0.1); color: #10949C');
                     currentSeparatorLevel--;
                 }
                 if(currentSeparatorLevel === 0) currentSeparatorMessages = {};
