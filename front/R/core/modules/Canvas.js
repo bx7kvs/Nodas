@@ -113,6 +113,15 @@ Core(function Canvas(Ticker) {
             return this;
         } else throw new Error('Unable to set resize callback. f argument is not a function');
     };
+    this.offresize = function (f) {
+        if (typeof f === "function") {
+            resizeCb = resizeCb.filter(function (e) {
+                return e !== f;
+            });
+            resizeCb.push(f);
+            return this;
+        } else throw new Error('Unable to set resize callback. f argument is not a function');
+    };
 
     this.switch = function (f) {
         if (typeof f === "function") {
