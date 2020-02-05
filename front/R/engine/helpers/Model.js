@@ -77,7 +77,7 @@ $R.helper.system(
                 return result;
             };
 
-            var sprite_regexp = /^([./_\da-zA-Z]+)(\[(\d+)\])$/;
+            var sprite_regexp = /^([./\-_\d0-9a-zA-Z]+)(\[(\d+)\])$/;
 
             this.isSpriteString = function (str) {
                 return sprite_regexp.test(str);
