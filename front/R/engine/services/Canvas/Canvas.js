@@ -24,37 +24,31 @@ $R.service(
                     function (v) {
                         if (typeof v[0] === "number") {
                             width = v[0];
-                        }
-                        else if (typeof v[0] === "string") {
+                        } else if (typeof v[0] === "string") {
                             if (v[0].match(/^[\d]+%$/)) {
                                 width = parseInt(v[0]);
                                 xunits = '%';
-                            }
-                            else {
+                            } else {
                                 width = 1000;
                                 xunits = 'px';
                                 Debug.warn({width: v[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
                             }
-                        }
-                        else {
+                        } else {
                             width = 1000;
                             Debug.warn({width: v[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
                         }
 
                         if (typeof v[1] === "number") {
                             height = v[1];
-                        }
-                        else if (typeof v[1] === "string") {
+                        } else if (typeof v[1] === "string") {
                             if (v[1].match(/^[\d]+%$/)) {
                                 height = parseInt(v[1]);
                                 yunits = '%';
-                            }
-                            else {
+                            } else {
                                 height = 800;
                                 Debug.warn({height: v[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
                             }
-                        }
-                        else {
+                        } else {
                             height = 800;
                             Debug.warn({height: v[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
                         }
@@ -91,8 +85,7 @@ $R.service(
                         resizeTO = null;
                         success();
                     }, 200);
-                }
-                else {
+                } else {
                     dimms[0] = width;
                     dimms[1] = height;
                     Canvas.size(dimms[0], dimms[1]);
@@ -139,12 +132,17 @@ $R.service(
                 if (typeof func !== "function") return;
                 callbacks.push(func);
             };
+            this.offresize = function (func) {
+                if (typeof func !== "function") return;
+                callbacks.filter(function (f) {
+                    return f !== func;
+                });
+            };
 
             this.width = function () {
                 if (xunits === '%') {
                     return pW * (width / 100);
-                }
-                else {
+                } else {
                     return width;
                 }
 
@@ -153,8 +151,7 @@ $R.service(
             this.height = function () {
                 if (xunits === '%') {
                     return pH * (height / 100);
-                }
-                else {
+                } else {
                     return height;
                 }
             };
