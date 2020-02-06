@@ -16,7 +16,7 @@ $R.service(
                 self = this,
                 loaderMode = 'auto';
 
-            Config.define('loaderMode', false, {isString: true}).watch(function (v) {
+            Config.define('loaderMode', 'auto', {isString: true}).watch(function (v) {
                 loaderMode = v === 'manual' || v === 'auto' ? v : 'auto';
             });
 
@@ -48,11 +48,11 @@ $R.service(
                     var result = inject('$' + type);
 
                     result.on('load', function () {
-                        loadCounter--;
+                        loadCounter++;
                         ResolveEvent('load', [this, loadCounter, all.length]);
                     });
                     result.on('error', function () {
-                        loadCounter--;
+                        loadCounter++;
                         ResolveEvent('error', [this, loadCounter, all.length]);
                     });
 
@@ -61,8 +61,6 @@ $R.service(
                     container[_type + 's'].push(result);
 
                     all.push(result);
-
-                    loadCounter++;
 
                     if(loaderMode === 'auto') result.load();
 
@@ -149,7 +147,7 @@ $R.service(
                 }
             };
             this.list = function () {
-                return [].concat(container.images).concat(container.audios).concat(container.fonts).concat(container.sprites);
+                return [].concat(container.ImageResources).concat(container.AudioResources).concat(container.FontResources).concat(container.SpriteResources);
             };
 
             function ResolveEvent(type, data) {

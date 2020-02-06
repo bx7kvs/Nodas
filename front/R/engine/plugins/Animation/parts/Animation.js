@@ -21,14 +21,14 @@ $R.plugin.class('Objects', 'Animation',
                 config = null;
 
             function Resolve(type) {
-                if (type == stepTypeStr) {
+                if (type === stepTypeStr) {
                     for (var i = 0; i < stack.length; i++) {
                         if (stepsCb.hasOwnProperty(stack[i].morph.property())) {
                             stepsCb[stack[i].morph.property()].apply(target, [progress, stack[i].result]);
                         }
                     }
                 }
-                else if (type == completeTypeStr) {
+                else if (type === completeTypeStr) {
                     done = true;
                     var results = {};
                     for (var i = 0; i < stack.length; i++) {

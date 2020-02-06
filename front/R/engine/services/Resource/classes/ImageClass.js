@@ -30,11 +30,12 @@ $R.service.class('Resource',
                     resolveEventFunc('error', []);
                     Debug.error({url: url}, 'Unable to load image {url}.');
                 });
-
                 this.on('get', function () {
                     image.setAttribute('src', url);
                 });
             }
+
+
 
             this.width = function () {
                 return width;

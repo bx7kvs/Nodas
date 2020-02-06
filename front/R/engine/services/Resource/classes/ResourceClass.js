@@ -91,7 +91,6 @@ $R.service.class('Resource',
                     Debug.warn({e: event}, 'Unable to set handler for event {e}.');
                     return;
                 }
-
                 cbContainer[event].push(func);
             };
 

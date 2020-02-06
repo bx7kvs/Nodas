@@ -10,7 +10,8 @@ $R.service.class('Objects',
                 drawer = this.extension('Drawer'),
                 boxExtension = this.extension('Box'),
                 matrix = this.extension('Matrix'),
-                strokefix = [2, 2, 2, 2];
+                strokefix = [2, 2, 2, 2],
+                viewSize = [0,0];
 
             assembler.layer(0, 'fill', UpdateFill.bind(this));
             assembler.layer(1, 'bg', UpdateBg.bind(this));
@@ -39,6 +40,9 @@ $R.service.class('Objects',
                     y -= size[1]
                 }
 
+                viewSize[0] = size[0];
+                viewSize[1] = size[1];
+
                 boxContainer.set(
                     x, y,
                     size[0], size[1],
@@ -49,7 +53,7 @@ $R.service.class('Objects',
             drawer.export(assembler.export);
             drawer.drawFunction(function (context) {
                 DrawerHelper.transform(this, context);
-                context.drawImage(drawer.export(), 0, 0);
+                if(viewSize[0] > 0 && viewSize[1] > 0) context.drawImage(drawer.export(), 0, 0);
             });
 
             this.watch('size', function (o, n) {

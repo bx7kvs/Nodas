@@ -24,17 +24,17 @@ $R.service.class('Objects', ['@inject', 'Debug', function GraphicsAssembler(inje
     }
 
     function compose() {
-        if(!resized) {
-            if(boxExt) {
+        if (!resized) {
+            if (boxExt) {
                 var sprite = boxExt.box().sprite();
-                if(sprite.size[0] !== w || sprite.size[1] !== h) {
-                    SetSize(sprite.size[0],sprite.size[1]);
+                if (sprite.size[0] !== w || sprite.size[1] !== h) {
+                    SetSize(sprite.size[0], sprite.size[1]);
                 }
             }
             resized = true;
         }
-        if(!ready) {
-            context.clearRect(0,0,w,h);
+        if (!ready) {
+            context.clearRect(0, 0, w, h);
             for (var i = 0; i < pipe.length; i++) {
                 pipe[i].draw(context);
             }
@@ -81,6 +81,13 @@ $R.service.class('Objects', ['@inject', 'Debug', function GraphicsAssembler(inje
             SetSize(width, height);
             ready = false;
         }
+    };
+
+    this.width = function () {
+        return w;
+    };
+    this.height = function () {
+        return h;
     };
 
     this.resize = function () {
