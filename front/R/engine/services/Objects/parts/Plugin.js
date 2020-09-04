@@ -5,7 +5,7 @@ $R.service.class('Objects',
     function Plugin() {
 
         var properties = {}, clear = {}, object = null,
-            applies = [];
+            applies = [], destroyCb = [];
 
         this.defineObject = function (o) {
             object = o;
@@ -55,8 +55,7 @@ $R.service.class('Objects',
 
         this.wrap = function (object) {
             for (var property in properties) {
-                if (!properties.hasOwnProperty(property)) continue;
-                if (object[property]) continue;
+                if (!properties.hasOwnProperty(property) || object[property]) continue;
                 object[property] = properties[property];
             }
 
@@ -86,5 +85,28 @@ $R.service.class('Objects',
                 delete  object[prop];
             }
         };
+
+        this.destroy = function (f) {
+            var prop;
+            if(typeof f === "function") {
+                destroyCb.push(f);
+                return this;
+            }
+            while (destroyCb[0]) {
+                destroyCb[0].call(this);
+                destroyCb.shift();
+            }
+            destroyCb = undefined;
+            for(prop in properties) {
+                if(object) delete object[prop];
+                delete properties[prop];
+            }
+            for(prop in this) {
+                if(this.hasOwnProperty(prop)) {
+                    delete this[prop];
+                }
+            }
+            properties = undefined; clear = undefined;
+        }
     }
 );

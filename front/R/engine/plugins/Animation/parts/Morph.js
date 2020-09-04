@@ -80,7 +80,7 @@ $R.plugin.class('Objects', 'Animation',
                 object = obj;
 
                 valid = true;
-            }
+            };
 
         }
     ]

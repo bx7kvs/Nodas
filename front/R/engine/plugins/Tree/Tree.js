@@ -95,6 +95,10 @@ $R.plugin('Objects', ['Debug',
                 }
             };
 
+            this.destroy(function () {
+                layers = undefined;
+            });
+
         }
     ]
 );

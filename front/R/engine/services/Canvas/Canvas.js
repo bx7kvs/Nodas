@@ -5,7 +5,7 @@ $R.service(
     ['@Canvas', '@Config', 'Debug',
         function Canvas(Canvas, Config, Debug) {
             var callbacks = [], width = 0, height = 0, dimms = [0, 0], xunits = 'px', yunits = 'px',
-                offset = [0, 0], scroll = [0, 0], output = Canvas.element(), self = this;
+                offset = [0, 0], scroll = [0, 0], output = Canvas.element(), self = this, hidden = false;
 
             Config.define(
                 'size',
@@ -156,6 +156,24 @@ $R.service(
                 }
             };
 
+            this.hide = function () {
+                if (!hidden) {
+                   if(output) {
+                       output.style.display = 'none';
+                   }
+                    hidden = true;
+                }
+            };
+
+            this.show = function () {
+                if (hidden) {
+                    if(output) {
+                        output.style.display = null;
+                    }
+                    hidden = false;
+                }
+            };
+
             var canvasEventCallbacks = {
                 mousemove: [],
                 mousedown: [],
@@ -265,8 +283,9 @@ $R.service(
             };
 
             Canvas.switch(function () {
+                var event;
                 if (output) {
-                    for (var event in listeners) {
+                    for (event in listeners) {
                         if (listeners.hasOwnProperty(event)) {
                             output.removeEventListener(event, listeners[event]);
                         }
@@ -274,7 +293,9 @@ $R.service(
                 }
 
                 output = this.element();
-                for (var event in listeners) {
+                if (hidden) output.style.display = 'none';
+                else output.style.display = null;
+                for (event in listeners) {
                     if (listeners.hasOwnProperty(event)) {
                         output.addEventListener(event, listeners[event]);
                     }

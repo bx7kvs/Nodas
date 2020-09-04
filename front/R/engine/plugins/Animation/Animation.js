@@ -59,8 +59,7 @@ $R.plugin('Objects',
                             if (!findCompetitor(props, animations[i])) {
                                 animations[i].start();
                             }
-                        }
-                        else {
+                        } else {
                             var competitors = findCompetitor(props, animations[i]);
                             if (competitors) {
                                 for (var n = 0; n < competitors.length; n++) {
@@ -72,8 +71,7 @@ $R.plugin('Objects',
                             animations[i].start();
                         }
                         _animations.push(animations[i]);
-                    }
-                    else {
+                    } else {
                         if (!animations[i].done()) {
                             _animations.push(animations[i]);
                         }
@@ -119,16 +117,14 @@ $R.plugin('Objects',
 
                 if (typeof arg2 === "object") {
                     config = arg2;
-                }
-                else if (typeof arg2 === "number") {
+                } else if (typeof arg2 === "number") {
                     config = {
                         duration: arg2
                     };
                     if (typeof arg3 === "string") {
                         config.easing = arg3
                     }
-                }
-                else if (typeof arg2 === "string") {
+                } else if (typeof arg2 === "string") {
                     config = {
                         easing: arg2
                     };
@@ -144,8 +140,7 @@ $R.plugin('Objects',
                             property: property
                         }, 'Property {property} of {type} can not be animated!');
                         continue;
-                    }
-                    else {
+                    } else {
                         result[property] = {
                             ordering: style.ordering(property),
                             morph: morphs[property],
@@ -168,8 +163,7 @@ $R.plugin('Objects',
                     var animation = inject('$Animation');
                     animation.config(this, morph_stack, config, CheckAnimationQueue);
                     animations.push(animation);
-                }
-                else {
+                } else {
                     Debug.warn('No properties to animate!');
                 }
             }
@@ -177,11 +171,9 @@ $R.plugin('Objects',
             this.register('animate', function (arg1, arg2, arg3, arg4) {
                 if (typeof arg1 === 'string' && arg2) {
                     CreateAnimationType1.apply(this, arguments);
-                }
-                else if (typeof arg1 === "object" && arg1.constructor !== Array) {
+                } else if (typeof arg1 === "object" && arg1.constructor !== Array) {
                     CreateAnimationType2.apply(this, arguments);
-                }
-                else {
+                } else {
                     Debug.warn('Unable to create animation. Wrong arguments');
                 }
                 CheckAnimationQueue();
@@ -199,6 +191,19 @@ $R.plugin('Objects',
                 return this;
             });
 
+            this.destroy(function () {
+                while (animations[0]) {
+                    animations[0].stop();
+                    animations.unshift();
+                }
+                animations = undefined;
+                animated = undefined;
+                for (var prop in morphs) {
+                    if (morphs.hasOwnProperty(prop)) {
+                        delete morphs[prop];
+                    }
+                }
+            });
         }
     ]
 );

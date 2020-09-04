@@ -31,6 +31,21 @@ $R.plugin('Objects',
                 }
                 return result;
             });
+
+            this.destroy(function () {
+                var i,u;
+                while (points[0]) {
+                    while (points[0][0]) {
+                        points[0].shift()
+                    }
+                    points.shift();
+                }
+                points = undefined;
+                while (mask[0]) {
+                    mask.shift();
+                }
+                mask = undefined;
+            });
         }
     ]
 );

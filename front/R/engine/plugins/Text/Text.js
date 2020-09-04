@@ -129,6 +129,22 @@ $R.plugin('Objects',
                 }
             };
 
+            this.destroy(function () {
+                while (lines[0]) {
+                    lines.shift();
+                }
+                lines = undefined;
+                while (limits[0]) {
+                    limits.shift()
+                }
+                limits = undefined;
+                object = undefined;
+                string = undefined;
+                width = undefined;
+                height = undefined;
+                wordByWordRegExp = undefined;
+            })
+
         }
     ]
 );

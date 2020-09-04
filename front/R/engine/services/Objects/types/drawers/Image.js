@@ -87,6 +87,17 @@ $R.service.class('Objects',
                 context.drawImage(drawer.export(), 0, 0, width, height);
             });
 
+            drawer.destroy(function () {
+                style = undefined;
+                box = undefined;
+                canvas = canvas.destroy();
+                drawer = undefined;
+                matrix = undefined;
+                width = undefined;
+                height = undefined;
+                image = undefined;
+            })
+
         }
     ]
 );

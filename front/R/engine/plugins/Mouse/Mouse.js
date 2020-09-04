@@ -194,7 +194,19 @@ $R.plugin('Objects',
             for (var i in callbacks) {
                 callbacks[i].$$OFF = false;
             }
-
+            this.destroy(function () {
+                var prop;
+                for(prop in callbacks) {
+                    if(callbacks.hasOwnProperty(prop)) {
+                        while (callbacks[prop][0]) {
+                            callbacks[prop].shift();
+                        }
+                        delete callbacks[prop];
+                    }
+                }
+                disabled = undefined;
+                mouseCheckFunction= undefined;
+            })
         }
     ]
 );

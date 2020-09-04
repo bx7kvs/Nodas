@@ -181,6 +181,21 @@ $R.service.class('Objects',
                 context.drawImage(drawer.export(), 0, 0);
             });
 
+            drawer.destroy(function () {
+                ctx = undefined;
+                box = undefined;
+                style = undefined;
+                canvas = canvas.destroy();
+                matrix = undefined;
+                require_update = false;
+                interpolated = false;
+                strokefix = undefined;
+                interpolationfix = undefined;
+                drawer = undefined;
+                xshift = undefined;
+                yshift = undefined;
+            })
+
         }
     ]
 );

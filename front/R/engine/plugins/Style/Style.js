@@ -188,7 +188,33 @@ $R.plugin('Objects',
                 Debug.warn({n: name}, 'Getting ordering of property{n} that does not exist!');
 
                 return false;
-            }
+            };
+
+            this.destroy(function () {
+                var prop;
+                self = undefined;
+                for(prop in properties) {
+                    if(properties.hasOwnProperty(prop)) {
+                        delete properties[prop];
+                    }
+                }
+                for(prop in setters) {
+                    if(setters.hasOwnProperty(prop)) {
+                        delete setters[prop];
+                    }
+                }
+                for(prop in getters) {
+                    if(getters.hasOwnProperty(prop)) {
+                        delete getters[prop];
+                    }
+                }
+                while (callbacks[0]) {
+                    callbacks.shift()
+                }
+                callbacks = undefined;
+                setters = undefined;
+                getters = undefined;
+            });
 
         }
     ]

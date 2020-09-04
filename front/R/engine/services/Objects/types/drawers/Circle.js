@@ -57,8 +57,7 @@ $R.service.class('Objects',
                         bg[i].on('load', function () {
                             assembler.update('bg')
                         });
-                    }
-                    else {
+                    } else {
                         context.save();
 
                         var bgwidth = box.size[0] * bgsize[i][0],
@@ -136,7 +135,15 @@ $R.service.class('Objects',
             drawer.export(assembler.export);
             drawer.drawFunction(function (context) {
                 DrawerHelper.transform(this, context);
-                context.drawImage(drawer.export(), 0 ,0);
+                context.drawImage(drawer.export(), 0, 0);
+            });
+            drawer.destroy(function () {
+                assembler = assembler.destroy();
+                drawer = undefined;
+                boxExt = undefined;
+                style = undefined;
+                matrix = undefined;
+                strokefix = undefined;
             });
         }
     ]

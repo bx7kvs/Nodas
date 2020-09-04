@@ -100,6 +100,33 @@ $R.service.class('Objects', ['@inject', 'Debug', function GraphicsAssembler(inje
         layers[name].update();
     };
 
+    this.destroy = function () {
+        output = output.destroy();
+        context = undefined;
+        boxExt = undefined;
+        resized = undefined;
+        ready = undefined;
+        var prop;
+        while (pipe[0]) {
+            pipe[0].destroy();
+            pipe.shift();
+        }
+        for (prop in layers) {
+            if (layers.hasOwnProperty(prop)) {
+                delete layers[prop]
+            }
+        }
+        layers = undefined;
+        pipe = undefined;
+        w = undefined;
+        h = undefined;
+        for (prop in this) {
+            if (this.hasOwnProperty(prop)) {
+                delete this[prop]
+            }
+        }
+    };
+
     this.export = compose;
 
 }]);

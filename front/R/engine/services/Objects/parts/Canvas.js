@@ -36,4 +36,15 @@ $R.service.class('Objects', [function Canvas() {
         return canvas;
     };
 
+    this.destroy = function () {
+        canvas = undefined;
+        context = undefined;
+        w = undefined; h = undefined;
+        for(var prop in this) {
+            if(this.hasOwnProperty(prop)) {
+                delete this[prop]
+            }
+        }
+    }
+
 }]);

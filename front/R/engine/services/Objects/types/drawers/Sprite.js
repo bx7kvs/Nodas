@@ -54,6 +54,7 @@ $R.service.class('Objects',
             this.watch('src', function (o, n) {
                 if (n !== o) {
                     var data = ModelHelper.readSpriteString(n);
+                    image.destroy();
                     image = Resource.sprite(data.url);
                     image.config(data.frames);
                     image.on('load', function () {
@@ -81,6 +82,16 @@ $R.service.class('Objects',
                     box.purge();
                 }
             });
+
+            drawer.destroy(function () {
+                style = undefined;
+                box = undefined;
+                drawer = undefined;
+                matrix = undefined;
+                width = undefined;
+                height = undefined;
+                image = image.destroy ? image.destroy() : undefined;
+            })
         }
     ]
 );

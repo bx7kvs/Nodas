@@ -25,8 +25,7 @@ $R.service.class('Objects', ['@inject', 'Debug', function GraphicsAssemblerLayer
         if (typeof f === "function") {
             func = f;
             delete this.f;
-        }
-        else {
+        } else {
             Debug.warn({f: f}, '[{f}] is not a function');
         }
     };
@@ -53,4 +52,19 @@ $R.service.class('Objects', ['@inject', 'Debug', function GraphicsAssemblerLayer
     };
 
     this.draw = updateCanvas;
+
+    this.destroy = function () {
+        canvas = canvas.destroy();
+        context = undefined;
+        width = undefined;
+        height = undefined;
+        func = undefined;
+        ready = false;
+        ordering = undefined;
+        for(var prop in this) {
+            if(this.hasOwnProperty(prop)) {
+                delete this[prop];
+            }
+        }
+    };
 }]);

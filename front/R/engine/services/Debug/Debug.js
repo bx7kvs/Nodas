@@ -85,7 +85,7 @@ $R.service(
 
             this.warn = function (data, message, source) {
 
-                if (!warnings) return;
+                if (!warnings.get()) return;
 
                 if (typeof data === "string") {
                     source = message;
@@ -100,7 +100,7 @@ $R.service(
             };
 
             this.info = function (data, message, source) {
-                if (!warnings) return;
+                if (!warnings.get()) return;
                 if (typeof data === "string") {
                     source = message;
                     message = data;
@@ -112,7 +112,7 @@ $R.service(
             };
 
             this.message = function (data, message, source) {
-                if (!warnings) return;
+                if (!warnings.get()) return;
                 if (typeof data === "string") {
                     source = message;
                     message = data;
@@ -126,7 +126,7 @@ $R.service(
             var currentSeparatorMessages = {},
                 currentSeparatorLevel = 0;
             this.separator = function (data, message, source) {
-                if (!warnings) return;
+                if (!warnings.get()) return;
                 if (typeof data === "string") {
                     source = message;
                     message = data;
@@ -139,7 +139,7 @@ $R.service(
                 console.log('%c' + message+ ' ⌛', 'padding: 4px 10px; border-left: 2px solid #10949C; background:rgba(16,148,156,0.1); color: #10949C');
             };
             this.separatorEnd = function () {
-                if (!warnings) return;
+                if (!warnings.get()) return;
                 if(currentSeparatorMessages[currentSeparatorLevel]) {
                     console.log('%c'  +currentSeparatorMessages[currentSeparatorLevel] + ' ✔', 'padding: 4px 10px; border-left: 2px solid #10949C; background:rgba(16,148,156,0.1); color: #10949C');
                     currentSeparatorLevel--;
@@ -148,7 +148,7 @@ $R.service(
             };
 
             this.positive = function (data, message, source) {
-                if (!warnings) return;
+                if (!warnings.get()) return;
                 if (typeof data === "string") {
                     source = message;
                     message = data;
@@ -160,7 +160,7 @@ $R.service(
             };
 
             this.negative = function (data, message, source) {
-                if (!warnings) return;
+                if (!warnings.get()) return;
                 if (typeof data === "string") {
                     source = message;
                     message = data;
@@ -172,12 +172,12 @@ $R.service(
             };
 
             this.group = function (message) {
-                if (!warnings) return;
+                if (!warnings.get()) return;
                 currentLevel >= groupLevel.get() ? console.groupCollapsed(message) : console.group(message);
                 currentLevel++;
             };
             this.groupEnd = function () {
-                if (!warnings) return;
+                if (!warnings.get()) return;
                 currentLevel--;
                 console.groupEnd();
             }

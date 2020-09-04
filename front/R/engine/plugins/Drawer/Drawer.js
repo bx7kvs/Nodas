@@ -229,6 +229,66 @@ $R.plugin('Objects',
 
                 }
             };
+            this.destroy(function () {
+                draw = undefined;
+                update = undefined;
+                object = undefined;
+                pipeSize = undefined;
+                conditions = [];
+                rendering = undefined;
+                exports = undefined;
+                updateCb = [];
+                cbIterator = undefined;
+                callUpdateCb = undefined;
+                drawerPipeBefore = {};
+                drawerPipeAfter = {};
+                beforePipeSize = undefined;
+                afterPipeSize = undefined;
+
+                pipeIndex = undefined;
+                pipeOrder = undefined;
+                originalContext = undefined;
+                currentContext = undefined;
+                callbacksResult = undefined;
+                args = [null, null, null];
+                renderAllowIterator = undefined;
+
+                var prop;
+
+                while (conditions[0]) {
+                    conditions.shift();
+                }
+                conditions = undefined;
+
+                while (updateCb[0]) {
+                    updateCb.shift();
+                }
+                updateCb = undefined;
+
+                while (args[0]) {
+                    args.shift();
+                }
+                args = undefined;
+
+                for (prop in drawerPipeBefore) {
+                    if (drawerPipeBefore.hasOwnProperty(prop)) {
+                        while (drawerPipeBefore[prop][0]) {
+                            drawerPipeBefore[prop].unshift()
+                        }
+                        delete drawerPipeBefore[prop];
+                    }
+                }
+                for (prop in drawerPipeAfter) {
+                    if (drawerPipeAfter.hasOwnProperty(prop)) {
+                        while (drawerPipeAfter[prop][0]) {
+                            drawerPipeAfter[prop].unshift()
+                        }
+                        delete drawerPipeAfter[prop];
+                    }
+                }
+                drawerPipeBefore = undefined;
+                drawerPipeAfter = undefined;
+            });
         }
     ]
 );

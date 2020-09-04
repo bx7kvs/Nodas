@@ -11,7 +11,7 @@ $R.service.class('Objects',
                 boxExtension = this.extension('Box'),
                 matrix = this.extension('Matrix'),
                 strokefix = [2, 2, 2, 2],
-                viewSize = [0,0];
+                viewSize = [0, 0];
 
             assembler.layer(0, 'fill', UpdateFill.bind(this));
             assembler.layer(1, 'bg', UpdateBg.bind(this));
@@ -53,7 +53,7 @@ $R.service.class('Objects',
             drawer.export(assembler.export);
             drawer.drawFunction(function (context) {
                 DrawerHelper.transform(this, context);
-                if(viewSize[0] > 0 && viewSize[1] > 0) context.drawImage(drawer.export(), 0, 0);
+                if (viewSize[0] >= 1 && viewSize[1] >= 0) context.drawImage(drawer.export(), 0, 0);
             });
 
             this.watch('size', function (o, n) {
@@ -379,6 +379,23 @@ $R.service.class('Objects',
                 context.fillStyle = fill;
                 context.fill();
             }
+
+            drawer.destroy(function () {
+                assembler = assembler.destroy();
+                style = undefined;
+                drawer = undefined;
+                boxExtension = undefined;
+                matrix = undefined;
+
+                while (strokefix[0]) {
+                    strokefix[0].shift();
+                }
+                while (viewSize[0]) {
+                    viewSize[0].shift();
+                }
+                strokefix = undefined;
+                viewSize = undefined;
+            })
         }
     ]
 );

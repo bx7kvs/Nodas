@@ -50,6 +50,15 @@ $R.plugin('Objects',
 
                     return values[name].value;
                 }
+            };
+
+            this.destroy = function () {
+                var prop;
+                for(prop in values) {
+                    if(values.hasOwnProperty(prop)) {
+                        delete values[prop];
+                    }
+                }
             }
 
         }

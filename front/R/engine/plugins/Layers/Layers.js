@@ -64,8 +64,20 @@ $R.plugin('Objects',
 
             this.layers = function () {
                 return layers;
-            }
-
+            };
+            this.destroy(function () {
+                var prop;
+                layer = undefined;
+                for(prop in layers) {
+                    if(layers.hasOwnProperty(prop)) {
+                        while (layers[prop][0]) {
+                            layers[prop][0].destroy();
+                            layers[prop].shift();
+                        }
+                        delete layers[prop];
+                    }
+                }
+            });
         }
     ]
 );

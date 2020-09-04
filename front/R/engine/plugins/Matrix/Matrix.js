@@ -31,6 +31,10 @@ $R.plugin('Objects',
                     });
                 }
             };
+            this.destroy(function () {
+                f = undefined;
+                object = undefined;
+            });
         }
     ]
 );

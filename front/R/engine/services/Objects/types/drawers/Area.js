@@ -213,6 +213,12 @@ $R.service.class('Objects',
                 DrawerHelper.transform(this, context);
                 context.drawImage(drawer.export(), 0, 0);
             });
+            drawer.destroy(function () {
+                assembler = assembler.destroy(),
+                interpolated = undefined,
+                strokefix = undefined, interpolationfix = undefined,
+                xshift = undefined, yshift = undefined;
+            });
         }
     ]
 );

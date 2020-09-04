@@ -52,6 +52,10 @@ $R.plugin('Objects',
             this.register('top', function () {
                 return this.extension('Cache').value('box', BoxWrapperFunc).get().position[1];
             });
+            this.destroy(function () {
+                f = undefined;
+                box = undefined;
+            });
         }
     ]
 );

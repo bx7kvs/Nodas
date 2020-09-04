@@ -56,6 +56,13 @@ $R.service.class('Objects',
                     _argumnets[0].restore();
                 });
             });
+            drawer.destroy(function () {
+                drawer = undefined;
+                layers = undefined;
+                box = undefined;
+                style = undefined;
+                _argumnets = undefined;
+            })
         }
     ]
 );

@@ -13,6 +13,9 @@ $R.service.class('Objects',
             this.watch(['position', 'rotate', 'translate', 'scale', 'skew'], function () {
                 matrix.purge();
             });
+            matrix.destroy(function () {
+                matrix = undefined;
+            });
         }
     ]
 );

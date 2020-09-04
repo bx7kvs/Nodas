@@ -134,6 +134,19 @@ $R.service.class('Objects',
             });
 
             drawer.drawFunction(drawText);
+
+            drawer.destroy(function () {
+                text = undefined;
+                style = undefined;
+                box = undefined;
+                drawer = undefined;
+                matrix = undefined;
+                require_update = undefined;
+                font = undefined;
+                weight = undefined;
+                fstyle = undefined;
+                assembler = assembler.destroy();
+            })
         }
     ]
 );
