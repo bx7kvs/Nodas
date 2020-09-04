@@ -388,10 +388,10 @@ $R.service.class('Objects',
                 matrix = undefined;
 
                 while (strokefix[0]) {
-                    strokefix[0].shift();
+                    strokefix.shift();
                 }
                 while (viewSize[0]) {
-                    viewSize[0].shift();
+                    viewSize.shift();
                 }
                 strokefix = undefined;
                 viewSize = undefined;

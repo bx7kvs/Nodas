@@ -2,24 +2,25 @@
  * Created by bx7kv_000 on 12/25/2016.
  */
 $R.service(
-    ['@inject', 'Tree',
-        function Objects(inject, Tree) {
-
-            function create(type) {
-                return inject('$Graphics').defineType(type);
-            }
+    ['@inject', 'Tree', 'Debug',
+        function Objects(inject, Tree, Debug) {
 
             function InjectByType(type, config) {
-                var result = create(type);
+                var id = config[0];
 
-                if (config && config.length) {
-                    result.style.apply(result, config);
-                }
-                Tree.root().append(result);
-                return result;
+                if (typeof id === "string") {
+                    if (id.length > 0) {
+                        var result = inject('$Graphics').define(type, id);
+                        Tree.root().append(result);
+                        if(config[1]) result.style(config[1]);
+                        return result;
+                    } else Debug.error({t: type}, 'Id is empty. Unable to create [t]');
+                } else Debug.error({t: type}, 'Id is not a string. Unable to create [t]');
             }
 
-            this.create = create;
+            this.create = function (type) {
+                return inject('$Graphics').define(type);
+            };
 
             this.group = function () {
                 return InjectByType('Group', arguments);
@@ -53,7 +54,7 @@ $R.service(
                 return InjectByType('Area', arguments);
             };
 
-            Tree.root(inject('$Graphics').defineType('Group'));
+            Tree.root(inject('$Graphics').define('Group', 'root'));
         }
     ]
 );

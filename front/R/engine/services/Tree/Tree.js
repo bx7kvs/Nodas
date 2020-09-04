@@ -8,7 +8,40 @@ $R.service(
             var root = null, rootDrawer = null, rootStyle = null,
                 clear = Config.define('clear', false, {isBool: true}).watch(function (v) {
                     clear = v;
-                });
+                }),
+                elements = {};
+
+
+            this.register = function (object, new_id) {
+                if (object.constructor.name === 'Graphics' && object.id && typeof object.id === "function") {
+                    if (typeof new_id === "undefined") {
+                        var id = object.id();
+                        if (typeof id === "string" && id.length) {
+                            if (!elements[id]) {
+                                elements[id] = object;
+                            } else Debug.error({id: object.id()}, 'Unable to register Graphics [id]. Element already exists');
+                        } else Debug.error('Unable to register Graphics with no id');
+                    } else if (new_id === 'string') {
+                        if (elements[object.id()]) delete elements[object.id()];
+                        elements[new_id] = elements[new_id] = object;
+                    } else Debug.error('Unable to set new id. new_id argument is not a valid string');
+                } else Debug.error({t: typeof object}, 'Unable to register [t]. Argument is not Graphics')
+            }
+
+            this.unregister = function (object) {
+                if(!object.id()) return ;
+                if(elements[object.id()]) {
+                    delete elements[object.id()];
+                }
+            }
+
+            this.get = function (id) {
+                return elements[id];
+            }
+
+            this.get = function (id) {
+                return elements[id];
+            }
 
             this.root = function (object) {
 

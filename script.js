@@ -51,278 +51,51 @@
 
 
 /* Lets inject our services into our application. Their instances will be created before application starts.
-    Objects will be represented as $O, Sound will be represented as $S and Tree will be represeneted as $T.
  */
-$R.app(['Objects', 'Sound', 'Tree', function TestApp($O, $S, $T) {
+$R.app(['Objects', 'Sound', 'Tree', '@Ticker', '@Application', function TestApp(Objects, Sound, Tree, Ticker, ExportedApp) {
 
-    /* Let's create a simple rectangle using service $O (Objects service) */
+    /* Let's create a simple rectangle using Objects service */
 
-    var rect = $O.rect({
+    var rect = Objects.rect('rect0', {
             anchor: ['center', 'middle'],
             size: [100, 100],
             position: [500, 300],
             strokeWidth: 0,
             fill: 'rgba(255,0,0,1)'
         }),
-        /*
-            As you can see we passed an object as an argument to the function .rect({})
-            Very similar to jQuery, right? it is because it works the same way :)
-            calling .rect() as seen above is equivalent to Object.rect().style({...your styles});
+        rectcount = 50,
+        therect = [];
 
-            Our object will be of size 100x100 and its position will be also x:100, y:100 from the left top corner
-            of the Primitives.
-
-            And it will be filled red.
-
-            There is a lot more things you can do with the rectangle. Just console.log rect to see its full
-             api
-
-
-
-            Now lets use Sound service and create a sound sample.
-            Just call Sound.sample() and it will be automatically uploaded;
-             It is connected to the RootChannel, so there is no further configuration required.
-
-             How to play sounds will be shown later below now we just initiate one
-        */
-        sample = $S.sample('./front/audio/blink.mp3'),
-
-        /* Lets create some other objects on our Primitives and start with a sprite
-        *  As you can see the passed src is rather unusual. [92] at the end of URL says that this sprite has 92 frames
-        * rendered consequently. By default all sprites render with 12 fps.
-        * sprite is loaded with a single file. It should be squred and splitted into equal parts horizontally and
-        *  vertically, which will be your future frames. Use the minimal size of the square to fit all your frames
-        * and tou are fine and tuned. As [frames] is passed number of actual frames. So just leave a bit of empty space
-        * in you image file. It is ok to be not perfect sometimes.
-        * */
-        sprite = $O.sprite(
-            {
-                src: './front/img/ship_sprite.png[92]',
-                position: [400, 100]
-            }
-        ),
-
-        /* Than we add a text element to the screen. You can specify the fonts and font-weight and font-style if you
-        like. The engine will try to load the font for you. Just look into the console to see how fonts file should be
-        named*/
-
-        text = $O.text({
-            str: 'We can drag the circle and rectangle and do really\n IMPRESSIVE stuff!',
-            font: 'Roboto',
-            weight: 100,
-            fontSize: 20,
-            lineHeight: 30,
-            position: [500, 100]
-        }),
-
-        /* Now, lets create a circle. Just for fun ;) But note that circle styles are not the same as rectangle's.
-        * For example - radius property instead of size. Also note that we specified the anchor point of the circle.
-        * anchor property defines the point where the position property will be pointing, here we have it pointing
-        * to the middle of object's height and center of it's width
-        * You should not be confused by other properties used :)
-        * */
-        circle = $O.circle({
-            anchor: ['center', 'middle'],
-            radius: 100,
-            position: [800, 300],
-            strokeWidth: 1,
-            fill: 'rgba(55,24,10,1)'
-        });
-
-    /* Back to sounds. Samples, as well as Channels can be filtered.
-        there is lowpass, hipass, volume and some other fancy filters to manipulate the audio sample.
-        So in order to not being too loud lets drop sample volume really low :) ... but audible still :)
-    * */
-
-    sample.filter('volume', .1);
-
-    /*  Event time!
-    *   All objects have events that can be assigned to different mouse events.
-    *   There are various events you may be familiar for JS for HTML elements and some more. Here is the list:
-    *   mouseenter , mouseleave, mousemove, mouseenter, mouseleave, dragstart, dragmove, dragend
-    *   additional drag events are useful to simplify dragging functionality.
-    *   Lets add some action here!
-    * */
-
-    rect.on('mouseenter', function () {
-        /* Do you recognize the animate functon from jQuery. Here it is the same way simple!
-        * Just remember that las argument is always object. It makes code a little bit more obvious, but bulkier.
-        * Just a matter of taste
-        * You can animate any properties thet express as numbers and arrays. Also it is possible to animate colors
-        * and some other useful properties of different types of graphics
-        * */
-        this.animate({scale: 2, rotate: -240}, {duration: 3000, queue: false});
-    });
-    rect.on('mouseleave', function () {
-        this.animate({scale: 1, rotate: 0}, {duration: 3000, queue: false});
-    });
-    circle.on('mouseenter', function () {
-        this.animate({fill: 'rgba(0,100,20,1)', radius: 110}, {duration: 300, queue: false});
-
-        sprite.animate({
-            position: [400, 400], // equals to [400,400]
-            rotate: 180
-        }, {duration: 1000, queue: false});
-        /* Lets play our audio sample when we hovering our circle element :) */
-        sample.play();
-    });
-
-
-    circle.on('mouseleave', function () {
-        /* Note that animation can be eased by different types of easings available
-        * Here is the list
-        * linear (used by default)
-        * linearSoft
-        * linearSoftOut
-        * linearSoftIn
-        * easeInQuad
-        * easeOutQuad
-        * easeInOutQuad
-        * easeInCubic
-        * easeOutCubic
-        * easeInOutCubic
-        * easeInQuart
-        * easeOutQuart
-        * easeInOutQuart
-        * easeInQuint
-        * easeOutQuint
-        * easeInOutQuint
-        * easeInSine
-        * easeOutSine
-        * easeInOutSine
-        * easeInExpo
-        * easeOutExpo
-        * easeInOutExpo
-        * easeInCirc
-        * easeOutCirc
-        * easeInOutCirc
-        * easeInBack
-        * easeOutBack
-        * easeInOutBack
-        * easeOutBounce
-        *  */
-        this.animate({fill: 'rgba(50,10,220,1)', radius: 100}, {duration: 300, queue: false, easing: 'easeOutCubic'});
-        sprite.animate({
-            position: [400, 100],
-            rotate: 361
-        }, {duration: 1000, queue: false});
-    });
-
-
-    /* Lets make out circle and rectangle draggable. It can not be easier! */
-    circle.on('dragmove', function (e) {
-        this.style({
-            'position': [e.drag.current[0], e.drag.current[1]]
-        });
-    });
-    rect.on('dragmove', function (e) {
-        this.style({
-            'position': [e.drag.current[0], e.drag.current[1]]
-        });
-    });
-
-    /* And finally we create a line to experiment with path manipulations */
-
-    var path1 = [[0, 40], [50, 10], [100, 80], [150, 50]],
-        path2 = [[0, 10], [50, 50], [100, 80], [150, 2], [200, 40]],
-        line = $O.line(
-            {
-                path: path1 /* Path is a simple array of points[x,y]; */
-            }
-        );
-
-    /* Path can be interpolated */
-
-    line.style('interpolation', .4);
-    /* value of interpolation can be a number
-     from 0 (no smoothing) to .4 (maximum of smoothness)
-     */
-
-    /* You can not animate paths, because of performance issues. This feature is currently under developement
-    * to better understand visually how it work let's create a couple of buttons to manipulate path behaviour
-    * For buttons representation we will use text blocks
-    * */
-
-    var lineButton1 = $O.text(
-        {
-            str: 'Make path smooth',
-            position: [0, 0],
-            fontFamily: 'Roboto',
-            fontWeight: 100,
-            color: 'rgba(50, 100, 20, 1)'
+    function createRect() {
+        for (var i = 0; i < rectcount; i++) {
+            therect.push(Objects.rect('rect' + (i + 1), {
+                anchor: ['center', 'middle'],
+                size: [100, 100],
+                position: [100, 100 * i],
+                strokeWidth: 0,
+                fill: 'rgba(0,80,120,1)'
+            }));
         }
-        ),
-        lineButton2 = $O.text(
-            {
-                str: 'show path 1',
-                position: [120, 0],
-                fontFamily: 'Roboto',
-                fontWeight: 100,
-                color: 'rgba(50, 100, 20, 1)'
+
+    }
+
+    function removeRect() {
+        if (therect.length) {
+            for (var i = 0; i < rectcount; i++) {
+                therect[i].destroy()
             }
-        ),
-        lineButton3 = $O.text(
-            {
-                str: 'show path 2',
-                position: [200, 0],
-                fontFamily: 'Roboto',
-                fontWeight: 100,
-                color: 'rgba(50, 100, 20, 1)'
-            }
-        ),
-        lineButton4 = $O.text(
-            {
-                str: 'Disable smoothing',
-                position: [300, 0],
-                fontFamily: 'Roboto',
-                fontWeight: 100,
-                color: 'rgba(50, 100, 20, 1)'
-            }
-        );
+        }
+        therect = [];
+    }
 
-    lineButton1.on('mousedown', function () {
-        line.style({
-            interpolation : .4
-        });
-    });
-    lineButton2.on('mousedown', function () {
-        line.style({
-            path : path1
-        });
-    });
-    lineButton3.on('mousedown', function () {
-        line.style({
-            path : path2
-        });
-    });
-    lineButton4.on('mousedown', function () {
-        line.style({
-            interpolation : 0
-        });
-    });
+    rect.on('mousedown', function () {
+        therect.length ? removeRect() : createRect();
+    })
 
-    /* lets put our buttons to a group */
-
-    var buttonsGroup = $O.group();
-
-    buttonsGroup.append(lineButton1);
-    buttonsGroup.append(lineButton2);
-    buttonsGroup.append(lineButton3);
-    buttonsGroup.append(lineButton4);
-
-    /* Lets position out buttons somewhere on the Primitives */
-
-    buttonsGroup.style({
-        position: [20, 200]
-    });
-
-    /* Lets put our line into the button group and display it below the buttons */
-
-    buttonsGroup.append(line);
-
-    line.style({
-        position : [0, 50]
-    });
+    ExportedApp.start = function () {
+        Ticker.start();
+        return this;
+    }
 
 
 }]);

@@ -20,17 +20,20 @@ $R.service.class('Objects',
                 return type;
             };
 
-            this.defineType = function (t) {
+            this.define = function (t, id) {
                 if (typeof t !== "string") return;
 
-                delete this.defineType;
+                delete this.define;
 
                 type = t;
 
                 var list = plugins.list();
+
+
                 for (var i = 0; i < list.length; i++) {
                     resolved_plugins[list[i]] = inject('$Plugin');
                     resolved_plugins[list[i]].defineObject(this);
+
                     extend(resolved_plugins[list[i]], '<' + list[i]);
                     if (resolved_plugins[list[i]].matchType(type)) {
                         resolved_plugins[list[i]].wrap(this);
@@ -38,6 +41,8 @@ $R.service.class('Objects',
                         delete resolved_plugins[list[i]];
                     }
                 }
+                if(id) this.id(id);
+
                 extend(this, '$' + t + 'ObjectModel');
                 extend(this, '$DefaultObjectDrawer');
                 extend(this, '$' + t + 'ObjectDrawer');

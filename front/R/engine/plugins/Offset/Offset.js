@@ -9,6 +9,7 @@ $R.plugin('Objects',
                 box = null,
                 result = false,
                 iterator = 0;
+
             this.register('beyond', function (ctx) {
                 result = true;
                 mask = Canvas.size();

@@ -1,17 +1,30 @@
 /**
  * Created by bx7kv_000 on 12/26/2016.
  */
-$R.plugin('Objects', ['Debug',
-        function Tree(Debug) {
+$R.plugin('Objects', ['Debug', 'Tree',
+        function Tree(Debug, TreeService) {
 
-            var parent = null;
+            var parent = null,
+                identity = null,
+                nonLetters = /[^a-zA-Z0-9-]+/gm,
+                capitals = /[A-Z]/g;
 
-            function checkTree(object) {
-                if (object.$$TREESEARCHVALUE) {
+            function normaliseIdentity(id) {
+                id = id.replace(nonLetters, '');
+                id = id.replace(capitals, function (string) {
+                    return '-' + string.toUpperCase();
+                })
+                id = id.replace('--', '-');
+                id = id.replace(/(^-)|(-$)/g, '');
+                return id;
+            }
+
+            function checkTree(target, object) {
+                if (target === object) {
                     return true;
                 } else {
-                    if (object.parent()) {
-                        return checkTree(object.parent());
+                    if (target.parent()) {
+                        return checkTree(target, target.parent());
                     } else {
                         return false;
                     }
@@ -20,21 +33,16 @@ $R.plugin('Objects', ['Debug',
 
             function treeViolation(target, object) {
                 if (target.type('Group')) {
-
-                    object.$$TREESEARCHVALUE = true;
-
-                    if (!checkTree(target)) {
-                        delete object.$$TREESEARCHVALUE;
+                    if (!checkTree(target, object)) {
                         return false;
                     } else {
-                        if (target.$$TREESEARCHVALUE) {
+                        if (target === object) {
                             if (target.parent()) {
                                 Debug.warn('You try to append group parent into itself.');
                             }
                         } else {
                             Debug.warn('You try to append group parent into it\'s children.');
                         }
-                        delete object.$$TREESEARCHVALUE;
                         return true;
                     }
                 } else {
@@ -51,7 +59,11 @@ $R.plugin('Objects', ['Debug',
             var layers = null;
 
             this.register('unmount', function () {
-                if(this.parent()) {
+                if(!identity) {
+                    Debug.warn('Unable to unmount a free object');
+                    return this;
+                }
+                if (this.parent()) {
                     this.parent().extension('Layers').remove(this);
                     parent = null;
                 }
@@ -59,6 +71,10 @@ $R.plugin('Objects', ['Debug',
             });
 
             this.register('append', function (object) {
+                if(!identity) {
+                    Debug.warn('Unable to append a free object');
+                    return this;
+                }
                 if (!this.type('Group')) {
                     Debug.watch({type: this.type()}, ' Can not append. type[{type}] of parent is not allowed!');
                 } else if (!treeViolation(this, object)) {
@@ -72,6 +88,10 @@ $R.plugin('Objects', ['Debug',
             });
 
             this.register('appendTo', function (object) {
+                if(!identity) {
+                    Debug.warn('Unable to append a free object');
+                    return this;
+                }
                 object.append(this);
                 return this;
             });
@@ -80,6 +100,30 @@ $R.plugin('Objects', ['Debug',
                 return parent;
             });
 
+            this.register('id', function (id) {
+                if (identity === null) {
+                    if (typeof id === "string") {
+                        id = normaliseIdentity(id);
+                        if (id.length) {
+                            identity = id;
+                            TreeService.register(this);
+                            return this;
+                        } else Debug.error('Normalised identity seems to be empty. Unable to register Graphics');
+                    } else if (id === undefined) {
+                        return identity;
+                    } else Debug.error('Unable to set initial id. Id is not a string');
+                } else {
+                    if (typeof id === "string") {
+                        id = normaliseIdentity(id);
+                        if (id.length) {
+                            TreeService.register(this, id);
+                        } else Debug.error('Normalised identity seems to be empty. Unable to register Graphics');
+
+                    } else if (id === undefined) {
+                        return identity;
+                    } else Debug.error('Id is not a string');
+                }
+            })
 
             this.parent = function (group) {
                 if (typeof group.type !== "function" || !group.type('Group')) {
@@ -96,6 +140,7 @@ $R.plugin('Objects', ['Debug',
             };
 
             this.destroy(function () {
+                TreeService.unregister(this.object());
                 layers = undefined;
             });
 

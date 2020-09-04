@@ -36,7 +36,7 @@ $R.plugin('Objects',
                     var array = GetEventArray(event);
 
                     if (array) {
-                        array[i].$OFF = false;
+                        array.$OFF = false;
                     }
 
                     return this;
