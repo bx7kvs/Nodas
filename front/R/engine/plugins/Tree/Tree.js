@@ -64,6 +64,7 @@ $R.plugin('Objects', ['Debug', 'Tree',
                     return this;
                 }
                 if (this.parent()) {
+                    this.events.resolve('unmount', this, this);
                     this.parent().extension('Layers').remove(this);
                     parent = null;
                 }
@@ -83,6 +84,7 @@ $R.plugin('Objects', ['Debug', 'Tree',
                     layers.place(object.layer(), object);
                     object.extension('Tree').parent(this);
                     this.extension('Box').purge();
+                    object.events.resolve('mount', object, object);
                 }
                 return this;
             });

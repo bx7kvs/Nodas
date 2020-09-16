@@ -67,14 +67,15 @@ $R.app(['Objects', 'Sound', 'Tree', '@Ticker', '@Application', function TestApp(
         therect = [];
 
     function createRect() {
-        for (var i = 0; i < rectcount; i++) {
-            therect.push(Objects.rect('rect' + (i + 1), {
+        for (var i = 0, current; i < rectcount; i++) {
+            current = Objects.rect('rect' + (i + 1), {
                 anchor: ['center', 'middle'],
                 size: [100, 100],
                 position: [100, 100 * i],
                 strokeWidth: 0,
                 fill: 'rgba(0,80,120,1)'
-            }));
+            });
+            therect.push(current);
         }
 
     }

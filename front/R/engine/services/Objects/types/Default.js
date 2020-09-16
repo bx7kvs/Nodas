@@ -6,6 +6,7 @@ $R.service.class('Objects',
         function
             DefaultObjectType(Events) {
             this.events = Events.emitter(this);
+            this.events.register('unmount mount destroy')
         }
     ]
 );

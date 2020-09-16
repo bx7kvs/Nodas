@@ -59,7 +59,7 @@ $R.service.class('Events', ['Debug', '@inject', function EventEmitter(Debug, inj
 
             var event_object = inject('$Event');
 
-            payload = typeof payload === "object" && payload.constructor === Array ? payload : [payload];
+            payload = payload !== null && typeof payload === "object" && payload.constructor === Array ? payload : [payload];
 
             payload.unshift(event_object);
 

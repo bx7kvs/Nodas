@@ -48,10 +48,12 @@ $R.service.class('Objects',
                 extend(this, '$' + t + 'ObjectDrawer');
 
                 extend(this, '$' + t + 'ObjectClass');
+
                 return this;
             };
             this.destroy = function () {
-                var prop;
+
+                var prop, emiiter = this.events;
                 this.unmount();
                 for (prop in resolved_plugins) {
                     if (resolved_plugins.hasOwnProperty(prop)) {
@@ -64,7 +66,10 @@ $R.service.class('Objects',
                         delete this[prop];
                     }
                 }
+
                 resolved_plugins = undefined; type = undefined;
+                delete this.events;
+                emiiter.resolve('destroy', null, null);
             }
         }
     ]
