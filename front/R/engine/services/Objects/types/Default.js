@@ -2,10 +2,10 @@
  * Created by bx7kv_000 on 12/26/2016.
  */
 $R.service.class('Objects',
-    [
+    [ 'Events',
         function
-            DefaultObjectType() {
-
+            DefaultObjectType(Events) {
+            this.events = Events.emitter(this);
         }
     ]
 );

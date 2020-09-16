@@ -12,7 +12,7 @@ $R.service(
                     if (id.length > 0) {
                         var result = inject('$Graphics').define(type, id);
                         Tree.root().append(result);
-                        if(config[1]) result.style(config[1]);
+                        if (config[1]) result.style(config[1]);
                         return result;
                     } else Debug.error({t: type}, 'Id is empty. Unable to create [t]');
                 } else Debug.error({t: type}, 'Id is not a string. Unable to create [t]');

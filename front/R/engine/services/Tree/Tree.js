@@ -39,10 +39,6 @@ $R.service(
                 return elements[id];
             }
 
-            this.get = function (id) {
-                return elements[id];
-            }
-
             this.root = function (object) {
 
                 if (!root) {

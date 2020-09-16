@@ -29,7 +29,7 @@ $R.service.class('Objects',
 
                 var list = plugins.list();
 
-
+                extend(this, '$DefaultObjectType');
                 for (var i = 0; i < list.length; i++) {
                     resolved_plugins[list[i]] = inject('$Plugin');
                     resolved_plugins[list[i]].defineObject(this);
@@ -46,7 +46,7 @@ $R.service.class('Objects',
                 extend(this, '$' + t + 'ObjectModel');
                 extend(this, '$DefaultObjectDrawer');
                 extend(this, '$' + t + 'ObjectDrawer');
-                extend(this, '$DefaultObjectType');
+
                 extend(this, '$' + t + 'ObjectClass');
                 return this;
             };
