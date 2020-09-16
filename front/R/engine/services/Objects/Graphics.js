@@ -53,7 +53,7 @@ $R.service.class('Objects',
             };
             this.destroy = function () {
 
-                var prop, emiiter = this.events;
+                var prop, emitter = this.events;
                 this.unmount();
                 for (prop in resolved_plugins) {
                     if (resolved_plugins.hasOwnProperty(prop)) {
@@ -69,7 +69,8 @@ $R.service.class('Objects',
 
                 resolved_plugins = undefined; type = undefined;
                 delete this.events;
-                emiiter.resolve('destroy', null, null);
+                emitter.resolve('destroy', null, null);
+                emitter.destroy();
             }
         }
     ]

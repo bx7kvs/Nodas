@@ -199,7 +199,13 @@ $R.service.class('Events', ['Debug', '@inject', function EventEmitter(Debug, inj
                 for (var event in events) {
                     delete events[event];
                 }
+                return this;
             };
+
+            this.destroy = function () {
+                this.clear();
+                emitter = undefined;
+            }
 
             delete this.decorate;
             return this;
