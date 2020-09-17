@@ -54,6 +54,10 @@ $R.service(
                 return InjectByType('Area', arguments);
             };
 
+            this.get = function (id) {
+                return Tree.get(id);
+            };
+
             Tree.root(inject('$Graphics').define('Group', 'root'));
         }
     ]

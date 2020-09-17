@@ -24,7 +24,7 @@ $R.plugin('Objects', ['Debug', 'Tree',
                     return true;
                 } else {
                     if (target.parent()) {
-                        return checkTree(target, target.parent());
+                        return checkTree(target.parent(), target);
                     } else {
                         return false;
                     }

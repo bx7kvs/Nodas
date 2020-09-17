@@ -13,6 +13,7 @@ $R.service(
 
 
             this.register = function (object, new_id) {
+
                 if (object.constructor.name === 'Graphics' && object.id && typeof object.id === "function") {
                     if (typeof new_id === "undefined") {
                         var id = object.id();
@@ -23,9 +24,10 @@ $R.service(
                         } else Debug.error('Unable to register Graphics with no id');
                     } else if (new_id === 'string') {
                         if (elements[object.id()]) delete elements[object.id()];
-                        elements[new_id] = elements[new_id] = object;
+                        elements[new_id]  = object;
                     } else Debug.error('Unable to set new id. new_id argument is not a valid string');
                 } else Debug.error({t: typeof object}, 'Unable to register [t]. Argument is not Graphics')
+                console.log(elements)
             }
 
             this.unregister = function (object) {
