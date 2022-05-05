@@ -1,0 +1,1 @@
+export type DebugData = {[key: string]: string | number}
