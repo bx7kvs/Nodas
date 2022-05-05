@@ -6,7 +6,7 @@ import Group from "./elements/Group";
 import Image from "./elements/Image";
 import Line from "./elements/Line";
 import Rectangle from "./elements/Rectangle";
-import ReflectElement from "./Element";
+import ReflectElement from "./ReflectElement";
 import Sprite from "./elements/Sprite";
 import Text from "./elements/Text";
 
@@ -14,8 +14,9 @@ export default class Graphics extends ReflectService{
     constructor(app:Application) {
         super(app);
     }
-    create (type:typeof ReflectElement, id:string) {
-        return new type({app:this.app, id});
+    //TODO: Create intermediate Type for Graphics
+    create (Type:typeof ReflectElement, id:string) {
+        return new Type(this.app, id);
     };
 
     group (id:string) {

@@ -15,7 +15,7 @@ export default class ReflectElement<Events extends ReflectElementLifecycleEvents
     protected Model: ReflectElementModel
     public readonly parent: ReflectElement<ReflectElementLifecycleEvents> | null = null;
 
-    constructor({app, box, cache, compiler, model, id}: ReflectElementProps) {
+    constructor(...[app, compiler, cache, box, model, id]:ReflectElementProps) {
         super()
         this.identifier = id
         this.App = app

@@ -7,14 +7,14 @@ import ReflectElementModel from "../classes/ReflectElementModel";
 import ReflectElementCompiler from "../classes/ReflectElementCompiler";
 import ReflectElement from "../ReflectElement";
 
-export interface ReflectElementProps {
+export type ReflectElementProps = [
     app: Application,
-    compiler: ReflectElementCompiler
-    cache:ReflectCache
-    box: ReflectBox
-    model:ReflectElementModel
-    id: string
-}
+    compiler: ReflectElementCompiler,
+    cache:ReflectCache,
+    box: ReflectBox,
+    model:ReflectElementModel,
+    id: string,
+]
 
 export interface ReflectDrawerProps<T> {
 
