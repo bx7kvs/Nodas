@@ -9,11 +9,11 @@ $R.plugin('Objects',
 
             this.value = function (name, func) {
                 if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / name is not a string!');
+                    Debug.error('Object Value ReflectCache / name is not a string!');
                     return;
                 }
                 if (typeof func !== "function") {
-                    Debug.error('Object Value Cache / func is not a function');
+                    Debug.error('Object Value ReflectCache / func is not a function');
                     return;
                 }
                 if (!values[name]) {
@@ -29,7 +29,7 @@ $R.plugin('Objects',
 
             this.purge = function (name) {
                 if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / Can not purge cache of non string name');
+                    Debug.error('Object Value ReflectCache / Can not purge cache of non string name');
                     return;
                 }
                 if (values[name]) {
@@ -39,7 +39,7 @@ $R.plugin('Objects',
 
             this.get = function (name) {
                 if (typeof name !== "string") {
-                    Debug.error('Object Value Cache / Can not get value of non-string name');
+                    Debug.error('Object Value ReflectCache / Can not get value of non-string name');
                     return;
                 }
                 if (values[name]) {

@@ -68,7 +68,7 @@ Core.extend = function (module, target, payload) {
     if (typeof modules[module] === "string") {
         if (typeof target === "object") {
             return modules[module].extend(target, payload);
-        } else throw new Error('Unable to extend target of tyoe [' + (typeof target) + '] bu module constructor [' + module + '].');
+        } else throw new Error('Unable to extend target of tyoe [' + (typeof target) + '] by module constructor [' + module + '].');
     }
 };
 
@@ -92,7 +92,7 @@ function BuildCore() {
 }
 
 function Injection(f) {
-    if (typeof f !== "function" || !f.name) throw new Error('Unable to createinjection. Constructor is not a named function!');
+    if (typeof f !== "function" || !f.name) throw new Error('Unable to create injection. Constructor is not a named function!');
     modules[f.name] = this;
     var cache = null;
 

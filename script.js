@@ -116,10 +116,10 @@ var test = $R.run('TestApp');
     We will call a config function and pass some useful arguments in there.
  */
 test.config({
-    canvas: 'test-canvas', /* the id of the canvas at the page we would like to display our sources. */
-    size: ['100%', '100%'], /* size of the canvas. It can be percents (of the parent element) or pixels (just numbers)*/
+    canvas: 'test-element', /* the id of the element at the page we would like to display our sources. */
+    size: ['100%', '100%'], /* size of the element. It can be percents (of the parent element) or pixels (just numbers)*/
     warnings: true, /* Do we want our application to show warnings while it is working. Let them be. But there will be none :0*/
-    clear: true, /* Should we erase the canvas each frame?
+    clear: true, /* Should we erase the element each frame?
      Useful to squeeze a bit of performance in apps where
         background is always filled with images or solid color */
     fontDir: './front/fonts' /*Specifies the folder where fonts' files are placed*/

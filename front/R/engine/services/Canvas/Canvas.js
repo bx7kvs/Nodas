@@ -31,11 +31,11 @@ $R.service(
                             } else {
                                 width = 1000;
                                 xunits = 'px';
-                                Debug.warn({width: v[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
+                                Debug.warn({width: v[0]}, '{width} is not a valid value for element.size[0]. Width set as 1000px');
                             }
                         } else {
                             width = 1000;
-                            Debug.warn({width: v[0]}, '{width} is not a valid value for canvas.size[0]. Width set as 1000px');
+                            Debug.warn({width: v[0]}, '{width} is not a valid value for element.size[0]. Width set as 1000px');
                         }
 
                         if (typeof v[1] === "number") {
@@ -46,11 +46,11 @@ $R.service(
                                 yunits = '%';
                             } else {
                                 height = 800;
-                                Debug.warn({height: v[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
+                                Debug.warn({height: v[1]}, '{height} is not a valid value for element.size[1]. Width set as 800px');
                             }
                         } else {
                             height = 800;
-                            Debug.warn({height: v[1]}, '{height} is not a valid value for canvas.size[1]. Width set as 800px');
+                            Debug.warn({height: v[1]}, '{height} is not a valid value for element.size[1]. Width set as 800px');
                         }
                         WindowResizeCallback();
                     }

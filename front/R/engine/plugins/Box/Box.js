@@ -5,12 +5,12 @@ $R.plugin('Objects',
     ['Debug', '@inject',
         function Box(Debug, inject) {
 
-            var f = null, box = inject('$Box');
+            var f = null, box = inject('$ReflectElementBox');
 
             this.f = function (func) {
 
                 if (typeof func !== "function") {
-                    Debug.error('Box Extension / Box function is not a function!');
+                    Debug.error('ReflectElementBox Extension / ReflectElementBox function is not a function!');
                     return;
                 }
                 f = func;

@@ -53,9 +53,9 @@ Core(function Canvas(Ticker) {
                     element = e;
                     ready = true;
                     resolve(switchCb);
-                } else throw new Error('Element with id [#' + id + '] is not a canvas. Can not get 2d context.')
+                } else throw new Error('Element with id [#' + id + '] is not a element. Can not get 2d context.')
 
-            } else throw new Error('Element with id [#' + id + '] was not found or not a canvas');
+            } else throw new Error('Element with id [#' + id + '] was not found or not a element');
         } else if (id instanceof HTMLElement) {
             if (id.getContext) {
 
