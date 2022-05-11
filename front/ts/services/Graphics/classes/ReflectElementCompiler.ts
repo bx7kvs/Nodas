@@ -13,7 +13,6 @@ import ReflectElement from "../ReflectElement";
 export default class ReflectElementCompiler<T extends ReflectElement<any>> extends Emitter<'sprite-export' | 'render-update', T> {
     private readonly resovler: ReflectMainDrawingPipeCallback<T>;
     private readonly update: ReflectMainDrawingPipeCallback<T>;
-    private app: Application;
     private readonly element: T;
     private pipeSize = 0;
     private conditions: ReflectRenderConditionPredicate<T>[] = []
@@ -37,10 +36,9 @@ export default class ReflectElementCompiler<T extends ReflectElement<any>> exten
         }
     }
 
-    constructor(app: Application, element: T, exports: ReflectExportable, resolver: ReflectMainDrawingPipeCallback<T>, updater: ReflectMainDrawingPipeCallback<T>) {
+    constructor(element: T, exports: ReflectExportable, resolver: ReflectMainDrawingPipeCallback<T>, updater: ReflectMainDrawingPipeCallback<T>) {
         super()
         this.element = element
-        this.app = app
         this.exports = exports
         this.resovler = resolver
         this.update = updater

@@ -2,7 +2,7 @@ import {ReflectPointArray2d} from "../../../@types/types";
 import {ReflectAssemblerContextResolver} from "../@types/types";
 import Canvas from "./Canvas";
 
-export default class AssemblerLayer {
+export default class ReflectElementAssemblerLayer {
     private canvas = new Canvas;
     private width = 0;
     private height = 0;
@@ -32,13 +32,18 @@ export default class AssemblerLayer {
     }
 
 
-    size(...args: ReflectPointArray2d) {
-        if (args[0] !== this.width || args[1] !== this.height) {
-            this.canvas.width = args[0]
-            this.canvas.height = args[1]
+    get size() {
+        return [this.width, this.height]
+    }
+    set size([width,height]:ReflectPointArray2d) {
+        if (width !== this.width || height !== this.height) {
+            this.canvas.width = width
+            this.canvas.height = height
             this.ready = false
+            this.width = width
+            this.height = height
         }
-    };
+    }
 
     get order() {
         return this.ordering

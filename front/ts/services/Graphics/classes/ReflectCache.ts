@@ -9,10 +9,6 @@ import {
 
 export default class ReflectCache{
     private values:ReflectCacheStorage = {}
-    private app:Application;
-    constructor(app:Application) {
-        this.app = app
-    }
     register<T> (name:string, func:ReflectCacheGetter<T>):ReflectCacheRegisterReturn<T> {
         if (!this.values[name]) {
             const item:ReflectCacheStorageItem<T> = {
