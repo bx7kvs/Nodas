@@ -1,6 +1,7 @@
 
 .idea/
-
+example/
+rollup-example.config.js
+tsconfig-example.json
 node_modules/
-
 \cgi-bin/
