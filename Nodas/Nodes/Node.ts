@@ -112,8 +112,9 @@ export default abstract class Node<Model extends NdModBase> extends NdEmitter<Nd
         this.order = <(keyof Model)[]>Object.keys(model).sort((a, b) => model[a].ordering - model[b].ordering)
         app.Canvas.queue(-2, this.tickElementAnimations)
         this.once('destroy', () => {
+            NDB.positive(`Destroying node ${id}...`)
             this.modelEmitter.removeAllListeners()
-            this.reset()
+            this.removeAllListeners()
             app.Canvas.unQueue(this.tickElementAnimations)
         })
         this.watch(['position', 'rotate', 'origin', 'skew', 'translate', 'scale'], () => {
@@ -291,14 +292,18 @@ export default abstract class Node<Model extends NdModBase> extends NdEmitter<Nd
                         assembler.update('bg')
                     })
                 } else {
-                    context.save()
-                    const bgWidth = styles.backgroundSizeNumeric.protectedValue[key][0],
-                        bgHeight = styles.backgroundSizeNumeric.protectedValue[key][1],
-                        bgPositionX = styles.backgroundPositionNumeric.protectedValue[key][0],
-                        bgPositionY = styles.backgroundPositionNumeric.protectedValue[key][1];
-                    context.translate(bgPositionX, bgPositionY);
-                    context.drawImage(v.export(), 0, 0, bgWidth, bgHeight)
-                    context.restore()
+                    const image = v.export()
+                    if(image) {
+                        context.save()
+                        const bgWidth = styles.backgroundSizeNumeric.protectedValue[key][0],
+                            bgHeight = styles.backgroundSizeNumeric.protectedValue[key][1],
+                            bgPositionX = styles.backgroundPositionNumeric.protectedValue[key][0],
+                            bgPositionY = styles.backgroundPositionNumeric.protectedValue[key][1];
+                        context.translate(bgPositionX, bgPositionY);
+                        context.drawImage(image, 0, 0, bgWidth, bgHeight)
+                        context.restore()
+                    }
+
                 }
             })
         }

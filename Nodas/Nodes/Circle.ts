@@ -93,5 +93,8 @@ export default class Circle extends Node<CircleElementModel> {
         this.watch(['bg', 'backgroundSize', 'backgroundPosition'], () => {
             this.Assembler.update('bg')
         })
+        this.on('destroy', () => {
+            NdModBg.destroyBackground(this.data)
+        })
     }
 }

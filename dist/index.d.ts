@@ -1,3 +1,5 @@
+import { EventEmitter } from 'events';
+
 declare class Ticker {
     private frameDuration;
     private q;
@@ -172,7 +174,7 @@ declare const ndEasings: {
 declare class NdEmitter<Scheme, K extends keyof Scheme = keyof Scheme> implements NdListenable<Scheme, K> {
     private Emitter;
     protected cast(event: keyof Scheme, data: Scheme[K]): Scheme[K];
-    protected reset(): void;
+    protected removeAllListeners: (event?: string | symbol | undefined) => EventEmitter;
     on(event: K | (K)[], callback: (event: Scheme[K]) => void): void;
     once(event: K | (K)[], callback: (event: Scheme[K]) => void): void;
     off(event: K | (K)[], callback: (event: Scheme[K]) => void): void;
@@ -259,19 +261,23 @@ declare abstract class NdResource<T extends NdExportable> extends NdEmitter<{
     private readonly resolve;
     protected _status: number;
     protected resolved: boolean;
+    protected _destroyed: boolean;
     abstract readonly export: T | ((...args: any) => void);
     constructor(url: NdURLStr, resolve: () => NdResource<T>);
     get url(): NdURLStr;
     get loaded(): boolean;
     get error(): boolean;
+    get destroyed(): boolean;
+    destroy(): void;
     load(): NdResource<T>;
 }
 
 declare class NdImage extends NdResource<() => HTMLImageElement> {
-    readonly image: HTMLImageElement;
+    image: HTMLImageElement | undefined;
     private _size;
+    private defineImage;
     constructor(url: NdURLStr);
-    export: () => HTMLImageElement;
+    export: () => HTMLImageElement | undefined;
     get width(): number;
     get height(): number;
     get size(): number[];
@@ -284,7 +290,7 @@ declare class NdModBg extends NdNodeStylesModel {
     static readBgPosition(boxSize: NdNumericArray2d, bgSize: NdBgSize, image: NdImage, dir: 0 | 1, value: NdPosition): number;
     static readBgSize(boxSize: NdNumericArray2d, bg: NdImage, dir: number, value: (NdPercentStr & string) | ('auto' & string) | number): number;
     fill: NdNodeStylePropertyAnimated<`rgba(${number},${number},${number},${number})`, `rgba(${number},${number},${number},${number})`, `rgba(${number},${number},${number},${number})` | NdArrColor, NdArrColor, Node<any>>;
-    bg: NdStylesProperty<NdImage[], NdURLStr[], NdBg | {
+    bg: NdStylesProperty<NdImage[], NdURLStr[], false | NdBg | {
         [key: number]: NdURLStr | NdImage;
     }>;
     backgroundSize: NdStylesProperty<NdBgSize[], NdBgSize[], number | `${number}%` | `${number}.${number}%` | `.${number}%` | NdBgSize | {
@@ -296,6 +302,7 @@ declare class NdModBg extends NdNodeStylesModel {
     } | NdPosition | NdPositionArr[]>;
     backgroundPositionNumeric: NdStylesProperty<[number, number][], [number, number][], void>;
     static updateSizeAndPosition: (model: NdModBg, box: [number, number], key: number, value: NdImage) => void;
+    static destroyBackground(data: NdModBg): void;
 }
 
 declare class NdModFreeStroke extends NdNodeStylesModel {
@@ -488,7 +495,6 @@ declare class Mouse {
     register<Props extends NdModBase>(element: Node<any>, emitter: Node<any>['cast'], test: NdNodePointerPredicate, transform?: NdNodePointerTransformF): NdNodeMouseDispatcher<any>;
 }
 
-declare type NdNodeGetter<Type extends Node<any>> = (id: string) => Type;
 declare type GroupChildren = Node<any> | Node<any>[];
 declare type NdAssemblerContextResolver = (context: CanvasRenderingContext2D) => void;
 declare type NdCacheGetter<T> = () => T;
@@ -602,6 +608,7 @@ declare class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & NdRootCan
     queue(a: NdCanvasQueueCallback | number, b?: NdCanvasQueueCallback): this;
     unQueue(callback: NdCanvasQueueCallback): void;
     size(width?: number | NdPercentStr, height?: number | NdPercentStr): number[] | undefined;
+    forceResize(): void;
     get ready(): boolean;
     get clear(): boolean;
     set clear(value: boolean);
@@ -672,6 +679,7 @@ declare class NdSprite extends NdResource<(time: Date) => HTMLCanvasElement | HT
     private timeStart;
     private duration;
     private frozen;
+    private defineImage;
     private setFrameData;
     get paused(): boolean;
     pause(): void;
@@ -690,7 +698,7 @@ declare class NdSprite extends NdResource<(time: Date) => HTMLCanvasElement | HT
 }
 
 declare class NdModSprite extends NdNodeStylesModel {
-    src: NdStylesProperty<false | NdImage | NdSprite, false | NdURLStr | NdUrlSpriteStr, NdURLStr | NdUrlSpriteStr>;
+    src: NdStylesProperty<NdImage | NdSprite | false, NdUrlSpriteStr | NdURLStr | false, NdURLStr | NdUrlSpriteStr>;
     frames: NdStylesProperty<number, number, number>;
     fps: NdStylesProperty<number, number, number>;
     size: NdNodeStylePropertyAnimated<NdSizeArr, NdSizeArr, NdSize | NdSizeArr, NdNumericArray2d, Node<any>>;
@@ -807,21 +815,32 @@ declare class NodasFonts {
 }
 declare const _default: NodasFonts;
 
+declare class NodasResources {
+    private images;
+    image(src: string, onLoad?: () => void, onError?: () => void, onReset?: () => void): HTMLImageElement;
+    reset(): void;
+    bulkLoad(resources: NdURLStr[]): void;
+}
+declare const NDR: NodasResources;
+
 declare class Nodas {
     readonly Ticker: Ticker;
     readonly Canvas: Canvas;
     readonly Tree: Nodes;
     readonly Mouse: Mouse;
     protected readonly Config: Config;
-    readonly area: NdNodeGetter<Area>;
-    readonly rect: NdNodeGetter<Rectangle>;
-    readonly text: NdNodeGetter<Text>;
-    readonly sprite: NdNodeGetter<Sprite>;
-    readonly circle: NdNodeGetter<Circle>;
-    readonly line: NdNodeGetter<Line>;
-    readonly group: (id: string, children?: GroupChildren) => Group;
+    Sprite: new (id: string, src?: NdUrlSpriteStr | NdURLStr) => Sprite;
+    Area: new (id: string, path?: NdPath) => Area;
+    Rectangle: new (id: string, size?: NdNumericArray2d) => Rectangle;
+    Line: new (id: string, path?: NdPath) => Line;
+    Text: new (id: string, str?: string) => Text;
+    Group: new (id: string, children?: GroupChildren) => Group;
+    Circle: new (id: string, radius?: number) => Circle;
     constructor(canvas: HTMLCanvasElement | string);
 }
 declare const Fonts: typeof _default;
+declare const Resources: typeof NDR;
+declare const NodasImage: typeof NdImage;
+declare const NodasSprite: typeof NdSprite;
 
-export { Fonts, Nodas as default };
+export { Fonts, NodasImage, NodasSprite, Resources, Nodas as default };

@@ -7,10 +7,7 @@ export default class NdEmitter<Scheme, K extends keyof Scheme = keyof Scheme> im
         this.Emitter.emit(<string>event, data)
         return data
     }
-
-    protected reset() {
-        this.Emitter.removeAllListeners()
-    }
+    protected removeAllListeners = this.Emitter.removeAllListeners
     on(event: K | (K)[], callback: (event: Scheme[K]) => void) {
         event instanceof Array ?
             event.forEach(e => this.Emitter.on(<string>e, callback)) :

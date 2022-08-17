@@ -84,9 +84,9 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
         if (this.e) {
             const parentHTMLNode = this.e.parentNode as HTMLElement;
             if (parentHTMLNode) {
-                const parentHTMLNodeStyles = window.getComputedStyle(parentHTMLNode, null),
-                    parentHeight = parseInt(parentHTMLNodeStyles.getPropertyValue('height')),
-                    parentWidth = parseInt(parentHTMLNodeStyles.getPropertyValue('width'));
+                const parenBoundingRect = parentHTMLNode.getBoundingClientRect(),
+                    parentHeight = parenBoundingRect.height,
+                    parentWidth = parenBoundingRect.width;
                 if (typeof this.s[0] === 'string') {
                     const wPercent = parseInt(this.s[0]) / 100
                     this.sNumeric[0] = parentWidth * wPercent
@@ -97,9 +97,9 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
                 } else this.sNumeric[1] = this.s[1]
                 this.e.setAttribute('width', this.sNumeric[0].toString())
                 this.e.setAttribute('height', this.sNumeric[1].toString())
-            }
+            } else NDB.warn('Current canvas element is detached from DOM. Size reset skipped')
             this.recalculateOffset()
-        }
+        } else NDB.warn('No Canvas to operate. Size reset skipped')
     }
 
     private handleResize() {
@@ -111,7 +111,7 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
                 this.resizeProcessTimeout = setTimeout(() => {
                     this.recalculateSize()
                     this.cast('resize', new NdStateEvent<Canvas>(this, null))
-                }, 100)
+                }, 1000)
             } else {
                 if (this.resizeProcessTimeout) clearTimeout(this.resizeProcessTimeout)
                 this.sNumeric[0] = this.s[0]
@@ -148,7 +148,7 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
             this.scroll[0] = window.scrollX || document.documentElement.scrollLeft;
             this.scroll[1] = window.scrollY || document.documentElement.scrollTop;
         });
-        window.addEventListener('resize', this.handleResize)
+        window.addEventListener('resize', () => this.handleResize())
     }
 
     element(target: HTMLCanvasElement | string) {
@@ -193,6 +193,7 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
 
     unQueue(callback: NdCanvasQueueCallback) {
         this.q = this.q.filter((qE) => qE.callback !== callback)
+        NDB.warn('Callback removed form canvas queue')
     }
 
     size(width?: number | NdPercentStr, height?: number | NdPercentStr) {
@@ -206,6 +207,11 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
             return [...this.sNumeric]
         }
     };
+
+    forceResize() {
+        this.handleResize()
+    }
+
 
     get ready() {
         return this._ready

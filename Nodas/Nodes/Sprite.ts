@@ -13,7 +13,7 @@ export default class Sprite extends Node<ImageNodeModel> {
         if(!date) date = new Date
         if (this.data.src.protectedValue) {
             return this.data.src.protectedValue.export(date)
-        } else return new HTMLCanvasElement()
+        }
     }
     render:Node<ImageNodeModel>['render'] = (context, time) => {
         if (this.data.src.protectedValue) {

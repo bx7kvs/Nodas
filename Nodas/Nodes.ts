@@ -63,11 +63,10 @@ export default class Nodes {
 
     unregister(element: Node<any>) {
         if (this.ids.has(element.id)) {
-            NDB.positive(`Node ${element.id} removed`)
             this.unmount(element)
             delete this.elements[element.id]
             this.ids.delete(element.id)
-
+            NDB.positive(`Node ${element.id} unregistered`)
         }
     }
 
@@ -79,6 +78,7 @@ export default class Nodes {
         this.elements[element.id].connector.parent = null
         if (element == this._root.element) {
             this._root = {}
+            NDB.warn('Unmounting root group.')
         }
         NDB.positive(`Node ${element.id} unmounted`)
     }
@@ -130,6 +130,7 @@ export default class Nodes {
                 }
                 this.elements[target.id].connector.zChild(this.elements[id].element, this.elements[id].connector.z, prepend)
                 this.elements[id].connector.parent = target
+                NDB.positive(`Node ${id} appended to ${target.id}`)
             } else  NDB.warn(`Node tree violation. Appending node ${id} to itself or it's child. `)
         } else NDB.warn(`Manipulating non registered node ${id} or ${target.id}.`)
     }

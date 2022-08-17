@@ -113,6 +113,9 @@ export default class Area extends Node<AreaStaticModel> {
 
     constructor(id: string, app: Nodas) {
         super(id, {...new NdModBase(), ...new NdModFreeStroke(true), ...new NdModAnchor(), ...new NdModBg}, app)
+        this.on('destroy', () => {
+            NdModBg.destroyBackground(this.data)
+        })
         this.watch('path', () => {
             this.interpolated = false
             this.Box.purge()

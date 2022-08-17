@@ -7,25 +7,31 @@ import {NdNumericArray2d} from '../../@types/types';
 import NdSprite from '../../classes/NdSprite';
 
 export default class NdModSprite extends NdNodeStylesModel {
-    src = new NdStylesProperty<NdImage | NdSprite | false, NdUrlSpriteStr | NdURLStr | false, NdURLStr | NdUrlSpriteStr>(
-        1,
-        false,
-        (value) => {
-            return value ? value.url : value
-        },
-        (value, node) => {
-            if (NdSprite.isNdUrlSpriteStr(value)) {
-                const sprite = new NdSprite(value as NdUrlSpriteStr).load() as NdSprite
-                sprite.fps = this.fps.protectedValue
-                this.frames.set(sprite.frames, node)
-                return sprite
-            } else {
-                this.frames.set(0, node)
-                this.fps.set(0, node)
-                return new NdImage(value as NdURLStr).load() as NdImage
+    src: NdStylesProperty<NdImage | NdSprite | false, NdUrlSpriteStr | NdURLStr | false, NdURLStr | NdUrlSpriteStr> =
+        new NdStylesProperty<NdImage | NdSprite | false, NdUrlSpriteStr | NdURLStr | false, NdURLStr | NdUrlSpriteStr>(
+            1,
+            false,
+            (value) => {
+                return value ? value.url : value
+            },
+            (value, node) => {
+                if (this.src.protectedValue) {
+                    if (this.src.protectedValue.url === value) return this.src.protectedValue as NdSprite
+                    this.src.protectedValue.destroy()
+                }
+                if (NdSprite.isNdUrlSpriteStr(value)) {
+                    const sprite = new NdSprite(value as NdUrlSpriteStr) as NdSprite
+                    sprite.on('load', () => {
+                        sprite.fps = this.fps.protectedValue
+                        this.frames.set(sprite.frames, node)
+                    })
+                    sprite.load()
+                    return sprite as NdSprite
+                } else {
+                    return value ? new NdImage(value as NdURLStr).load() as NdImage :  !!value as false
+                }
             }
-        }
-    )
+        )
     frames = new NdStylesProperty<number, number, number>(
         0,
         0,

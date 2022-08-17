@@ -209,6 +209,9 @@ export default class Rectangle extends Node<RectNodeModel> {
         this.watch('fill', () => {
             this.Assembler.update('fill')
         })
+        this.on('destroy', () => {
+            NdModBg.destroyBackground(this.data)
+        })
     }
 
     private static drawCorner(rectSegment: number, context: CanvasRenderingContext2D, segment: NdSegmentBezier, color1: NdColorStr, color2: NdColorStr, width1: number, width2: number) {
