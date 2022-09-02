@@ -1,10 +1,12 @@
 import {NdColorStr, NdTextPartialProps} from '../Nodes/@types/types';
 import {NdFontSpecialValues, NdFontStyles, NdFontWeights} from '../@types/types';
-import NdEmitter from './NdEmitter';
 import NdNodeStylesModel from '../Nodes/classes/NdNodeStylesModel';
 import NodasFonts from '../Services/NodasFonts';
+import NdDestroyableNode from "../Nodes/classes/NdDestroyableNode";
+import NdStateEvent from "./NdStateEvent";
+import {alive} from "../Nodes/decorators/alive";
 
-export default abstract class NdTextPartial extends NdEmitter<NdTextPartialProps> implements NdTextPartialProps {
+export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPartialProps & {destroy:NdStateEvent<NdTextPartial>, destroyed:NdStateEvent<NdTextPartial>}> implements NdTextPartialProps {
     private textColor: NdColorStr = 'rgba(0,0,0,1)'
     private fWeight: NdFontWeights = 400
     private fSize: number = 14
@@ -14,15 +16,17 @@ export default abstract class NdTextPartial extends NdEmitter<NdTextPartialProps
     abstract readonly width: number
     abstract readonly string: string
     abstract readonly length: number
-    abstract readonly render: (context: CanvasRenderingContext2D, xPos: number, yPos: number) => void
+    abstract render(context: CanvasRenderingContext2D, xPos: number, yPos: number): void
     freeze: {
         [K in keyof NdTextPartialProps]?: boolean
     } = {}
 
-    onPossibleSizeChange = (callback: () => any) => {
+    @alive
+    onPossibleSizeChange(callback: () => any) {
         this.on(['font', 'fontSize', 'weight', 'style', 'lineHeight'], callback)
     }
 
+    @alive
     get font() {
         return this.ndFont
     }
@@ -36,9 +40,11 @@ export default abstract class NdTextPartial extends NdEmitter<NdTextPartialProps
         }
     }
 
+    @alive
     get lineHeight() {
         return this.lHeight
     }
+
 
     set lineHeight(value) {
         if (!this.freeze.lineHeight) {
@@ -50,6 +56,7 @@ export default abstract class NdTextPartial extends NdEmitter<NdTextPartialProps
         }
     }
 
+    @alive
     get weight() {
         return this.fWeight
     }
@@ -63,6 +70,7 @@ export default abstract class NdTextPartial extends NdEmitter<NdTextPartialProps
         }
     }
 
+    @alive
     get color() {
 
         return this.textColor
@@ -80,6 +88,7 @@ export default abstract class NdTextPartial extends NdEmitter<NdTextPartialProps
         }
     }
 
+    @alive
     get style() {
         return this.fStyle
     }
@@ -93,6 +102,7 @@ export default abstract class NdTextPartial extends NdEmitter<NdTextPartialProps
         }
     }
 
+    @alive
     get fontSize() {
         return this.fSize
     }
@@ -107,7 +117,8 @@ export default abstract class NdTextPartial extends NdEmitter<NdTextPartialProps
         }
     }
 
-    readonly fontString = (): string => {
+    @alive
+    fontString (){
         if ((Object.values(NdFontSpecialValues) as string[]).includes(this.ndFont)) {
             return this.ndFont === 'system' ? `${this.style} ${this.weight} ${this.fSize}px serif` : this.fSize + 'px ' + this.ndFont
         } else {

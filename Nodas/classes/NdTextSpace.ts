@@ -1,10 +1,11 @@
 import NdTextPartial from './NdTextPartial';
 import {NdFontSpecialValues} from '../@types/types';
 import nodasFonts from '../Services/NodasFonts';
+import {alive} from "../Nodes/decorators/alive";
 
 export default class NdTextSpace extends NdTextPartial {
     private w: number = 0
-    private context = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
+    private context? = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
     private measured: boolean = false
 
     constructor() {
@@ -21,25 +22,32 @@ export default class NdTextSpace extends NdTextPartial {
                 }
             }
         })
+        this.once('destroyed', () => this.context = undefined)
     }
+
+    @alive
     get length() {
         return 1
     }
 
+    @alive
     get string() {
         return ' '
     }
 
-    render = () => {
-    }
+    @alive
+    render(){}
+
+    @alive
     forceRedraw() {
         this.measured = false
     }
 
+    @alive
     get width() {
         if (!this.measured) {
-            this.context.font = this.fontString()
-            this.w = this.context.measureText(' ').width
+            this.context!.font = this.fontString()
+            this.w = this.context!.measureText(' ').width
         }
         return this.w
     }

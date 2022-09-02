@@ -1,32 +1,49 @@
-export default class NdCanvas {
-    public readonly element: HTMLCanvasElement;
-    public readonly context: CanvasRenderingContext2D;
+import NdDestroyableNode from "../Nodes/classes/NdDestroyableNode";
+import NdStateEvent from "./NdStateEvent";
+import {alive} from "../Nodes/decorators/alive";
+
+export default class NdCanvas extends NdDestroyableNode<{ destroy: NdStateEvent<NdCanvas>, destroyed: NdStateEvent<NdCanvas> }> {
+    private _element?: HTMLCanvasElement;
+    private _context?: CanvasRenderingContext2D;
     private size = [0, 0]
 
     constructor() {
-        this.element = document.createElement('canvas');
-        const context = this.element.getContext('2d')
-        if (context) {
-            this.context = context;
-        } else {
-            throw new Error('Unable to establish Canvas rendering context!')
-        }
+        super()
+        this._element = document.createElement('canvas');
+        const context = this._element.getContext('2d')!
+        this._context = context!;
+        this.once('destroyed', () => {
+            this._element = undefined
+            this._context = undefined
+        })
     }
 
+    @alive
+    get element() {
+        return this._element!
+    }
+
+    @alive
+    get context() {
+        return this._context!
+    }
+
+    @alive
     get width() {
         return this.size[0]
     }
 
     set width(width) {
         this.size[0] = width
-        this.element.setAttribute('width', width.toString());
+        this._element!.setAttribute('width', width.toString());
     }
 
+    @alive
     get height() {
         return this.size[1]
     }
 
     set height(height) {
-        this.element.setAttribute('height', height.toString())
+        this._element!.setAttribute('height', height.toString())
     }
 }

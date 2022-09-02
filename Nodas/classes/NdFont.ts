@@ -2,11 +2,13 @@ import NdResource from './NdResource';
 import {NdFontDescription, NdFontFormats, NdFontStyles, NdFontWeights} from '../@types/types';
 import {NdURLStr} from '../Nodes/@types/types';
 import {NDB} from '../Services/NodasDebug';
+import NdStateEvent from "./NdStateEvent";
+import {alive} from "../Nodes/decorators/alive";
 
 export default class NdFont extends NdResource<HTMLCanvasElement> {
 
-    private context = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
-    private styles = document.createElement('style')
+    private context ?= document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
+    private styles ?= document.createElement('style')
     private str: string[]
     private scheme: NdFontDescription
     private fontMaxLoadTime = 10000
@@ -39,11 +41,12 @@ export default class NdFont extends NdResource<HTMLCanvasElement> {
         }
     }
 
+    @alive
     private measureFont(style: NdFontStyles, weight: NdFontWeights, customFamily?: string): number {
-        this.context.font = customFamily ? `${style} ${NdFont.extractNumericWeight(weight)} 12px/12px "${customFamily}"` : this.string(style, NdFont.extractNumericWeight(weight), 12)
-        return this.context.measureText(NdFont.CONSTFONTCHECKSTRING).width
+        this.context!.font = customFamily ? `${style} ${NdFont.extractNumericWeight(weight)} 12px/12px "${customFamily}"` : this.string(style, NdFont.extractNumericWeight(weight), 12)
+        return this.context!.measureText(NdFont.CONSTFONTCHECKSTRING).width
     }
-
+    @alive
     private initMeasureBuffer() {
         this.fontLoadStart = new Date().getTime()
         this.fontMeasureBuffer = this.scheme.weight.map(weight => {
@@ -73,11 +76,14 @@ export default class NdFont extends NdResource<HTMLCanvasElement> {
     }
 
 
+    @alive
     string(style: NdFontStyles, weight: NdFontWeights, size: number, lineHeight = size) {
         return `${style} ${NdFont.extractNumericWeight(weight)} ${size}px/${lineHeight}px "${this.scheme.name}"`
     }
 
-    export = this.context.canvas
+    export = () =>{
+        return this.context!.canvas
+    }
 
     constructor(root?: string, format?: NdFontFormats[], scheme?: NdFontDescription) {
         super(`\\${scheme ? scheme.name : 'default'}.font` as NdURLStr, () => {
@@ -85,17 +91,17 @@ export default class NdFont extends NdResource<HTMLCanvasElement> {
                 this.initMeasureBuffer()
                 this.loadFont(() => {
                     NDB.positive(`Font ${this.name} loaded`)
-                    this.cast('load', null)
+                    this.cast('load', new NdStateEvent(this,null))
                 }, () => {
                     NDB.negative(`Unable to load font ${this.name}`)
-                    this.cast('error', null)
+                    this.cast('error', new NdStateEvent(this,null))
                 })
-                this.styles.innerHTML = this.str.reduce<string>((result, current) => result + current, '')
-                document.head.appendChild(this.styles)
+                this.styles!.innerHTML = this.str.reduce<string>((result, current) => result + current, '')
+                document.head.appendChild(this.styles!)
                 return this
             } else {
                 NDB.positive(`Font ${this.url} loaded`)
-                this.cast('load', null)
+                this.cast('load', new NdStateEvent(this,null))
                 return this
             }
         })

@@ -1,32 +1,32 @@
-import {NdAnimationStack, NdPercentStr, NdTickingObj, ReflectTickingType} from '../Nodes/@types/types';
+import {NdAnimationStack, NdPercentStr, NdTickingObj, NodasTickingType} from '../Nodes/@types/types';
 import {ndEasings} from './NdEasings';
 import NdMorphine from './NdMorphine';
 import NdEmitter from './NdEmitter';
 import NdEvent from './NdEvent';
-import NdModBase from '../Nodes/models/NdModBase';
-import Node from '../Nodes/Node'
+import NdNodeStylesModel from "../Nodes/classes/NdNodeStylesModel";
+import NdAnimatedNode from "../Nodes/classes/NdAnimatedNode";
 
 
-export default class NdAnimation<Model extends NdModBase, N extends Node<Model> = Node<Model>>
+export default class NdAnimation<Model extends NdNodeStylesModel, N extends NdAnimatedNode<Model, any>= NdAnimatedNode<Model, any>>
     extends NdEmitter<{ [key in 'step' | 'complete']: NdEvent<N, { progress: number, ease: number }> }> {
     private duration: number;
     private easing: keyof typeof ndEasings;
     private stack: NdAnimationStack<Model> = [];
     morphine?: NdMorphine;
-    private element: N
+    private node: N
     public readonly target = null;
     private readonly _queue: boolean = false;
     private _active: boolean = false;
     private _done = false;
 
-    constructor(element: N,
+    constructor(node: N,
                 stack: NdAnimationStack<Model>, duration: number = 1000, easing: keyof typeof ndEasings & string = 'default', queue: boolean = false) {
         super();
         this.stack = stack;
         this.easing = easing
         this.duration = duration
         this._queue = queue
-        this.element = element
+        this.node = node
     }
 
     get queue() {
@@ -45,7 +45,7 @@ export default class NdAnimation<Model extends NdModBase, N extends Node<Model> 
         return this.stack.findIndex(v => v.name === property)
     }
 
-    get props() {
+    get props():(keyof Model)[] {
         return this.stack.map(v => v.name)
     }
 
@@ -69,7 +69,7 @@ export default class NdAnimation<Model extends NdModBase, N extends Node<Model> 
                 if (this.stack.length === 0) {
                     this.cast('complete',
                         new NdEvent<N, { progress: number; ease: number }>
-                        (this.element, {
+                        (this.node, {
                             ease: 1,
                             progress: 1
                         }));
@@ -77,16 +77,16 @@ export default class NdAnimation<Model extends NdModBase, N extends Node<Model> 
                 } else {
                     this.stack.forEach((v) => {
                         v.result = this.tick(value, progress, v.ani.start, v.ani.end)
-                        this.element.style(v.name, v.result)
+                        this.node.style(v.name, v.result)
                     })
                     this.cast('step', new NdEvent<N, { progress: number; ease: number }>(
-                        this.element, {
+                        this.node, {
                             ease: value,
                             progress: progress
                         }))
                     if (progress === 1) {
                         this.cast('complete', new NdEvent<N, { progress: number; ease: number }>
-                            (this.element,
+                            (this.node,
                                 {
                                     progress: 1,
                                     ease: 1
@@ -100,15 +100,15 @@ export default class NdAnimation<Model extends NdModBase, N extends Node<Model> 
 
     }
 
-    private tick(complete: number, progress: number, start: ReflectTickingType, end: ReflectTickingType):
-        ReflectTickingType {
+    private tick(complete: number, progress: number, start: NodasTickingType, end: NodasTickingType):
+        NodasTickingType {
         while (typeof start === 'function') {
             start = start()
         }
         while (typeof end === 'function') {
             end = end()
         }
-        let result: ReflectTickingType = end;
+        let result: NodasTickingType = end;
         if (typeof start === typeof end) {
             if (typeof start === 'number') {
                 if (progress >= 1) {
@@ -126,14 +126,14 @@ export default class NdAnimation<Model extends NdModBase, N extends Node<Model> 
                 if (Array.isArray(start) && Array.isArray(end)) {
                     if (start.length == end.length) {
                         result = start.map((v, key) => {
-                            return this.tick(complete, progress, v, (end as ReflectTickingType[])[key])
+                            return this.tick(complete, progress, v, (end as NodasTickingType[])[key])
 
                         })
                     } else {
                         throw new Error('Start and end values are of different lengths')
                     }
                 } else {
-                    result = Object.fromEntries((Object.keys(start) as (keyof { [key: string]: ReflectTickingType })[]).map((prop) => {
+                    result = Object.fromEntries((Object.keys(start) as (keyof { [key: string]: NodasTickingType })[]).map((prop) => {
                         return [prop, this.tick(complete, progress, (start as NdTickingObj)[prop], (end as NdTickingObj)[prop])]
                     }))
                 }

@@ -1,6 +1,6 @@
 import Node from './Node';
 import NdBox from '../classes/NdBox';
-import NdModeAssembler from './classes/NdModeAssembler';
+import NdNodeAssembler from './classes/NdNodeAssembler';
 import NdModBase from './models/NdModBase';
 import NdModFreeStroke from './models/NdModFreeStroke';
 import NdNodeStylesModel from './classes/NdNodeStylesModel';
@@ -11,6 +11,7 @@ import {NdSegmentBezier} from './@types/types';
 import Nodas from '../../Nodas';
 import NdNodeEmpiricalMouseChecker from './classes/NdNodeEmpiricalMouseChecker';
 import {NdNumericArray2d} from '../@types/types';
+import {alive} from "./decorators/alive";
 
 type AreaStaticModel = NdModFreeStroke & NdModBg & NdModAnchor & NdModBase
 export default class Area extends Node<AreaStaticModel> {
@@ -19,15 +20,15 @@ export default class Area extends Node<AreaStaticModel> {
     private strokeFix = 1
     private interpolationFix = 0
     private interpolated = false
-    private mouseTester: NdNodeEmpiricalMouseChecker = new NdNodeEmpiricalMouseChecker()
+    private mouseTester?: NdNodeEmpiricalMouseChecker = new NdNodeEmpiricalMouseChecker()
     protected Box: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
-        let position = [...this.data.position.protectedValue] as NdNumericArray2d,
+        let position = [...this.data!.position.protectedValue] as NdNumericArray2d,
             minX = Infinity,
             minY = Infinity,
             maxX = -Infinity,
             maxY = -Infinity
 
-        this.data.path.protectedValue.forEach((v: NdSegmentBezier) => {
+        this.data!.path.protectedValue.forEach((v: NdSegmentBezier) => {
             if (v[0] < minX) {
                 minX = v[0]
             }
@@ -65,95 +66,111 @@ export default class Area extends Node<AreaStaticModel> {
             width = Math.abs(maxX - minX),
             height = Math.abs(maxY - minY);
 
-        Node.applyBoxAnchor(position, width, height, this.data)
+        Node.applyBoxAnchor(position, width, height, this.data!)
         return [position[0] + this.xShift, position[1] + this.yShift, width, height, fix, fix, fix, fix] as Parameters<NdBox['value']>
     })
-    protected Assembler: NdModeAssembler = new NdModeAssembler([
+    protected Assembler?: NdNodeAssembler = new NdNodeAssembler([
         {
             name: 'fill',
             resolver: (context: CanvasRenderingContext2D) => {
                 context.save();
-                context.translate(this.boundingRect.margin[3] - this.xShift, this.boundingRect.margin[0] - this.yShift);
-                if (!this.interpolated && this.data.interpolation.protectedValue > 0) {
-                    NdNodeStylesModel.interpolate(this.data.path.protectedValue, this.data.interpolation.protectedValue, true)
+                context.translate(this.Box.value.sprite.margin[3] - this.xShift, this.Box.value.sprite.margin[0] - this.yShift)
+                if (!this.interpolated && this.data!.interpolation.protectedValue > 0) {
+                    NdNodeStylesModel.interpolate(this.data!.path.protectedValue, this.data!.interpolation.protectedValue, true)
                     this.interpolated = true
                 }
-                Node.drawFill(this.data, context)
+                Node.drawFill(this.data!, context)
                 context.restore()
             }
         },
         {
             name: 'bg',
             resolver: (context: CanvasRenderingContext2D) => {
-                context.translate(this.boundingRect.margin[3] - this.xShift, this.boundingRect.margin[0] - this.yShift);
-                Node.drawPathBg(this.data, context, this.Assembler)
+                context.translate(this.Box.value.sprite.margin[3] - this.xShift, this.Box.value.sprite.margin[0] - this.yShift)
+                Node.drawPathBg(this.data!, context, this.Assembler!)
             }
         },
         {
             name: 'stroke',
             resolver: (context: CanvasRenderingContext2D) => {
                 if (!this.interpolated) {
-                    NdNodeStylesModel.interpolate(this.data.path.protectedValue, this.data.interpolation.protectedValue, true)
+                    NdNodeStylesModel.interpolate(this.data!.path.protectedValue, this.data!.interpolation.protectedValue, true)
                     this.interpolated = true
                 }
-                context.translate(this.boundingRect.margin[3] - this.xShift, this.boundingRect.margin[0] - this.yShift);
-                Node.drawStroke(this.data, context)
+                context.translate(this.Box.value.sprite.margin[3] - this.xShift, this.Box.value.sprite.margin[0] - this.yShift);
+                Node.drawStroke(this.data!, context)
             }
         }
     ])
-    protected test: Node<AreaStaticModel>['test'] = (cursor) => {
-        return this.mouseTester.check(this.matrix.traceCursorToLocalSpace([...cursor])) ? this : false
+
+    @alive
+    protected test(cursor: NdNumericArray2d):Area | false {
+        return this.mouseTester!.check(this.matrix.traceCursorToLocalSpace([...cursor], this)) ? this : false
     }
-    protected render: Node<AreaStaticModel>['render'] = (context) => {
-        Node.transformContext(this, context)
-        context.drawImage(this.Assembler.export(this), 0, 0)
+
+    @alive
+    protected render(context: CanvasRenderingContext2D) {
+        const render = this.Assembler!.export(this)
+        if (render) {
+            Node.transformContext(this, context)
+            context.drawImage(render, 0, 0)
+        }
         return context
     }
-    export: Node<AreaStaticModel>['export'] = () => this.Assembler.export(this)
+
+    @alive
+    export() {
+        return this.Assembler!.export(this)
+    }
 
     constructor(id: string, app: Nodas) {
         super(id, {...new NdModBase(), ...new NdModFreeStroke(true), ...new NdModAnchor(), ...new NdModBg}, app)
-        this.on('destroy', () => {
-            NdModBg.destroyBackground(this.data)
+        this.once('destroyed', () => {
+            this.mouseTester = this.mouseTester!.destroy()
         })
         this.watch('path', () => {
             this.interpolated = false
             this.Box.purge()
             this.Matrix.purge()
-            this.Assembler.resize()
-            this.Assembler.update()
+            this.Assembler!.resize()
+            this.Assembler!.update()
             this.interpolated = false
-            this.mouseTester.resize(this.boundingRect.size)
-            this.mouseTester.redraw(this.data)
+            this.mouseTester!.resize(this.Box.value.sprite.size)
+            this.mouseTester!.redraw(this.data!)
         })
         this.watch('interpolation', () => {
             this.interpolated = false;
-            this.interpolationFix = Math.round(40 * this.data.interpolation.protectedValue);
-            this.Assembler.update()
-            this.Assembler.resize()
-            this.mouseTester.resize(this.boundingRect.size)
-            this.mouseTester.redraw(this.data)
+            this.interpolationFix = Math.round(40 * this.data!.interpolation.protectedValue);
+            this.Assembler!.update()
+            this.Assembler!.resize()
+            this.mouseTester!.resize(this.Box.value.sprite.size)
+            this.mouseTester!.redraw(this.data!)
             this.interpolated = false
+
         })
         this.watch(['strokeStyle', 'strokeColor'], () => {
-            this.Assembler.update('stroke')
-            this.Assembler.resize()
+            if (this.Assembler) {
+                this.Assembler.update('stroke')
+                this.Assembler.resize()
+            }
+
         })
         this.watch('fill', () => {
-            this.Assembler.update('fill')
+            this.Assembler!.update('fill')
+
         })
         this.watch(['bg', 'backgroundSize', 'backgroundPosition'], () => {
-            this.Assembler.update('bg')
+             this.Assembler!.update('bg')
         })
         this.watch('strokeWidth', () => {
-            this.strokeFix = this.data.strokeWidth.protectedValue
+            this.strokeFix = this.data!.strokeWidth.protectedValue
                 .reduce((prev: number, current: number) => prev < current ? current : prev, 0) / 2
-            this.Assembler.update('stroke')
-            this.mouseTester.resize(this.boundingRect.size)
-            this.mouseTester.redraw(this.data)
+            this.Assembler!.update('stroke')
+            this.mouseTester!.resize(this.Box.value.sprite.size)
+            this.mouseTester!.redraw(this.data!)
             this.Box.purge()
             this.Matrix.purge()
-            this.Assembler.resize()
+            this.Assembler!.resize()
         })
     }
 }

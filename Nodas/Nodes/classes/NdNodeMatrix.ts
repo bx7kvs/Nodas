@@ -1,51 +1,37 @@
-import NdCache from '../../classes/NdCache';
-import NdMatrix from '../../classes/NdMatrix';
+import {NdMatrixVal} from '../@types/types';
+import {NdNumericArray2d} from '../../@types/types';
 import Node from '../Node';
 import Group from '../Group';
-import NdModBase from '../models/NdModBase';
+import NdMatrix from "../../classes/NdMatrix";
 
-export class NdNodeMatrix<Model extends NdModBase = NdModBase, N extends Node<Model> = Node<Model>> {
-    private getter: () => NdMatrix
-    public purge: () => void
+export default class NdNodeMatrix extends NdMatrix{
+    private _globalInversion: NdMatrixVal | null = null;
+    globalInversion:(node:Node<any>) => NdMatrixVal
+    purgeInversion: (node:Node<any>) => void
 
-    get value(): NdMatrix {
-        return this.getter()
+    constructor() {
+        super()
+        this.globalInversion = (node) => {
+            if (this._globalInversion) return this._globalInversion;
+            const parent = node.parent;
+            this._globalInversion = [...this._inversion]
+            if (parent) NdNodeMatrix.multiply(this._globalInversion, parent.matrix.globalInversion(parent));
+            return [...this._globalInversion] as NdMatrixVal;
+        }
+        this.purgeInversion = (node) => {
+            this._globalInversion = null
+            if(node instanceof Group) node.forEachChild((e) => e.matrix.purgeInversion(e))
+        }
     }
 
-    constructor(element: N, model: Model, cache: NdCache) {
-        const matrix = new NdMatrix(element)
-        const {getter, purge} =
-            cache.register<NdMatrix>('transformMatrix',
-                () => {
-                    matrix.reset()
-                    const position = model.position.protectedValue,
-                        sprite = element.boundingRect,
-                        origin = model.origin.protectedValue.map((v,key) => sprite.size[key] * v),
-                        skew = model.skew.protectedValue,
-                        rotate = model.rotate.protectedValue,
-                        scale = model.scale.protectedValue,
-                        translate = model.translate.protectedValue,
-                        _translate = element instanceof Group ? [
-                            position[0] + translate[0],
-                            position[1] + translate[1]
-                        ] : [
-                            sprite.position[0] + translate[0],
-                            sprite.position[1] + translate[1]
-                        ]
+    traceCursorToLocalSpace(point: NdNumericArray2d, node:Node<any>) {
+        return NdMatrix.applyMatrixToPoint(this.globalInversion(node), point);
+    };
 
-
-                    matrix.translate(origin[0], origin[1])
-                    if (_translate[0] !== 0 || _translate[1] !== 0) matrix.translate(_translate[0], _translate[1])
-                    if (rotate) matrix.rotate(rotate)
-                    if (skew[0] !== 0 || skew[1] !== 0) matrix.skew(skew[0], skew[1])
-                    if (scale[0] !== 0 || scale[1] !== 0) matrix.scale(scale[0], scale[1])
-                    matrix.translate(-origin[0], -origin[1]);
-                    matrix.invert()
-
-                    return matrix
-                }
-            )
-        this.purge = purge
-        this.getter = getter
+    reset() {
+        super.reset();
+        this._globalInversion = null;
     }
+
+
 }

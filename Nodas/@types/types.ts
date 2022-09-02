@@ -1,38 +1,10 @@
-import Ticker from '../Ticker';
-
 export type NdCanvasContext = CanvasRenderingContext2D | null
 export type NdCanvasQueueCallbackArgs = [NdCanvasContext, Date, number]
 export type NdCanvasQueueCallback = (...args: NdCanvasQueueCallbackArgs) => void
-export type NdCanvasQueueItem = {
-    order: number,
-    f: NdCanvasQueueCallback
-}
 export type NdNumericArray2d = [x: number, y: number];
-export type NdEmitterCallback<Data> = (data: Data) => void;
 export type NdMainDrawingPipeFArgs = [context: CanvasRenderingContext2D, date: Date, frame: number]
 export type NdMainDrawingPipeF = (...args: NdMainDrawingPipeFArgs) => NdMainDrawingPipeFArgs[0] | false
 export type NdRenderConditionPredicate = (...args: NdMainDrawingPipeFArgs) => boolean
-export type NdConfigPropertyCheckName =
-    'isNumber'
-    | 'isString'
-    | 'isArray'
-    | 'custom'
-    | 'under'
-    | 'greater'
-    | 'eq'
-    | 'isBool'
-export type NdConfigPropertyCustomCheck = (v: NdConfigPropertyValue) => boolean
-export type NdConfigPropertyWatcher<T> = (v: T) => void
-export type NdConfigPropertyCheckValue = undefined | string | number | boolean | NdConfigPropertyCustomCheck;
-export type NdConfigPropertyValue = string | [] | number | boolean | undefined | {} | null
-export type NdConfigPropertyCheckArrayItem = {
-    f: NdConfigPropertyCheckName,
-    value?: NdConfigPropertyCheckValue
-}
-export type NdConfigPropertyChecks = {
-    [K in NdConfigPropertyCheckName]?: NdConfigPropertyCheckValue
-}
-export type NdDebugData = { [key: string]: string | number }
 export type NdFontFormats = 'eot' | 'svg' | 'ttf' | 'woff';
 
 export enum NdFontSpecialValues {
@@ -71,14 +43,8 @@ export type NdTickerQueueItem = {
     f: NdTickerF
 }
 
-export type NdTickerEvents = 'stop' | 'start' | 'error';
-
-export type NdTickerEventCb = (data: Error | Ticker) => void
-
-export interface NdTickerEventsContainer {
-    stop: NdTickerEventCb[],
-    start: NdTickerEventCb[],
-    error: NdTickerEventCb[]
+export interface NdTickerEvents {
+    fps: null, start: null, stop: null, error: null
 }
 
 export interface NdListenable<Scheme, K extends keyof Scheme = keyof Scheme> {

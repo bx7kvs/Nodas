@@ -4,9 +4,9 @@ import Node from '../Nodes/Node';
 import NdModBase from '../Nodes/models/NdModBase';
 
 export default class NdCompiler<Props extends NdModBase,
-    Element extends Node<Props> = Node<Props>> {
+    NodeType extends Node<Props> = Node<Props>> {
     private readonly resolver: NdMainDrawingPipeF;
-    private readonly element: Element
+    private readonly node: NodeType
     private readonly props: Props;
     private conditions: NdRenderConditionPredicate[] = []
     private drawerPipeBefore: NdNodeCompilerPipe = {};
@@ -21,8 +21,8 @@ export default class NdCompiler<Props extends NdModBase,
         return renderAllowed;
     }
 
-    constructor(element: Element, model: Props, resolver: NdMainDrawingPipeF) {
-        this.element = element
+    constructor(node: NodeType, model: Props, resolver: NdMainDrawingPipeF) {
+        this.node = node
         this.resolver = resolver
         this.props = model
     }
@@ -44,7 +44,7 @@ export default class NdCompiler<Props extends NdModBase,
             this.drawerPipeBefore[order].push(f);
             this.beforePipeSize++;
         }
-        return this.element
+        return this.node
     }
 
     public unpipe(f: NdMainDrawingPipeF) {
@@ -68,7 +68,7 @@ export default class NdCompiler<Props extends NdModBase,
                 });
             }
         }
-        return this.element;
+        return this.node;
     }
 
     public render:NdMainDrawingPipeF = (context: CanvasRenderingContext2D, date: Date, frame: number) => {

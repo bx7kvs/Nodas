@@ -1,25 +1,23 @@
-import {NdTickerEventCb, NdTickerEvents, NdTickerEventsContainer, NdTickerFArgs, NdTickerQueueF, NdTickerQueueItem} from './@types/types';
+import {NdTickerEvents, NdTickerFArgs, NdTickerQueueF, NdTickerQueueItem} from './@types/types';
 import {NDB} from './Services/NodasDebug';
+import NdEmitter from "./classes/NdEmitter";
 
 
-export default class Ticker {
-    private frameDuration = (1000 / 58.8);
+export default class Ticker extends NdEmitter<NdTickerEvents>{
+    private frameDuration = (1000 / 60);
     private q: NdTickerQueueItem[] = [];
     private frame = 0;
+    private _fps = 60;
     private args: NdTickerFArgs = [new Date(), 0];
     private interval?: ReturnType<Window['setInterval']>;
-    private eventsCb: NdTickerEventsContainer = {
-        stop: [],
-        start: [],
-        error: []
-    }
+    private init = false
 
     private draw() {
         this.q.forEach((f, key) => {
             try {
                 this.q[key].f.apply(self, this.args);
             } catch (e: any) {
-                NDB.error(`Error emerged while running ticker\n Queue: ${this.q[key].order}\n Order: ${key}\n Message: ${e.message}`)
+               throw e
             }
         })
         this.frame++;
@@ -31,19 +29,11 @@ export default class Ticker {
         try {
             this.draw();
         } catch (e: any) {
-            window.clearInterval(this.interval);
-            this.resolve('error', e);
-            NDB.error(`Application ticker collapsed\n Frame: ${this.frame}\n Date: ${this.args[0]}\n Message: ${e.message}`)
+            this.stop()
+            throw e
         }
     }
 
-    private resolve(event: NdTickerEvents, args: Error | Ticker) {
-        this.eventsCb[event].forEach(
-            (cb) => {
-                cb.apply(this, [args])
-            }
-        )
-    }
 
     queue: NdTickerQueueF = (a, b) => {
         if (typeof a === 'function') {
@@ -59,16 +49,12 @@ export default class Ticker {
         return this;
     }
 
-    on(event: NdTickerEvents, cb: NdTickerEventCb) {
-        this.eventsCb[event].push(cb)
-    }
-
     stop() {
         if (this.interval) {
             this.frame = 0;
             clearInterval(this.interval);
             this.interval = undefined;
-            this.resolve('stop', this);
+            this.cast('stop', null);
             NDB.positive('Ticker stopped')
         } else NDB.warn(`Ticker already stopped. Ignored`)
         return this;
@@ -77,7 +63,11 @@ export default class Ticker {
     start() {
         if (!this.interval) {
             this.interval = window.setInterval(this.tick, this.frameDuration);
-            this.resolve('start', this);
+            if(!this.init) {
+                this.cast("fps", null)
+                this.init = true
+            }
+            this.cast('start', null);
             NDB.positive('Ticker started')
         }else NDB.warn(`Ticker already started. Ignored`)
         return this;
@@ -87,15 +77,18 @@ export default class Ticker {
         return this.frameDuration
     }
 
-    fps(fps: number) {
+    set fps(fps:number) {
         if (fps > 60) fps = 60;
         if (fps <= 0) fps = 1;
         this.frameDuration = (1000 / fps);
+        this.cast("fps", null)
         NDB.positive(`Ticker FPS set ${fps}. Restart Ticker`)
         if (this.interval) {
             this.stop();
             this.start();
         }
-        return this;
-    };
+    }
+    get fps() {
+        return this._fps
+    }
 }

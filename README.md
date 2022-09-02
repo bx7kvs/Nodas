@@ -182,6 +182,20 @@ group.on('mouseDown', () => {
 
 })
 ```
+## 0.8.0
+
+### Features:
+1. Particles and Fields.<br/>
+1.1 Added Field constructor<br/>
+1.2 Added Particle constructor <br/>
+1.3 Added ParticleEmitter constructor
+2. Added built-in random generator service
+
+### Fixes:
+1. Removed internal memory leak
+2. Fixed node destruction functionality
+3. Overall stability improvements
+
 
 ## Nodas documentation is on the way...
 

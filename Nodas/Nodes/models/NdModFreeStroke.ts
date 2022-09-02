@@ -1,4 +1,14 @@
-import {NdArrColor, NdColorArr, NdColorStr, NdPath, NdPathBezier, NdStrokeStyle, NdStrokeStyleArr, NdStrokeWidthArr} from '../@types/types';
+import {
+    NdArrColor,
+    NdCap,
+    NdColorArr,
+    NdColorStr,
+    NdPath,
+    NdPathBezier,
+    NdStrokeStyle,
+    NdStrokeStyleArr,
+    NdStrokeWidthArr
+} from '../@types/types';
 import NdNodeStylesModel from '../classes/NdNodeStylesModel';
 import NdStylesProperty from '../classes/NdNodeStyleProperty';
 
@@ -34,6 +44,12 @@ export default class NdModFreeStroke extends NdNodeStylesModel {
             value = .4 * (value / 100)
             return value
         }
+    )
+    cap = new NdStylesProperty<NdCap, NdCap, NdCap>(
+        2,
+        'butt',
+        (current) => current,
+        (value) => value
     )
 
     strokeColor = new NdStylesProperty<NdColorStr[], NdArrColor[], NdArrColor[] | NdColorArr | NdColorStr | NdArrColor>(

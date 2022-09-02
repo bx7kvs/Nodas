@@ -7,14 +7,20 @@ import {NdNumericArray2d} from '../../@types/types';
 import NdSprite from '../../classes/NdSprite';
 
 export default class NdModSprite extends NdNodeStylesModel {
-    src: NdStylesProperty<NdImage | NdSprite | false, NdUrlSpriteStr | NdURLStr | false, NdURLStr | NdUrlSpriteStr> =
-        new NdStylesProperty<NdImage | NdSprite | false, NdUrlSpriteStr | NdURLStr | false, NdURLStr | NdUrlSpriteStr>(
+    src: NdStylesProperty<NdImage | NdSprite | false, NdUrlSpriteStr | NdURLStr | false, NdURLStr | NdUrlSpriteStr | false> =
+        new NdStylesProperty<NdImage | NdSprite | false, NdUrlSpriteStr | NdURLStr | false, NdURLStr | NdUrlSpriteStr | false>(
             1,
             false,
             (value) => {
                 return value ? value.url : value
             },
             (value, node) => {
+                if (value === false) {
+                    if (this.src.protectedValue) {
+                        this.src.protectedValue.destroy()
+                    }
+                    return value
+                }
                 if (this.src.protectedValue) {
                     if (this.src.protectedValue.url === value) return this.src.protectedValue as NdSprite
                     this.src.protectedValue.destroy()
@@ -28,7 +34,7 @@ export default class NdModSprite extends NdNodeStylesModel {
                     sprite.load()
                     return sprite as NdSprite
                 } else {
-                    return value ? new NdImage(value as NdURLStr).load() as NdImage :  !!value as false
+                    return value ? new NdImage(value as NdURLStr).load() as NdImage : !!value as false
                 }
             }
         )

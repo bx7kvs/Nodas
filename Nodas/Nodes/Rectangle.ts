@@ -1,6 +1,6 @@
 import NdModAnchor from './models/NdModAnchor';
 import NdModBase from './models/NdModBase';
-import NdModeAssembler from './classes/NdModeAssembler';
+import NdNodeAssembler from './classes/NdNodeAssembler';
 import NdNodeBox from './classes/NdNodeBox';
 import NdModSize from './models/NdModSize';
 import NdModRect from './models/NdModRect';
@@ -9,6 +9,7 @@ import NdModBg from './models/NdModBg';
 import {NdNumericArray2d} from '../@types/types';
 import Node from './Node';
 import Nodas from '../../Nodas';
+import {alive} from "./decorators/alive";
 
 type RectNodeModel = NdModRect & NdModSize & NdModAnchor & NdModBg & NdModBase
 export default class Rectangle extends Node<RectNodeModel> {
@@ -16,22 +17,31 @@ export default class Rectangle extends Node<RectNodeModel> {
     private readonly path: () => NdPathBezier
     private readonly purgePath: () => void
     private readonly CIRCLECONST = 0.5522847498
-    protected Assembler: NdModeAssembler = new NdModeAssembler([
+
+    protected Box?: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
+        const position = [...this.data!.position.protectedValue] as NdNumericArray2d
+        Node.applyBoxAnchor(position, this.data!.size.protectedValue[0], this.data!.size.protectedValue[1], this.data!)
+        return [position[0], position[1], this.data!.size.protectedValue[0], this.data!.size.protectedValue[1], this.strokeFix[0], this.strokeFix[1], this.strokeFix[2], this.strokeFix[3]]
+    });
+    protected Assembler?: NdNodeAssembler = new NdNodeAssembler([
         {
             name: 'fill',
             resolver: (context) => {
                 context.translate(this.strokeFix[3], this.strokeFix[0])
                 Rectangle.registerPath(this.path(), context, true)
-                context.fillStyle = this.data.fill.protectedValue
+                context.fillStyle = this.data!.fill.protectedValue
                 context.fill()
             }
         },
         {
             name: 'bg',
             resolver: (context) => {
-                context.translate(this.strokeFix[3], this.strokeFix[0])
-                Rectangle.clipBezierPath(this.path(), context)
-                Rectangle.drawBg(this.data, context, this.Assembler)
+                if (this.Assembler) {
+                    context.translate(this.strokeFix[3], this.strokeFix[0])
+                    Rectangle.clipBezierPath(this.path(), context)
+                    Rectangle.drawBg(this.data!, context, this.Assembler)
+                }
+
             }
         },
         {
@@ -42,31 +52,36 @@ export default class Rectangle extends Node<RectNodeModel> {
             }
         }
     ])
-    export: Node<RectNodeModel>['export'] = () => this.Assembler.export(this);
-    protected test: Node<RectNodeModel>['test'] = (cursor: NdNumericArray2d) => {
-        const [x,y] = this.Matrix.value.traceCursorToLocalSpace([...cursor])
-        if (x < this.Box.value.sprite.size[0] && x > 0 && y < this.Box.value.sprite.size[1] && y > 0) {
+    @alive
+    protected test(cursor: NdNumericArray2d){
+        const [x, y] = this.Matrix.value.traceCursorToLocalSpace([...cursor], this)
+        if (x < this.Box!.value.sprite.size[0] && x > 0 && y < this.Box!.value.sprite.size[1] && y > 0) {
             return this
         }
         return false
     }
-    protected render: Node<RectNodeModel>['render'] = (context) => {
-        Rectangle.transformContext(this, context)
-        context.drawImage(this.Assembler.export(this), 0, 0)
+
+    @alive
+    protected render(context:CanvasRenderingContext2D){
+        const render = this.Assembler!.export(this)
+        if (render) {
+            Rectangle.transformContext(this, context)
+            context.drawImage(render, 0, 0)
+        }
         return context
     }
-    protected Box: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
-        const position = [...this.data.position.protectedValue] as NdNumericArray2d
-        Node.applyBoxAnchor(position, this.data.size.protectedValue[0], this.data.size.protectedValue[1], this.data)
-        return [position[0], position[1], this.data.size.protectedValue[0], this.data.size.protectedValue[1], this.strokeFix[0], this.strokeFix[1], this.strokeFix[2], this.strokeFix[3]]
-    });
+
+    @alive
+    export():HTMLCanvasElement | undefined {
+        return this.Assembler!.export(this)
+    }
 
     constructor(id: string, app: Nodas) {
         super(id, {...new NdModRect(), ...new NdModSize(), ...new NdModAnchor(), ...new NdModBg(), ...new NdModBase()}, app);
-        this.strokeFix = [...this.data.strokeWidth.protectedValue] as [number, number, number, number]
+        this.strokeFix = [...this.data!.strokeWidth.protectedValue] as [number, number, number, number]
         const {getter, purge} = this.Cache.register<NdPathBezier>('path', () => {
-            const [width, height] = this.data.size.protectedValue
-            const [tl, tr, br, bl] = this.data.radius.protectedValue.map((v: number) => {
+            const [width, height] = this.data!.size.protectedValue
+            const [tl, tr, br, bl] = this.data!.radius.protectedValue.map((v: number) => {
                 if (v > width / 2) v = width / 2
                 if (v > height / 2) v = height / 2
                 return v
@@ -177,40 +192,41 @@ export default class Rectangle extends Node<RectNodeModel> {
         this.path = getter
         this.purgePath = purge
         this.watch('size', () => {
-            this.Assembler.resize()
-            this.Assembler.update('fill')
-            this.Assembler.update('bg')
-            this.Assembler.update('stroke')
+            this.Assembler!.resize()
+            this.Assembler!.update('fill')
+            this.Assembler!.update('bg')
+            this.Assembler!.update('stroke')
             this.Matrix.purge()
-            this.Box.purge()
+            this.Box!.purge()
             this.purgePath()
+
         })
         this.watch('radius', () => {
-            this.Assembler.update('fill')
-            this.Assembler.update('bg')
-            this.Assembler.update('stroke')
-            this.purgePath()
+            if (this.Assembler) {
+                this.Assembler.update('fill')
+                this.Assembler.update('bg')
+                this.Assembler.update('stroke')
+                this.purgePath()
+            }
         })
         this.watch('strokeWidth', () => {
-            this.strokeFix = [...this.data.strokeWidth.protectedValue] as NdStrokeWidthBox
-            this.Box.purge()
-            this.Assembler.resize()
+            this.strokeFix = [...this.data!.strokeWidth.protectedValue] as NdStrokeWidthBox
+            this.Box!.purge()
+            this.Assembler!.resize()
             this.Matrix.purge()
-            this.Assembler.update('fill')
-            this.Assembler.update('bg')
-            this.Assembler.update('stroke')
+            this.Assembler!.update('fill')
+            this.Assembler!.update('bg')
+            this.Assembler!.update('stroke')
+
         })
         this.watch(['bg', 'backgroundSize', 'backgroundPosition'], () => {
-            this.Assembler.update('bg')
+           this.Assembler!.update('bg')
         })
         this.watch(['strokeColor', 'strokeStyle'], () => {
-            this.Assembler.update('stroke')
+            this.Assembler!.update('stroke')
         })
         this.watch('fill', () => {
-            this.Assembler.update('fill')
-        })
-        this.on('destroy', () => {
-            NdModBg.destroyBackground(this.data)
+            this.Assembler!.update('fill')
         })
     }
 
@@ -285,7 +301,7 @@ export default class Rectangle extends Node<RectNodeModel> {
 
     private static drawBridge(context: CanvasRenderingContext2D, segment: NdSegmentBezier, color: NdColorStr, width: number) {
         context.beginPath()
-        context.lineCap ='round'
+        context.lineCap = 'round'
         context.moveTo(segment[0], segment[1])
         context.strokeStyle = color
         context.lineWidth = width
@@ -299,7 +315,7 @@ export default class Rectangle extends Node<RectNodeModel> {
         if (path.length) {
             let currentSegment = 0
             //segment stop keys fix depending on corresponding corner presence
-            this.data.radius.protectedValue.forEach((v, key) => {
+            this.data!.radius.protectedValue.forEach((v, key) => {
                 if (v > 0) {
                     for (let i = key; i < segmentStops.length; i++) {
                         segmentStops[i] += 1
@@ -313,13 +329,13 @@ export default class Rectangle extends Node<RectNodeModel> {
                             currentSegment,
                             context,
                             v,
-                            currentSegment > 0 ? this.data.strokeColor.protectedValue[currentSegment - 1] : this.data.strokeColor.protectedValue[3],
-                            this.data.strokeColor.protectedValue[currentSegment],
-                            currentSegment > 0 ? this.data.strokeWidth.protectedValue[currentSegment - 1] : this.data.strokeWidth.protectedValue[3],
-                            this.data.strokeWidth.protectedValue[currentSegment]
+                            currentSegment > 0 ? this.data!.strokeColor.protectedValue[currentSegment - 1] : this.data!.strokeColor.protectedValue[3],
+                            this.data!.strokeColor.protectedValue[currentSegment],
+                            currentSegment > 0 ? this.data!.strokeWidth.protectedValue[currentSegment - 1] : this.data!.strokeWidth.protectedValue[3],
+                            this.data!.strokeWidth.protectedValue[currentSegment]
                         )
                     } else {
-                        Rectangle.drawBridge(context, v, this.data.strokeColor.protectedValue[currentSegment], this.data.strokeWidth.protectedValue[currentSegment])
+                        Rectangle.drawBridge(context, v, this.data!.strokeColor.protectedValue[currentSegment], this.data!.strokeWidth.protectedValue[currentSegment])
                     }
                     if (segmentStops.indexOf(n) > -1) currentSegment++;
                 }

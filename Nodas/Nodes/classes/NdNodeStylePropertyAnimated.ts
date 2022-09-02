@@ -1,10 +1,10 @@
 import {NdStylePropAnimatedApplier, NdStylePropAnimatedStarter} from '../@types/types';
 import NdStylesProperty from './NdNodeStyleProperty';
-import Node from '../Node';
+import NdStyledNode from "./NdStyledNode";
 
 export default class NdNodeStylePropertyAnimated<StoreType, GetType, SetType, AniType extends SetType,
-    Element extends Node<any> = Node<any>>
-    extends NdStylesProperty<StoreType, GetType, SetType> {
+    Element extends NdStyledNode<any, any> = NdStyledNode<any, any>>
+    extends NdStylesProperty<StoreType, GetType, SetType, Element> {
     private readonly starter: NdStylePropAnimatedStarter<SetType, GetType, AniType>;
     private readonly applier: NdStylePropAnimatedApplier<AniType, Element>;
     private _start?: AniType | false = false;
@@ -15,7 +15,7 @@ export default class NdNodeStylePropertyAnimated<StoreType, GetType, SetType, An
         order: number,
         initial: StoreType,
         getter: (current: StoreType) => GetType,
-        setter: (value: SetType, element: Node<any>) => StoreType,
+        setter: (value: SetType, element: Element) => StoreType,
         starter: NdStylePropAnimatedStarter<SetType, GetType, AniType>,
         applier: NdStylePropAnimatedApplier<AniType, Element>) {
         super(order, initial, getter, setter)

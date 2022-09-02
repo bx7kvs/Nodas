@@ -18,12 +18,12 @@ class NodasResources {
 
     image(src: string, onLoad?: () => void, onError?: () => void, onReset?: () => void) {
         if (this.images[src]) {
-            NDB.info(`Dispatcher returned cached image ${src}`)
             if (this.images[src].loading) {
                 if(onLoad) this.images[src].onLoad.push(onLoad)
                 if(onError) this.images[src].onError.push(onError)
             } else {
                 setTimeout(() => {
+
                     if (this.images[src]) {
                         if (this.images[src].loaded && onLoad) onLoad()
                         if (this.images[src].error && onError) onError()
@@ -46,6 +46,7 @@ class NodasResources {
             this.images[src].image.addEventListener('load', () => {
                 NDB.positive(`Image ${src} loaded.`)
                 this.images[src].loaded = true
+                this.images[src].loading = false
                 this.images[src].error = false
                 this.images[src].onLoad.forEach(v => v())
                 this.images[src].onError = []

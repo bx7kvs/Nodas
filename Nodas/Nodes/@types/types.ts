@@ -1,4 +1,10 @@
-import {NdFontSpecialValues, NdFontStyles, NdFontWeights, NdMainDrawingPipeF, NdNumericArray2d} from '../../@types/types';
+import {
+    NdFontSpecialValues,
+    NdFontStyles,
+    NdFontWeights,
+    NdMainDrawingPipeF,
+    NdNumericArray2d
+} from '../../@types/types';
 
 import NdNodeStylesModel from '../classes/NdNodeStylesModel';
 import NdImage from '../../classes/NdImage';
@@ -9,16 +15,14 @@ import NdEvent from '../../classes/NdEvent';
 import Canvas from '../../Canvas';
 import NdMouseEvent from '../../classes/NdMouseEvent';
 import NdStateEvent from '../../classes/NdStateEvent';
-import Nodes from '../../Nodes';
-import Mouse from '../../Mouse';
 import Node from '../Node';
-import NdModBase from '../models/NdModBase';
+import NdSprite from "../../classes/NdSprite";
+import NdEmitter from "../../classes/NdEmitter";
+import NdAnimatedNode from "../classes/NdAnimatedNode";
+import NdLayer from "../../classes/NdLayer";
 
 
-export type NdNodeGetter<Type extends Node<any>> = (id: string) => Type
 export type GroupChildren = Node<any> | Node<any>[]
-export type NodeConstructorParams = { id: string, Tree: Nodes, Mouse: Mouse, Canvas: Canvas }
-export type NodeConstructor = new (params: NodeConstructorParams) => Node<any>
 
 export type NdAssemblerContextResolver = (context: CanvasRenderingContext2D) => void
 export type NdCacheGetter<T> = () => T
@@ -43,29 +47,39 @@ export type NdMouseEventData = {
     cursor: NdNumericArray2d
 }
 
-export type NdNodeMouseEventsScheme<Props extends NdModBase> = {
-    mouseMove: NdMouseEvent<Node<Props>>
-    mouseLeave: NdMouseEvent<Node<Props>>
-    mouseEnter: NdMouseEvent<Node<Props>>
-    mouseUp: NdMouseEvent<Node<Props>>
-    mouseDown: NdMouseEvent<Node<Props>>
-    dragStart: NdMouseEvent<Node<Props>>
-    dragEnd: NdMouseEvent<Node<Props>>
-    dragMove: NdMouseEvent<Node<Props>>
-    focus: NdMouseEvent<Node<Props>>
-    blur: NdMouseEvent<Node<Props>>
-}
-export type NdNodeStateEventsScheme<Props extends NdModBase> = {
-    unmount: NdStateEvent<Node<Props>>
-    mount: NdStateEvent<Node<Props>>
-    destroy: NdStateEvent<Node<Props>>
-    export: NdStateEvent<Node<Props>>
-    update: NdStateEvent<Node<Props>>
+export type NdNodeMouseEventsScheme<Class extends NdEmitter<any>> = {
+    mouseMove: NdMouseEvent<Class>
+    mouseLeave: NdMouseEvent<Class>
+    mouseEnter: NdMouseEvent<Class>
+    mouseUp: NdMouseEvent<Class>
+    mouseDown: NdMouseEvent<Class>
+    dragStart: NdMouseEvent<Class>
+    dragEnd: NdMouseEvent<Class>
+    dragMove: NdMouseEvent<Class>
+    focus: NdMouseEvent<Class>
+    blur: NdMouseEvent<Class>
 }
 
-export type NdRootCanvasLifecycleData = {
-    size: NdNumericArray2d
+export type NdNodeBasicEventScheme<Class extends NdEmitter<any>> = {
+    destroy: NdStateEvent<Class>,
+    destroyed: NdStateEvent<Class>,
+    mount: NdStateEvent<Class>
 }
+export type NdNodeAssemblerEventScheme<Class extends NdEmitter<any>> = {
+    destroy: NdStateEvent<Class>,
+    destroyed: NdStateEvent<Class>,
+    resize: NdStateEvent<Class>,
+    update: NdStateEvent<Class>
+}
+export type NdNodeStateEventsScheme<Class extends NdEmitter<any>> = {
+    unmount: NdStateEvent<Class>
+    export: NdStateEvent<Class>
+    update: NdStateEvent<Class>
+}
+export type NdNodeEventScheme<Class extends NdEmitter<any>> =
+    NdNodeBasicEventScheme<Class>
+    & NdNodeStateEventsScheme<Class>
+    & NdNodeMouseEventsScheme<Class>
 
 export type NdRootCanvasMouseEventsScheme = {
     mouseEnter: NdMouseEvent<Canvas>
@@ -78,8 +92,12 @@ export type NdRootCanvasStateEventsScheme = {
     switch: NdStateEvent<Canvas>
     resize: NdStateEvent<Canvas>
 }
-
-
+export type NdParticleModifier = (vector:NdParticleVector) => void
+export type NodasAssemblerUpdateF<T extends AssemblerLayerConfig[], K extends number = keyof T & number> = (name?: T[K]['name']) => void
+export type AssemblerLayerConfig = {
+    name: string,
+    resolver: ConstructorParameters<typeof NdLayer>[0]
+}
 //Nodas Element compiler types
 
 export interface NdNodeCompilerPipe {
@@ -91,20 +109,20 @@ export interface NdNodeCompilerPipe {
 
 
 export type NdStylePropAnimatedStarter<T, C, A> = (current: C, value: T, setStart: (val: A) => void, setEnd: (val: A) => void) => void
-export type NdStylePropAnimatedApplier<T, E> = (value: T, element: E, progress: number) => T
-export type ReflectTickingType =
+export type NdStylePropAnimatedApplier<T, E> = (value: T, node: E, progress: number) => T
+export type NodasTickingType =
     number
     | NdPercentStr
     | NdTickingArr
     | NdTickingObj
     | NdTickingF
-export type NdTickingObj = { [key: string]: ReflectTickingType }
-export type NdTickingArr = ReflectTickingType[]
-export type NdTickingF = () => ReflectTickingType
+export type NdTickingObj = { [key: string]: NodasTickingType }
+export type NdTickingArr = NodasTickingType[]
+export type NdTickingF = () => NodasTickingType
 export type NdEasingF = (timeElapsedS: number, startValue: number, valueDelta: number, durationS: number) => number
 
 export type NdModAnimated<Model extends NdNodeStylesModel> = {
-    [Key in keyof Model as Extract<Key, NdNodeStylePropertyAnimated<any, any, any, any>>] : Model[Key]
+    [Key in keyof Model as Extract<Key, NdNodeStylePropertyAnimated<any, any, any, any>>]: Model[Key]
 }
 export type NdModAnimateProps<Model extends NdNodeStylesModel> = {
     [Key in keyof Model]?: Parameters<Model[Key]['set']>[0]
@@ -112,18 +130,18 @@ export type NdModAnimateProps<Model extends NdNodeStylesModel> = {
 
 export type NdAnimationStack<Model extends NdNodeStylesModel> = {
     value: any
-    result?: ReflectTickingType
+    result?: NodasTickingType
     name: string
     ani: NdNodeStylePropertyAnimated<any, any, any, any>
 }[]
 
 
-export interface ReflectAnimateConfig<Element extends Node<any> = Node<any>> {
+export interface NodasAnimateConfig<Class extends NdAnimatedNode<any, any>> {
     easing?: keyof typeof ndEasings,
     queue?: boolean,
     duration?: number,
-    step?: (event: NdEvent<Element, any>) => void,
-    complete?: (event: NdEvent<Element, any>) => void,
+    step?: (event: NdEvent<Class, any>) => void,
+    complete?: (event: NdEvent<Class, any>) => void,
 }
 
 export type NdTextPartialProps = {
@@ -171,7 +189,10 @@ export type NdBlend = 'source-over' | 'source-in' | 'source-out' | 'source-atop'
     'destination-in' | 'destination-out' | 'destination-atop' | 'lighter' | 'copy' | 'xor' | 'multiply' |
     'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' |
     'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity'
+
+export type NdParticleVector = [x: number, y: number, r: number, xsk: number, ysk: number, xsc: number, ysc: number, o:number]
 export type NdMatrixVal = [number, number, number, number, number, number]
+export type NdParticleSpriteResource = NdSprite | NdImage | HTMLCanvasElement | HTMLImageElement
 export type NdTagRegExpMatch = {
     [key: number]: string,
     index: number,

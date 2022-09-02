@@ -1,6 +1,11 @@
 import NdNodeMouseDispatcher from './Mouse/NdNodeMouseDispatcher';
 import NdModBase from './Nodes/models/NdModBase';
-import {NdMouseEventData, NdNodeMouseEventsScheme, NdNodePointerPredicate, NdNodePointerTransformF} from './Nodes/@types/types';
+import {
+    NdMouseEventData,
+    NdNodeMouseEventsScheme,
+    NdNodePointerPredicate,
+    NdNodePointerTransformF
+} from './Nodes/@types/types';
 import Ticker from './Ticker';
 import Canvas from './Canvas';
 import {NdNumericArray2d} from './@types/types';
@@ -9,10 +14,10 @@ import Nodes from './Nodes';
 import Node from './Nodes/Node';
 
 export default class Mouse {
-    private elements: {
+    private Nodes: {
         [key: string]: {
             handler: NdNodeMouseDispatcher<any>
-            element: Node<any>
+            node: Node<any>
         }
     } = {}
 
@@ -28,7 +33,7 @@ export default class Mouse {
 
     constructor(Canvas: Canvas, Ticker: Ticker, Tree: Nodes) {
         this.maxEventsResolveTimePerFrame = Ticker.frameTime
-        Canvas.queue( this.resolveStack.bind(this))
+        Canvas.queue(this.resolveStack.bind(this))
         Canvas.on('mouseDown', (event) => {
             this.mouseDown = true
             if (this.currentHover) this.resolveOrPostpone(
@@ -122,9 +127,10 @@ export default class Mouse {
         })
     }
 
-    checkNode(e: Node<any>, cursor: NdNumericArray2d) {
-        if (this.elements[e.id]) {
-            return this.elements[e.id].handler.test(cursor)
+    checkNode(node: Node<any>, cursor: NdNumericArray2d):Node<any> | false {
+        if (this.Nodes[node.id]) {
+            if (this.Nodes[node.id].node.destroyed) return false
+            return !this.Nodes[node.id].node.destroyed ? this.Nodes[node.id].handler.test(cursor) : false
         } else throw new Error('Root swap')
     }
 
@@ -143,38 +149,38 @@ export default class Mouse {
     }
 
     private getStackCallback(
-        element: Node<any> | null,
+        node: Node<any> | null,
         event: keyof NdNodeMouseEventsScheme<any>,
         data: Parameters<Node<any>['cast']>[1]) {
         return () => {
-            if (element) {
-                const result = this.elements[element.id].handler.cast(event, data)
+            if (node && !node.destroyed) {
+                const result = this.Nodes[node.id].handler.cast(event, data)
                 if (result && result.propagate) {
-                    this.eventStack.push(this.getStackCallback(this.elements[element.id].element.parent, event, data))
+                    this.eventStack.push(this.getStackCallback(this.Nodes[node.id].node.parent, event, data))
                 }
             }
         }
     }
 
-    private resolveOrPostpone(element: Node<any>, event: keyof NdNodeMouseEventsScheme<any>, data: Parameters<Node<any>['cast']>[1]) {
+    private resolveOrPostpone(node: Node<any>, event: keyof NdNodeMouseEventsScheme<any>, data: Parameters<Node<any>['cast']>[1]) {
         !this.eventStack.length ?
-            this.eventStack.push(this.getStackCallback(element, event, data)) :
-            this.postponed.push(this.getStackCallback(element, event, data))
+            this.eventStack.push(this.getStackCallback(node, event, data)) :
+            this.postponed.push(this.getStackCallback(node, event, data))
     }
 
     register<Props extends NdModBase>(
-        element: Node<any>,
+        node: Node<any>,
         emitter: Node<any>['cast'],
         test: NdNodePointerPredicate,
         transform?: NdNodePointerTransformF
     ) {
-        if (!this.elements[element.id]) {
-            this.elements[element.id] = {
-                element: element,
-                handler: new NdNodeMouseDispatcher<Props>(emitter.bind(element), test, transform)
+        if (!this.Nodes[node.id]) {
+            this.Nodes[node.id] = {
+                node: node,
+                handler: new NdNodeMouseDispatcher<Props>(emitter.bind(node), test, transform)
             }
-            element.on('destroy', () => delete this.elements[element.id])
-        } else throw new Error(`Another ReflectElement with id ${element.id} has already been registered as mouse sensitive`)
-        return this.elements[element.id].handler
+            node.once('destroy', () => delete this.Nodes[node.id])
+        } else throw new Error(`Another Nodas with id ${node.id} has already been registered as mouse sensitive`)
+        return this.Nodes[node.id].handler
     }
 }

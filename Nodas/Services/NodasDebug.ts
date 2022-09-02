@@ -1,6 +1,6 @@
 import NdEmitter from '../classes/NdEmitter';
 
-class NodasDebug extends NdEmitter<{ 'message': string, 'error': string, 'info': string, 'important': string }> {
+class NodasDebug extends NdEmitter<{ message: string, error: string, info: string, important: string }> {
     private prefix = '⋒'
     private warnings = true
     private groupLevel = 0
@@ -15,11 +15,15 @@ class NodasDebug extends NdEmitter<{ 'message': string, 'error': string, 'info':
         return `${this.prefix}${source ? `[${typeof source == 'string' ? source : source.constructor.name}]` : ''}: ${message}`;
     }
 
-    error(message: string, source?: {} | string) {
-        message = this.getMessage(message, source)
-        this.cast('error', message)
-        console.trace();
-        throw new Error('☠' + message)
+    error(message: string | Error, source?: {} | string) {
+        if(typeof message === "string") {
+            message = this.getMessage(message, source)
+            throw new Error(message)
+        }
+        else {
+            throw message
+        }
+
     }
 
 

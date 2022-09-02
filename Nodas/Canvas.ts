@@ -1,7 +1,18 @@
-import {NdCanvasContext, NdCanvasQueueCallback, NdCanvasQueueCallbackArgs, NdNumericArray2d, NdTickerF} from './@types/types';
+import {
+    NdCanvasContext,
+    NdCanvasQueueCallback,
+    NdCanvasQueueCallbackArgs,
+    NdNumericArray2d,
+    NdTickerF
+} from './@types/types';
 import Ticker from './Ticker';
 import NdQueueElement from './Canvas/NdQueueElement';
-import {NdMouseEventData, NdPercentStr, NdRootCanvasMouseEventsScheme, NdRootCanvasStateEventsScheme} from './Nodes/@types/types';
+import {
+    NdMouseEventData,
+    NdPercentStr,
+    NdRootCanvasMouseEventsScheme,
+    NdRootCanvasStateEventsScheme
+} from './Nodes/@types/types';
 import NdMouseEvent from './classes/NdMouseEvent';
 import NdStateEvent from './classes/NdStateEvent';
 import NdEmitter from './classes/NdEmitter';
@@ -131,11 +142,7 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
             this.args[1] = date;
             this.args[2] = frame;
             this.q.forEach((qcb, i) => {
-                try {
-                    qcb.callback.apply(this, this.args)
-                } catch (e: any) {
-                    NDB.error(`Error emerged while drawing.\n. Queue: ${qcb.order}\n Queue Order: ${i}\n Member: ${qcb.callback.name}\n message: ${e.message}`)
-                }
+                qcb.callback.apply(this, this.args)
             })
         }
     }

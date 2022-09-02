@@ -1,25 +1,42 @@
 import Node from '../Node';
 import Group from '../Group';
 import Nodes from '../../Nodes';
+import NdStateEvent from "../../classes/NdStateEvent";
+import NdDestroyableNode from "./NdDestroyableNode";
 
-export default class NdNodeConnector {
+export default class NdNodeConnector extends NdDestroyableNode<{ destroy: NdStateEvent<NdNodeConnector>, destroyed: NdStateEvent<NdNodeConnector> }> {
     private _parent: Group | null = null
-    private _layers: { [key: number]: Node<any>[] } = {}
-    private _layer: number = 0;
-    private _identifier: string;
+    private layers: { [key: number]: Node<any>[] } = {}
+    private layer: number = 0;
+    private identifier: string;
     readonly tree: Nodes
 
+    zChild(node: Node<any>, z: number, prepend?: boolean) {
+        if (!this.layers[z]) this.layers[z] = []
+        prepend ? this.layers[z].unshift(node) : this.layers[z].push(node)
+    }
+
+    removeChild(node: Node<any>, z: number) {
+        this.layers[z] = this.layers[z].filter(v => v !== node)
+        if (!this.layers[z].length) delete this.layers[z]
+    }
+
     constructor(id: string, tree: Nodes) {
-        this._identifier = id;
+        super()
+        this.identifier = id;
         this.tree = tree
+        this.once('destroyed', () => {
+            this.layers = {}
+            this.parent = null
+        })
     }
 
     get z() {
-        return this._layer
+        return this.layer
     }
 
     set z(value) {
-        this._layer = value
+        this.layer = value
     }
 
     get parent() {
@@ -31,28 +48,18 @@ export default class NdNodeConnector {
     }
 
     set id(id: string) {
-        this._identifier = id
+        this.identifier = id
     }
 
     get id(): string {
-        return this._identifier
+        return this.identifier
     }
 
     forEachLayer(callback: (e: Node<any>, index: number, layer: number) => void) {
-        for (let layer in this._layers) {
-            this._layers[layer].forEach((e, index) => {
+        for (let layer in this.layers) {
+            this.layers[layer].forEach((e, index) => {
                 callback(e, index, parseInt(layer))
             })
         }
-    }
-
-    zChild(element: Node<any>, z: number, prepend?: boolean) {
-        if (!this._layers[z]) this._layers[z] = []
-        prepend ? this._layers[z].unshift(element) : this._layers[z].push(element)
-    }
-
-    removeChild(element: Node<any>, z:number) {
-        this._layers[z] = this._layers[z].filter(v => v !== element)
-        if(!this._layers[z].length) delete this._layers[z]
     }
 }

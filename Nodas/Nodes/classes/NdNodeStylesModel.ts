@@ -4,7 +4,7 @@ import NdStylesProperty from './NdNodeStyleProperty';
 import NdNodeStylePropertyAnimated from './NdNodeStylePropertyAnimated';
 
 export default abstract class NdNodeStylesModel {
-    [key: string]: NdStylesProperty<any, any, any> | NdNodeStylePropertyAnimated<any, any, any, any>
+    [key: string]:  NdStylesProperty<any, any, any> | NdNodeStylePropertyAnimated<any, any, any, any>
 
     static degToRad(value: number) {
         if (value > 360) {
@@ -133,6 +133,14 @@ export default abstract class NdNodeStylesModel {
             }
         })
     };
+    static getPathSegmentTPoint ([sx,sy,ex,ey,cp1x,cp1y,cp2x,cp2y]:NdSegmentBezier,t:number):NdNumericArray2d {
+        if(t > 1) t = 1
+        if(t < 0) t = 0
+        return [
+            Math.pow(1-t,3) * sx + 3 * t * Math.pow(1 - t, 2) * cp1x + 3 * t * t * (1 - t) * cp2x + t * t * t * ex,
+            Math.pow(1-t,3) * sy + 3 * t * Math.pow(1 - t, 2) * cp1y + 3 * t * t * (1 - t) * cp2y + t * t * t * ey
+            ];
+    }
 
     static comparePaths(path1: NdPath | NdPathBezier, path2: NdPath | NdPathBezier): boolean {
         if (path1.length !== path2.length) return false;

@@ -1,5 +1,5 @@
 import {NdNumericArray2d} from '../../@types/types';
-import {NdBlend, NdCap} from '../@types/types';
+import {NdBlend} from '../@types/types';
 import NdNodeStylesModel from '../classes/NdNodeStylesModel';
 import NdNodeStylePropertyAnimated from '../classes/NdNodeStylePropertyAnimated';
 import NdStylesProperty from '../classes/NdNodeStyleProperty';
@@ -119,13 +119,6 @@ export default class NdModBase extends NdNodeStylesModel {
         (value) => {
             return [value[0], value[1]]
         }
-    )
-
-    cap = new NdStylesProperty<NdCap, NdCap, NdCap>(
-        2,
-        'butt',
-        (current) => current,
-        (value) => value
     )
 
     blending = new NdStylesProperty<NdBlend, NdBlend, NdBlend>(

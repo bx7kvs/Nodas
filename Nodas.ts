@@ -1,5 +1,4 @@
 import Canvas from './Nodas/Canvas';
-import Config from './Nodas/Config';
 import Ticker from './Nodas/Ticker';
 import Nodes from './Nodas/Nodes';
 import Mouse from './Nodas/Mouse';
@@ -9,20 +8,29 @@ import Circle from './Nodas/Nodes/Circle';
 import Sprite from './Nodas/Nodes/Sprite';
 import Area from './Nodas/Nodes/Area';
 import Rectangle from './Nodas/Nodes/Rectangle';
-import {GroupChildren, NdPath, NdUrlSpriteStr, NdURLStr} from './Nodas/Nodes/@types/types.js';
+import {
+    GroupChildren,
+    NdParticleSpriteResource,
+    NdParticleVector,
+    NdPath,
+    NdUrlSpriteStr,
+    NdURLStr
+} from './Nodas/Nodes/@types/types.js';
 import Text from './Nodas/Nodes/Text';
 import NodasFonts from './Nodas/Services/NodasFonts';
 import {NdNumericArray2d} from './Nodas/@types/types';
 import NodasResources from './Nodas/Services/NodasResources';
 import NdImage from './Nodas/classes/NdImage';
 import NdSprite from './Nodas/classes/NdSprite';
+import NdModField from "./Nodas/Nodes/models/NdModField";
+import Field from "./Nodas/Nodes/Field";
+import Particle from "./Nodas/Nodes/Particle";
 
 export default class Nodas {
     readonly Ticker = new Ticker()
     readonly Canvas: Canvas
     readonly Tree: Nodes
     readonly Mouse: Mouse
-    protected readonly Config = new Config()
 
     public Sprite:new(id:string, src?:NdUrlSpriteStr | NdURLStr) => Sprite
     public Area:new(id:string, path?:NdPath) => Area
@@ -31,6 +39,11 @@ export default class Nodas {
     public Text:new(id:string, str?:string) => Text
     public Group:new(id:string, children?:GroupChildren) => Group
     public Circle:new(id:string, radius?:number) => Circle
+    public Field: new (id:string, options?:{[key in keyof NdModField] ?: Parameters<NdModField[key]['set']>[0]}) => Field
+    public Particle: new(sprite:NdParticleSpriteResource | string, resolver:(vector: NdParticleVector, progress:number, time:Date) => boolean, initiator?:(vector: NdParticleVector, time:Date) => boolean) => Particle
+
+    Animation = NdSprite
+    Image = NdImage
 
     constructor(canvas: HTMLCanvasElement | string) {
         const TickerSrv = new Ticker()
@@ -87,6 +100,18 @@ export default class Nodas {
             constructor(id:string, children?:GroupChildren) {
                 super(id, app);
                 if (children) this.append(children)
+            }
+        }
+
+        this.Field = class NodasField extends Field {
+            constructor(id:string, options?:{[key in keyof NdModField] ?: Parameters<NdModField[key]['set']>[0]}) {
+                super(id, app);
+                if(options) this.style(options)
+            }
+        }
+        this.Particle = class NodasParticle extends Particle {
+            constructor(sprite:NdParticleSpriteResource | string, resolver:(vector: NdParticleVector, progress:number, time:Date) => boolean, initiator?:(vector: NdParticleVector, time:Date) => boolean) {
+                super(sprite, resolver, initiator);
             }
         }
 

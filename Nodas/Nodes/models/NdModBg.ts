@@ -1,9 +1,19 @@
-import {NdArrColor, NdBg, NdBgSize, NdColorStr, NdPercentStr, NdPosition, NdPositionArr, NdURLStr} from '../@types/types';
+import {
+    NdArrColor,
+    NdBg,
+    NdBgSize,
+    NdColorStr,
+    NdPercentStr,
+    NdPosition,
+    NdPositionArr,
+    NdURLStr
+} from '../@types/types';
 import NdImage from '../../classes/NdImage';
 import {NdNumericArray2d} from '../../@types/types';
 import NdNodeStylesModel from '../classes/NdNodeStylesModel';
 import NdNodeStylePropertyAnimated from '../classes/NdNodeStylePropertyAnimated';
 import NdStylesProperty from '../classes/NdNodeStyleProperty';
+import {NDB} from "../../Services/NodasDebug";
 
 export default class NdModBg extends NdNodeStylesModel {
 
@@ -60,100 +70,105 @@ export default class NdModBg extends NdNodeStylesModel {
     )
     bg = new NdStylesProperty<NdImage[],
         NdURLStr[],
-        NdBg | { [key: number]: NdURLStr | NdImage } | false >(
+        NdBg | { [key: number]: NdURLStr | NdImage } | false>(
         0,
         [],
         (current) => current.map(v => v.url),
-        (value, element) => {
-            let result: NdImage[] = [...this.bg.protectedValue]
-            if (typeof value == 'string') {
-                NdModBg.destroyBackground(this)
-                const image = new NdImage(value)
-                image.once('load', () => {
-                    if (this.bg.protectedValue[0] === image) {
-                        NdModBg.updateSizeAndPosition(this, element.box.size, 0, image)
-                    }
-                })
-                image.load()
-                result = [image]
-            } else if (value instanceof Array) {
-                NdModBg.destroyBackground(this)
-                if (typeof value[0] === 'string') {
-
-                    result = (value as NdURLStr[]).map(
-                        (v, key) => {
-                            const image = new NdImage(v)
-                            if (!image.loaded) {
-                                image.once('load', () => {
-                                    NdModBg.updateSizeAndPosition(this, element.box.size, key, image)
-                                })
-                            } else NdModBg.updateSizeAndPosition(this, element.box.size, key, image)
-                            return image
-                        })
-                } else {
-                    result = [...(value as NdImage[]).map(
-                        (v, key) => {
-                            if (!v.loaded) {
-                                v.once('load', () => {
-                                    if (this.bg.protectedValue[key] === v) {
-                                        NdModBg.updateSizeAndPosition(this, element.box.size, key, v)
-                                    }
-                                })
-                            }
-                            NdModBg.updateSizeAndPosition(this, element.box.size, key, v)
-                            return v
-                        }
-                    )]
-                }
+        (value, node) => {
+            if (!node.box) {
+                NDB.error('Background can be bound only to nodes with box')
+                return []
             } else {
-                if (value instanceof NdImage) {
+                let result: NdImage[] = [...this.bg.protectedValue]
+                if (typeof value == 'string') {
                     NdModBg.destroyBackground(this)
-                    result = [value]
-                    if (!value.loaded) {
-                        value.once('load', () => {
-                            NdModBg.updateSizeAndPosition(this, element.box.size, 0, value)
-                        })
-                    } else {
-                        NdModBg.updateSizeAndPosition(this, element.box.size, 0, value)
-                    }
-                } else if(typeof value === 'object') {
-                    for (let prop in (value as { [key: number]: NdURLStr | NdImage })) {
-                        if (result[prop]) {
-                            if (typeof value[prop] == 'string') {
-                                if(value[prop] !== result[prop].url) {
-                                    result[prop].destroy()
-                                    const image = new NdImage((value[prop] as NdURLStr))
-                                    image.once('load', () => {
-                                        NdModBg.updateSizeAndPosition(this, element.box.size, parseInt(prop), image)
-                                    })
-                                    result[prop] = image
-                                }
-                            }
-
-                        } else {
-                            result[prop].destroy()
-                            const image = value[prop] as NdImage
-                            if (!image.loaded) {
-                                image.once('load', () => {
-                                    NdModBg.updateSizeAndPosition(this, element.box.size, parseInt(prop), image)
-                                })
-                            } else NdModBg.updateSizeAndPosition(this, element.box.size, parseInt(prop), image)
-                            result.push(value[prop] as NdImage)
+                    const image = new NdImage(value)
+                    image.once('load', () => {
+                        if (this.bg.protectedValue[0] === image) {
+                            if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, 0, image)
                         }
-                    }
-                }  else {
+                    })
+                    image.load()
+                    result = [image]
+                } else if (value instanceof Array) {
                     NdModBg.destroyBackground(this)
-                    result = []
+                    if (typeof value[0] === 'string') {
+
+                        result = (value as NdURLStr[]).map(
+                            (v, key) => {
+                                const image = new NdImage(v)
+                                if (!image.loaded) {
+                                    image.once('load', () => {
+                                        if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, key, image)
+                                    })
+                                } else if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, key, image)
+                                return image
+                            })
+                    } else {
+                        result = [...(value as NdImage[]).map(
+                            (v, key) => {
+                                if (!v.loaded) {
+                                    v.once('load', () => {
+                                        if (this.bg.protectedValue[key] === v) {
+                                            if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, key, v)
+                                        }
+                                    })
+                                }
+                                if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, key, v)
+                                return v
+                            }
+                        )]
+                    }
+                } else {
+                    if (value instanceof NdImage) {
+                        NdModBg.destroyBackground(this)
+                        result = [value]
+                        if (!value.loaded) {
+                            value.once('load', () => {
+                                if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, 0, value)
+                            })
+                        } else {
+                            NdModBg.updateSizeAndPosition(this, node.box.size, 0, value)
+                        }
+                    } else if (typeof value === 'object') {
+                        for (let prop in (value as { [key: number]: NdURLStr | NdImage })) {
+                            if (result[prop]) {
+                                if (typeof value[prop] == 'string') {
+                                    if (value[prop] !== result[prop].url) {
+                                        result[prop].destroy()
+                                        const image = new NdImage((value[prop] as NdURLStr))
+                                        image.once('load', () => {
+                                            if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, parseInt(prop), image)
+                                        })
+                                        result[prop] = image
+                                    }
+                                }
+
+                            } else {
+                                result[prop].destroy()
+                                const image = value[prop] as NdImage
+                                if (!image.loaded) {
+                                    image.once('load', () => {
+                                        if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, parseInt(prop), image)
+                                    })
+                                } else NdModBg.updateSizeAndPosition(this, node.box.size, parseInt(prop), image)
+                                result.push(value[prop] as NdImage)
+                            }
+                        }
+                    } else {
+                        NdModBg.destroyBackground(this)
+                        result = []
+                    }
                 }
+                this.backgroundPosition.sync(result, [0, 0])
+                this.backgroundPositionNumeric.sync(result, [0, 0])
+                this.backgroundSize.sync(result, ['auto', 'auto'])
+                this.backgroundSizeNumeric.sync(result, [
+                    (key: number) => node.box ? NdModBg.readBgSize(node.box.size, this.bg.protectedValue[key], 0, 'auto') : 0,
+                    (key: number) => node.box ? NdModBg.readBgSize(node.box.size, this.bg.protectedValue[key], 1, 'auto') : 0
+                ])
+                return result
             }
-            this.backgroundPosition.sync(result, [0, 0])
-            this.backgroundPositionNumeric.sync(result, [0, 0])
-            this.backgroundSize.sync(result, ['auto', 'auto'])
-            this.backgroundSizeNumeric.sync(result, [
-                (key: number) => NdModBg.readBgSize(element.box.size, this.bg.protectedValue[key], 0, 'auto'),
-                (key: number) => NdModBg.readBgSize(element.box.size, this.bg.protectedValue[key], 1, 'auto')
-            ])
-            return result
         }
     )
     backgroundSize = new NdStylesProperty<NdBgSize[],
@@ -162,7 +177,7 @@ export default class NdModBg extends NdNodeStylesModel {
         1,
         [],
         (current) => current.map((v) => [v[0], v[1]]),
-        (value, element) => {
+        (value, node) => {
             let result: NdBgSize[] = this.backgroundSize.protectedValue
             if (typeof value == 'string' || typeof value == 'number') {
                 value = typeof value === 'number' ? value < 0 ? 0 : value : value;
@@ -187,8 +202,8 @@ export default class NdModBg extends NdNodeStylesModel {
                 }
             }
             this.backgroundSizeNumeric.sync(result, [
-                (key) => NdModBg.readBgSize(element.box.size, this.bg.protectedValue[key], 0, result[key][0]),
-                (key) => NdModBg.readBgSize(element.box.size, this.bg.protectedValue[key], 1, result[key][1])
+                (key) => node.box ? NdModBg.readBgSize(node.box.size, this.bg.protectedValue[key], 0, result[key][0]) : 0,
+                (key) => node.box ? NdModBg.readBgSize(node.box.size, this.bg.protectedValue[key], 1, result[key][1]) : 0
             ])
             this.backgroundPosition.sync(result, [0, 0])
             this.backgroundPositionNumeric.sync(result, [0, 0])
@@ -204,7 +219,7 @@ export default class NdModBg extends NdNodeStylesModel {
         2,
         [],
         (current) => current.map(v => [v[0], v[1]]),
-        (value, element) => {
+        (value, node) => {
             let result: NdPositionArr[] = this.backgroundPosition.protectedValue
             if (typeof value === 'string') {
                 if (/^[\d.]+%$/.test(value)) {
@@ -251,8 +266,8 @@ export default class NdModBg extends NdNodeStylesModel {
                 }
             }
             this.backgroundPositionNumeric.sync(result, [
-                (key) => NdModBg.readBgPosition(element.box.size, this.backgroundSize.protectedValue[key], this.bg.protectedValue[key], 0, result[key][0]),
-                (key) => NdModBg.readBgPosition(element.box.size, this.backgroundSize.protectedValue[key], this.bg.protectedValue[key], 0, result[key][1])
+                (key) => node.box ? NdModBg.readBgPosition(node.box.size, this.backgroundSize.protectedValue[key], this.bg.protectedValue[key], 0, result[key][0]) : 0,
+                (key) => node.box ? NdModBg.readBgPosition(node.box.size, this.backgroundSize.protectedValue[key], this.bg.protectedValue[key], 0, result[key][1]) : 0
             ])
             return result
         }
@@ -283,8 +298,9 @@ export default class NdModBg extends NdNodeStylesModel {
                 model.bg.protectedValue[key], 1, model.backgroundPosition.protectedValue[key][1])
         }
     }
-    static destroyBackground(data:NdModBg) {
-        if(data.bg.protectedValue.length) {
+
+    static destroyBackground(data: NdModBg) {
+        if (data.bg.protectedValue.length) {
             data.bg.protectedValue.forEach(v => v.destroy())
         }
     }
