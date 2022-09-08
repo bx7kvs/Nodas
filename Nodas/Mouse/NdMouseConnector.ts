@@ -1,19 +1,16 @@
-import {NdNodePointerPredicate, NdNodePointerTransformF} from '../Nodes/@types/types';
+import {NdNodePointerPredicate} from '../Nodes/@types/types';
 import Node from '../Nodes/Node';
 import NdModBase from '../Nodes/models/NdModBase';
 
-export default class NdNodeMouseDispatcher<Props extends NdModBase = NdModBase> {
+export default class NdMouseConnector<Props extends NdModBase = NdModBase> {
     private _disabled: boolean = false
     public readonly test: NdNodePointerPredicate
-    public readonly transform?: NdNodePointerTransformF
     private emit: Node<Props>['cast']
 
     constructor(
         emitter: Node<Props>['cast'],
-        tester: NdNodePointerPredicate,
-        transformer?: NdNodePointerTransformF) {
+        tester: NdNodePointerPredicate) {
         this.test = tester
-        this.transform = transformer
         this.emit = emitter
     }
 

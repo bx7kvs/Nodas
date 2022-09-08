@@ -20,19 +20,7 @@ export default class Line extends Node<LineNodeModel> {
     private interpolated: boolean = false
     private mouseTester?: NdNodeEmpiricalMouseChecker = new NdNodeEmpiricalMouseChecker()
 
-    protected Assembler?: NdNodeAssembler = new NdNodeAssembler([
-        {
-            name: 'stroke',
-            resolver: (context) => {
-                context.translate(this.Box!.value.sprite.margin[3] - this.xShift, this.Box!.value.sprite.margin[0] - this.yShift)
-                if (!this.interpolated && this.data!.interpolation.protectedValue > 0) {
-                    NdNodeStylesModel.interpolate(this.data!.path.protectedValue, this.data!.interpolation.protectedValue, false)
-                }
-                Line.drawStroke(this.data!, context)
-            }
-        }
-    ])
-    protected Box?: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
+    protected Box?: NdNodeBox = new NdNodeBox(this, this.cache, () => {
         let position = [...this.data!.position.protectedValue] as NdNumericArray2d,
             fix = Math.max(this.strokeFix, this.interpolationFix),
             minx = Infinity,
@@ -77,24 +65,18 @@ export default class Line extends Node<LineNodeModel> {
         Node.applyBoxAnchor(position, width, height, this.data!)
         return [position[0] + this.xShift, position[1] + this.yShift, width, height, fix, fix, fix, fix]
     })
-
-    @alive
-    export(): HTMLCanvasElement | undefined {
-        return this.Assembler!.export(this)
-    }
-
-    @alive
-    render(context: CanvasRenderingContext2D) {
-        Line.transformContext(this, context)
-        const render = this.Assembler!.export(this)
-        if (render) context.drawImage(render, 0, 0)
-        return context
-    }
-
-    @alive
-    test(cursor: NdNumericArray2d):Line | false {
-        return this.mouseTester!.check(this.matrix.traceCursorToLocalSpace([...cursor], this)) ? this : false
-    }
+    protected assembler?: NdNodeAssembler = new NdNodeAssembler([
+        {
+            name: 'stroke',
+            resolver: (context) => {
+                context.translate(this.Box!.value.sprite.margin[3] - this.xShift, this.Box!.value.sprite.margin[0] - this.yShift)
+                if (!this.interpolated && this.data!.interpolation.protectedValue > 0) {
+                    NdNodeStylesModel.interpolate(this.data!.path.protectedValue, this.data!.interpolation.protectedValue, false)
+                }
+                Line.drawStroke(this.data!, context)
+            }
+        }
+    ])
 
     constructor(id: string, app: Nodas) {
         super(id, {...new NdModFreeStroke(), ...new NdModAnchor(), ...new NdModBase()}, app);
@@ -103,9 +85,9 @@ export default class Line extends Node<LineNodeModel> {
         })
         this.watch('path', () => {
             this.purgeBox()
-            this.Matrix.purge()
-            this.Assembler!.update('stroke')
-            this.Assembler!.resize()
+            this.matrixContainer.purge()
+            this.assembler!.update('stroke')
+            this.assembler!.resize()
             this.mouseTester!.resize(this.Box!.value.sprite.size)
             this.mouseTester!.redraw(this.data!)
 
@@ -114,25 +96,43 @@ export default class Line extends Node<LineNodeModel> {
             this.strokeFix = this.data!.strokeWidth.protectedValue.reduce((acc, current) => {
                 return current > acc ? current : acc
             }, 0)
-            this.Assembler!.update('stroke')
-            this.Assembler!.resize()
+            this.assembler!.update('stroke')
+            this.assembler!.resize()
             this.mouseTester!.resize(this.Box!.value.sprite.size)
             this.mouseTester!.redraw(this.data!)
         })
         this.watch('interpolation', () => {
             this.interpolationFix = Math.round(20 * this.data!.interpolation.protectedValue)
             this.purgeBox()
-            this.Matrix.purge()
-            this.Assembler!.resize()
-            this.Assembler!.update('stroke')
+            this.matrixContainer.purge()
+            this.assembler!.resize()
+            this.assembler!.update('stroke')
             this.mouseTester!.resize(this.Box!.value.sprite.size)
             this.mouseTester!.redraw(this.data!)
 
         })
         this.watch(['strokeStyle', 'strokeColor'], () => {
-            if (this.Assembler) this.Assembler.update('stroke')
+            if (this.assembler) this.assembler.update('stroke')
         })
 
+    }
+
+    @alive
+    export(): HTMLCanvasElement | undefined {
+        return this.assembler!.export(this)
+    }
+
+    @alive
+    test(cursor: NdNumericArray2d): Line | false {
+        return this.mouseTester!.check(this.matrix.traceCursorToLocalSpace([...cursor], this)) ? this : false
+    }
+
+    @alive
+    render(context: CanvasRenderingContext2D) {
+        Line.transformContext(this, context)
+        const render = this.assembler!.export(this)
+        if (render) context.drawImage(render, 0, 0)
+        return context
     }
 
 

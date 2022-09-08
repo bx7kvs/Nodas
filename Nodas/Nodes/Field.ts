@@ -17,13 +17,13 @@ export default class Field extends Node<NdModField & NdModBase> {
 
     constructor(id: string, app: Nodas) {
         super(id, {...new NdModField(), ...new NdModBase()}, app);
-        this.fps = app.Ticker.fps
+        this.fps = app.ticker.fps
         const fieldFpsCallback = () => {
-            this.fps = app.Ticker.fps
+            this.fps = app.ticker.fps
         }
-        app.Ticker.on('fps', fieldFpsCallback)
+        app.ticker.on('fps', fieldFpsCallback)
         this.once('destroyed', () => {
-            app.Ticker.off('fps', fieldFpsCallback)
+            app.ticker.off('fps', fieldFpsCallback)
             this.emitters = undefined
             this.particles = undefined
             this.modifiers = undefined

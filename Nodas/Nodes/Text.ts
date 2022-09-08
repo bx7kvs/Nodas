@@ -14,7 +14,7 @@ import {alive} from "./decorators/alive";
 type TextNodeModel = NdModText & NdModAnchor & NdModBase
 export default class Text extends Node<TextNodeModel> {
     private textBlock?: NdTextBlock
-    protected Assembler?: NdNodeAssembler = new NdNodeAssembler([
+    protected assembler?: NdNodeAssembler = new NdNodeAssembler([
         {
             name: 'text',
             resolver: (context) => {
@@ -23,7 +23,7 @@ export default class Text extends Node<TextNodeModel> {
         }
     ])
 
-    protected Box?: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
+    protected Box?: NdNodeBox = new NdNodeBox(this, this.cache, () => {
         let position = [...this.data!.position.protectedValue] as NdNumericArray2d
         const width = this.textBlock!.width,
             height = this.textBlock!.height
@@ -32,25 +32,54 @@ export default class Text extends Node<TextNodeModel> {
         return [position[0], position[1], width, height, 0, 0, 0, 0]
     });
 
+    constructor(id: string, app: Nodas) {
+        super(id, {...new NdModText(), ...new NdModAnchor(), ...new NdModBase()}, app);
+        this.textBlock = new NdTextBlock(this.data!.str.protectedValue)
+        this.syncStylesToBlock()
+        this.watch(['str', 'lineHeight', 'width', 'weight', 'style'], () => {
+            this.Box!.purge()
+            this.matrixContainer.purge()
+        })
+        this.watch('width', () => {
+            if (typeof this.data!.width.protectedValue == 'number') {
+                this.textBlock!.limit = this.data!.width.protectedValue
+            } else {
+                this.textBlock!.limit = Infinity
+            }
+        })
+        this.watch(['str', 'lineHeight', 'weight', 'width', 'style'], () => {
+            this.assembler!.update()
+            this.assembler!.resize()
+        })
+        this.watch('font', () => {
+            if (!Object.values(NdFontSpecialValues).includes(this.data!.font.protectedValue as NdFontSpecialValues)) {
+                const font = nodasFonts.get(this.data!.font.protectedValue)
+                if (font) {
+                    if (!font.loaded) {
+                        font.once('load', () => {
+                            this.Box!.purge()
+                            this.matrixContainer.purge()
+                            this.assembler!.resize()
+                            this.assembler!.update('text')
+                        })
+                        font.load()
+                    }
+                }
+            }
+        })
+        this.once('destroyed', () => {
+            this.textBlock = this.textBlock!.destroy()
+        })
+    }
+
     @alive
     protected render(context: CanvasRenderingContext2D) {
-        const render = this.Assembler!.export(this)
+        const render = this.assembler!.export(this)
         if (render) {
             Node.transformContext(this, context)
             context.drawImage(render, 0, 0)
         }
         return context
-    }
-
-    @alive
-    protected test(cursor: NdNumericArray2d) {
-        cursor = this.Matrix.value.traceCursorToLocalSpace([...cursor], this)
-        if (
-            cursor[0] < this.Box!.value.sprite.size[0] && cursor[0] > 0 &&
-            cursor[1] < this.Box!.value.sprite.size[1] && cursor[1] > 0) {
-            return this
-        }
-        return false
     }
 
     @alive
@@ -80,43 +109,14 @@ export default class Text extends Node<TextNodeModel> {
         return this.textBlock!.export()
     }
 
-    constructor(id: string, app: Nodas) {
-        super(id, {...new NdModText(), ...new NdModAnchor(), ...new NdModBase()}, app);
-        this.textBlock = new NdTextBlock(this.data!.str.protectedValue)
-        this.syncStylesToBlock()
-        this.watch(['str', 'lineHeight', 'width', 'weight', 'style'], () => {
-            this.Box!.purge()
-            this.Matrix.purge()
-        })
-        this.watch('width', () => {
-            if (typeof this.data!.width.protectedValue == 'number') {
-                this.textBlock!.limit = this.data!.width.protectedValue
-            } else {
-                this.textBlock!.limit = Infinity
-            }
-        })
-        this.watch(['str', 'lineHeight', 'weight', 'width', 'style'], () => {
-            this.Assembler!.update()
-            this.Assembler!.resize()
-        })
-        this.watch('font', () => {
-            if (!Object.values(NdFontSpecialValues).includes(this.data!.font.protectedValue as NdFontSpecialValues)) {
-                    const font = nodasFonts.get(this.data!.font.protectedValue)
-                if (font) {
-                    if (!font.loaded) {
-                        font.once('load', () => {
-                            this.Box!.purge()
-                            this.Matrix.purge()
-                            this.Assembler!.resize()
-                            this.Assembler!.update('text')
-                        })
-                        font.load()
-                    }
-                }
-            }
-        })
-        this.once('destroyed', () => {
-            this.textBlock = this.textBlock!.destroy()
-        })
+    @alive
+    protected test(cursor: NdNumericArray2d) {
+        cursor = this.matrixContainer.value.traceCursorToLocalSpace([...cursor], this)
+        if (
+            cursor[0] < this.Box!.value.sprite.size[0] && cursor[0] > 0 &&
+            cursor[1] < this.Box!.value.sprite.size[1] && cursor[1] > 0) {
+            return this
+        }
+        return false
     }
 }

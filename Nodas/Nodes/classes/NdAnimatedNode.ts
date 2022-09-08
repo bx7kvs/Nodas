@@ -74,9 +74,9 @@ export default class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme exte
     constructor(app: Nodas, model: Model) {
         super(model);
         const callback = (context: NdCanvasContext, date: Date) => this.tickElementAnimations(date)
-        app.Canvas.queue(-2, callback)
+        app.canvas.queue(-2, callback)
         this.once('destroyed', () => {
-            app.Canvas.unQueue(callback)
+            app.canvas.unQueue(callback)
             this.animations = undefined
         })
     }
@@ -103,7 +103,7 @@ export default class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme exte
     ) {
         const stack: NdAnimationStack<Model> = (<K[]>Object.keys(a))
             .sort(
-                (a, b) => this.data![a].ordering - this.data![b].ordering).map(
+                (a, b) => this.order.indexOf(a) - this.order.indexOf(b)).map(
                 (prop) => {
                     return {
                         value: a[prop],

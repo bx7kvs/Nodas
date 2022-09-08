@@ -16,14 +16,13 @@ export default class Rectangle extends Node<RectNodeModel> {
     private strokeFix: [number, number, number, number]
     private readonly path: () => NdPathBezier
     private readonly purgePath: () => void
-    private readonly CIRCLECONST = 0.5522847498
 
-    protected Box?: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
+    protected Box?: NdNodeBox = new NdNodeBox(this, this.cache, () => {
         const position = [...this.data!.position.protectedValue] as NdNumericArray2d
         Node.applyBoxAnchor(position, this.data!.size.protectedValue[0], this.data!.size.protectedValue[1], this.data!)
         return [position[0], position[1], this.data!.size.protectedValue[0], this.data!.size.protectedValue[1], this.strokeFix[0], this.strokeFix[1], this.strokeFix[2], this.strokeFix[3]]
     });
-    protected Assembler?: NdNodeAssembler = new NdNodeAssembler([
+    protected assembler?: NdNodeAssembler = new NdNodeAssembler([
         {
             name: 'fill',
             resolver: (context) => {
@@ -36,10 +35,10 @@ export default class Rectangle extends Node<RectNodeModel> {
         {
             name: 'bg',
             resolver: (context) => {
-                if (this.Assembler) {
+                if (this.assembler) {
                     context.translate(this.strokeFix[3], this.strokeFix[0])
                     Rectangle.clipBezierPath(this.path(), context)
-                    Rectangle.drawBg(this.data!, context, this.Assembler)
+                    Rectangle.drawBg(this.data!, context, this.assembler)
                 }
 
             }
@@ -52,9 +51,63 @@ export default class Rectangle extends Node<RectNodeModel> {
             }
         }
     ])
+
+    constructor(id: string, app: Nodas) {
+        super(id, {...new NdModRect(), ...new NdModSize(), ...new NdModAnchor(), ...new NdModBg(), ...new NdModBase()}, app);
+        this.strokeFix = [...this.data!.strokeWidth.protectedValue] as [number, number, number, number]
+        const {
+            getter,
+            purge
+        } = this.cache.register<NdPathBezier>('path', () => NdModRect.buildRectPath(this, this.data!))
+        this.path = getter
+        this.purgePath = purge
+        this.watch('size', () => {
+            this.assembler!.resize()
+            this.assembler!.update('fill')
+            this.assembler!.update('bg')
+            this.assembler!.update('stroke')
+            this.matrixContainer.purge()
+            this.Box!.purge()
+            this.purgePath()
+
+        })
+        this.watch('radius', () => {
+            if (this.assembler) {
+                this.assembler.update('fill')
+                this.assembler.update('bg')
+                this.assembler.update('stroke')
+                this.purgePath()
+            }
+        })
+        this.watch('strokeWidth', () => {
+            this.strokeFix = [...this.data!.strokeWidth.protectedValue] as NdStrokeWidthBox
+            this.Box!.purge()
+            this.assembler!.resize()
+            this.matrixContainer.purge()
+            this.assembler!.update('fill')
+            this.assembler!.update('bg')
+            this.assembler!.update('stroke')
+
+        })
+        this.watch(['bg', 'backgroundSize', 'backgroundPosition'], () => {
+            this.assembler!.update('bg')
+        })
+        this.watch(['strokeColor', 'strokeStyle'], () => {
+            this.assembler!.update('stroke')
+        })
+        this.watch('fill', () => {
+            this.assembler!.update('fill')
+        })
+    }
+
     @alive
-    protected test(cursor: NdNumericArray2d){
-        const [x, y] = this.Matrix.value.traceCursorToLocalSpace([...cursor], this)
+    export(): HTMLCanvasElement | undefined {
+        return this.assembler!.export(this)
+    }
+
+    @alive
+    protected test(cursor: NdNumericArray2d) {
+        const [x, y] = this.matrixContainer.value.traceCursorToLocalSpace([...cursor], this)
         if (x < this.Box!.value.sprite.size[0] && x > 0 && y < this.Box!.value.sprite.size[1] && y > 0) {
             return this
         }
@@ -62,172 +115,13 @@ export default class Rectangle extends Node<RectNodeModel> {
     }
 
     @alive
-    protected render(context:CanvasRenderingContext2D){
-        const render = this.Assembler!.export(this)
+    protected render(context: CanvasRenderingContext2D) {
+        const render = this.assembler!.export(this)
         if (render) {
             Rectangle.transformContext(this, context)
             context.drawImage(render, 0, 0)
         }
         return context
-    }
-
-    @alive
-    export():HTMLCanvasElement | undefined {
-        return this.Assembler!.export(this)
-    }
-
-    constructor(id: string, app: Nodas) {
-        super(id, {...new NdModRect(), ...new NdModSize(), ...new NdModAnchor(), ...new NdModBg(), ...new NdModBase()}, app);
-        this.strokeFix = [...this.data!.strokeWidth.protectedValue] as [number, number, number, number]
-        const {getter, purge} = this.Cache.register<NdPathBezier>('path', () => {
-            const [width, height] = this.data!.size.protectedValue
-            const [tl, tr, br, bl] = this.data!.radius.protectedValue.map((v: number) => {
-                if (v > width / 2) v = width / 2
-                if (v > height / 2) v = height / 2
-                return v
-            })
-            if (width && height) {
-                const result: NdPathBezier = []
-                if (tl) {
-                    result.push([
-                        0, tl,//p1
-                        tl, 0, //p2
-                        0, tl * this.CIRCLECONST,//cp1
-                        tl - tl * this.CIRCLECONST, 0 //cp2
-                    ])
-                    result.push([
-                        result[0][2], result[0][3],//p1
-                        width, 0, //p2
-                        result[0][2], result[0][3], //cp1
-                        width, 0 //cp2
-                    ])
-                } else {
-                    result.push([
-                        0, 0,//p1
-                        width, 0, //p2
-                        0, 0, //cp1
-                        width, 0 //cp2
-                    ])
-                }
-
-                if (tr) {
-                    result[result.length - 1][2] -= tr
-                    result[result.length - 1][6] -= tr
-                    result.push([
-                        width - tr, 0,//p1
-                        width, tr, //p2
-                        width - tr + (tr * this.CIRCLECONST), 0, //cp1
-                        width, tr - tr * this.CIRCLECONST//cp2
-                    ])
-                    result.push([
-                        width, tr, //p1
-                        width, height, //p2
-                        width, tr, //cp1
-                        width, height//cp2
-                    ])
-                } else {
-                    result.push([
-                        width, 0,
-                        width, height,
-                        width, 0,
-                        width, height
-                    ])
-                }
-
-                if (br) {
-                    result[result.length - 1][3] -= br
-                    result[result.length - 1][7] -= br
-                    result.push([
-                        width, height - br, //p1
-                        width - br, height, //p2
-                        width, height - br + (br * this.CIRCLECONST), //cp1
-                        width - br + (br * this.CIRCLECONST), height //cp2
-                    ])
-                    result.push([
-                        width - br, height,//p1
-                        0, height,//p2
-                        width - br, height,//cp1
-                        0, height//cp2
-                    ])
-                } else {
-                    result.push([
-                        width, height,
-                        0, height,
-                        width, height,
-                        0, height
-                    ])
-                }
-                if (bl) {
-                    result[result.length - 1][2] += bl
-                    result[result.length - 1][6] += bl
-                    result.push([
-                        bl, height,//p1
-                        0, height - bl,//p2
-                        bl - bl * this.CIRCLECONST, height, //cp1
-                        0, height - bl + bl * this.CIRCLECONST
-                    ])
-                    result.push(
-                        [
-                            0, height - bl,
-                            result[0][0], result[0][1],
-                            0, height - bl,
-                            result[0][0], result[0][1]
-                        ]
-                    )
-                } else {
-                    result.push([
-                        0, height - bl,
-                        result[0][0], result[0][1],
-                        0, height - bl,
-                        result[0][0], result[0][1]
-                    ])
-                }
-                return result
-
-            } else {
-                return []
-            }
-
-        })
-        this.path = getter
-        this.purgePath = purge
-        this.watch('size', () => {
-            this.Assembler!.resize()
-            this.Assembler!.update('fill')
-            this.Assembler!.update('bg')
-            this.Assembler!.update('stroke')
-            this.Matrix.purge()
-            this.Box!.purge()
-            this.purgePath()
-
-        })
-        this.watch('radius', () => {
-            if (this.Assembler) {
-                this.Assembler.update('fill')
-                this.Assembler.update('bg')
-                this.Assembler.update('stroke')
-                this.purgePath()
-            }
-        })
-        this.watch('strokeWidth', () => {
-            this.strokeFix = [...this.data!.strokeWidth.protectedValue] as NdStrokeWidthBox
-            this.Box!.purge()
-            this.Assembler!.resize()
-            this.Matrix.purge()
-            this.Assembler!.update('fill')
-            this.Assembler!.update('bg')
-            this.Assembler!.update('stroke')
-
-        })
-        this.watch(['bg', 'backgroundSize', 'backgroundPosition'], () => {
-           this.Assembler!.update('bg')
-        })
-        this.watch(['strokeColor', 'strokeStyle'], () => {
-            this.Assembler!.update('stroke')
-        })
-        this.watch('fill', () => {
-            this.Assembler!.update('fill')
-        })
     }
 
     private static drawCorner(rectSegment: number, context: CanvasRenderingContext2D, segment: NdSegmentBezier, color1: NdColorStr, color2: NdColorStr, width1: number, width2: number) {

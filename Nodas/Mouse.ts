@@ -1,22 +1,18 @@
-import NdNodeMouseDispatcher from './Mouse/NdNodeMouseDispatcher';
+import NdMouseConnector from './Mouse/NdMouseConnector';
 import NdModBase from './Nodes/models/NdModBase';
-import {
-    NdMouseEventData,
-    NdNodeMouseEventsScheme,
-    NdNodePointerPredicate,
-    NdNodePointerTransformF
-} from './Nodes/@types/types';
+import {NdMouseEventData, NdNodeMouseEventsScheme} from './Nodes/@types/types';
 import Ticker from './Ticker';
 import Canvas from './Canvas';
 import {NdNumericArray2d} from './@types/types';
 import NdMouseEvent from './classes/NdMouseEvent';
 import Nodes from './Nodes';
 import Node from './Nodes/Node';
+import Group from "./Nodes/Group";
 
 export default class Mouse {
     private Nodes: {
         [key: string]: {
-            handler: NdNodeMouseDispatcher<any>
+            handler: NdMouseConnector<any>
             node: Node<any>
         }
     } = {}
@@ -127,10 +123,17 @@ export default class Mouse {
         })
     }
 
-    checkNode(node: Node<any>, cursor: NdNumericArray2d):Node<any> | false {
+    checkNode(node: Node<any>, cursor: NdNumericArray2d): Node<any> | false {
         if (this.Nodes[node.id]) {
             if (this.Nodes[node.id].node.destroyed) return false
-            return !this.Nodes[node.id].node.destroyed ? this.Nodes[node.id].handler.test(cursor) : false
+            if (node instanceof Group) {
+                let result: Node<any> | false = false;
+                node.forEachChild(e => {
+                    if (!e.destroyed) result = this.checkNode(e, cursor)
+                })
+                return result
+            }
+            return this.Nodes[node.id].handler.test(cursor)
         } else throw new Error('Root swap')
     }
 
@@ -170,14 +173,12 @@ export default class Mouse {
 
     register<Props extends NdModBase>(
         node: Node<any>,
-        emitter: Node<any>['cast'],
-        test: NdNodePointerPredicate,
-        transform?: NdNodePointerTransformF
+        handler: NdMouseConnector<any>,
     ) {
         if (!this.Nodes[node.id]) {
             this.Nodes[node.id] = {
                 node: node,
-                handler: new NdNodeMouseDispatcher<Props>(emitter.bind(node), test, transform)
+                handler: handler
             }
             node.once('destroy', () => delete this.Nodes[node.id])
         } else throw new Error(`Another Nodas with id ${node.id} has already been registered as mouse sensitive`)

@@ -1,15 +1,13 @@
 import Node from '../Node';
 import Group from '../Group';
-import Nodes from '../../Nodes';
-import NdStateEvent from "../../classes/NdStateEvent";
-import NdDestroyableNode from "./NdDestroyableNode";
+import {NdMainDrawingPipeF} from "../../@types/types";
 
-export default class NdNodeConnector extends NdDestroyableNode<{ destroy: NdStateEvent<NdNodeConnector>, destroyed: NdStateEvent<NdNodeConnector> }> {
+export default class NdNodeConnector {
     private _parent: Group | null = null
     private layers: { [key: number]: Node<any>[] } = {}
     private layer: number = 0;
     private identifier: string;
-    readonly tree: Nodes
+    render: NdMainDrawingPipeF
 
     zChild(node: Node<any>, z: number, prepend?: boolean) {
         if (!this.layers[z]) this.layers[z] = []
@@ -21,14 +19,14 @@ export default class NdNodeConnector extends NdDestroyableNode<{ destroy: NdStat
         if (!this.layers[z].length) delete this.layers[z]
     }
 
-    constructor(id: string, tree: Nodes) {
-        super()
+    constructor(id: string, render: NdMainDrawingPipeF) {
         this.identifier = id;
-        this.tree = tree
-        this.once('destroyed', () => {
-            this.layers = {}
-            this.parent = null
-        })
+        this.render = render
+    }
+
+    reset() {
+        this.layers = {}
+        this._parent = null
     }
 
     get z() {
@@ -55,7 +53,7 @@ export default class NdNodeConnector extends NdDestroyableNode<{ destroy: NdStat
         return this.identifier
     }
 
-    forEachLayer(callback: (e: Node<any>, index: number, layer: number) => void) {
+    forEachChild(callback: (e: Node<any>, index: number, layer: number) => void) {
         for (let layer in this.layers) {
             this.layers[layer].forEach((e, index) => {
                 callback(e, index, parseInt(layer))

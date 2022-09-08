@@ -46,7 +46,7 @@ export default class Sprite extends Node<ImageNodeModel> {
         return false
     }
 
-    protected Box?: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
+    protected Box?: NdNodeBox = new NdNodeBox(this, this.cache, () => {
         const position = [...this.data!.position.protectedValue] as NdNumericArray2d
         const size = this.data!.size.protectedValue.map(
             (value: number | 'auto', key: number) => {
@@ -80,11 +80,11 @@ export default class Sprite extends Node<ImageNodeModel> {
             if (this.data!.src.protectedValue) {
                 if (this.data!.src.protectedValue.loaded) {
                     this.Box!.purge()
-                    this.Matrix.purge()
+                    this.matrixContainer.purge()
                 } else {
                     this.data!.src.protectedValue.on('load', () => {
                         this.Box!.purge()
-                        this.Matrix.purge()
+                        this.matrixContainer.purge()
                     })
                 }
             }
@@ -101,7 +101,7 @@ export default class Sprite extends Node<ImageNodeModel> {
         })
         this.watch('size', () => {
             this.Box!.purge()
-            this.Matrix.purge()
+            this.matrixContainer.purge()
             if (this.data!.src.protectedValue) this.data!.src.protectedValue.destroy()
             this.data!.src.set(false, this)
         })

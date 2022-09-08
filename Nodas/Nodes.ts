@@ -1,6 +1,6 @@
 import Group from './Nodes/Group';
 import NdNodeConnector from './Nodes/classes/NdNodeConnector';
-import {NdCanvasContext, NdMainDrawingPipeF} from './@types/types';
+import {NdCanvasContext} from './@types/types';
 import Canvas from './Canvas';
 import Node from './Nodes/Node'
 import {NDB} from './Services/NodasDebug';
@@ -8,7 +8,6 @@ import {NDB} from './Services/NodasDebug';
 export default class Nodes {
     private _root: {
         node?: Group,
-        render?: NdMainDrawingPipeF
         connector?: NdNodeConnector
     } = {}
     private clear = false
@@ -16,7 +15,6 @@ export default class Nodes {
     private nodes: {
         [key: string]: {
             node: Node<any>
-            render: NdMainDrawingPipeF,
             connector: NdNodeConnector
         }
     } = {}
@@ -36,30 +34,30 @@ export default class Nodes {
         return target.parent ? this.treeViolation(target.parent, target) : false
     }
 
-    register(id: string, node: Node<any>, render: NdMainDrawingPipeF) {
-        if (!this._root.node) {
-            if (node instanceof Group) {
-                const root = {
-                    node: node as Group,
-                    render: render,
-                    connector: new NdNodeConnector(id, this)
-                }
-                this._root = root;
-                this.ids.add(root.connector.id)
-                this.nodes[id] = root
-                NDB.positive(`Node ${id} registered`)
-            } else throw new Error('Root node must be a Group instance')
-        } else {
-            if (!this.ids.has(id)) {
-                this.ids.add(id)
-                this.nodes[id] = {node: node, render: render, connector: new NdNodeConnector(id, this)}
-                if (this._root.node) {
-                    this.append(this._root.node, id)
-                } else NDB.error(`Application root lost. Not root group node to append to`)
-            } else NDB.warn(`Node ${id} already exists. Ignored.`)
+    register(node: Node<any>, connector: NdNodeConnector) {
+        if (!node.destroyed) {
+            if (!this._root.node) {
+                if (node instanceof Group) {
+                    const root = {
+                        node: node as Group,
+                        connector: connector
+                    }
+                    this._root = root;
+                    this.ids.add(root.connector.id)
+                    this.nodes[connector.id] = root
+                    NDB.positive(`Node ${connector.id} registered`)
+                } else throw new Error('Root node must be a Group instance')
+            } else {
+                if (!this.ids.has(connector.id)) {
+                    this.ids.add(connector.id)
+                    this.nodes[connector.id] = {node: node, connector: connector}
+                    if (this._root.node) {
+                        this.append(this._root.node, connector.id)
+                    } else NDB.error(`Application root lost. Not root group node to append to`)
+                } else NDB.warn(`Node ${connector.id} already exists. Ignored.`)
+            }
+            node.once('destroyed', () => this.unregister(node))
         }
-        node.once('destroyed', () => this.unregister(node))
-        return this.nodes[id].connector
     }
 
     unregister(node: Node<any>) {
@@ -88,7 +86,7 @@ export default class Nodes {
         if (this.nodes[node.id] && this.nodes[node.id].node === node) {
             if (!this.nodes[node.id].node.destroyed) {
                 context.save()
-                this.nodes[node.id].render(context, date, frame)
+                this.nodes[node.id].connector.render(context, date, frame)
                 context.restore()
             } else NDB.warn('Attempt to compile a destroyed node. Ignored')
         } else NDB.error(`Attempt to render unmounted node ${node.id}`)

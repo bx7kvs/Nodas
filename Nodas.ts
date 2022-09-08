@@ -25,22 +25,23 @@ import NdSprite from './Nodas/classes/NdSprite';
 import NdModField from "./Nodas/Nodes/models/NdModField";
 import Field from "./Nodas/Nodes/Field";
 import Particle from "./Nodas/Nodes/Particle";
+import NodasRandom from "./Nodas/Services/NodasRandom";
 
 export default class Nodas {
-    readonly Ticker = new Ticker()
-    readonly Canvas: Canvas
-    readonly Tree: Nodes
-    readonly Mouse: Mouse
+    readonly ticker = new Ticker()
+    readonly canvas: Canvas
+    readonly nodes: Nodes
+    readonly mouse: Mouse
 
-    public Sprite:new(id:string, src?:NdUrlSpriteStr | NdURLStr) => Sprite
-    public Area:new(id:string, path?:NdPath) => Area
-    public Rectangle:new(id:string, size?:NdNumericArray2d) => Rectangle
-    public Line:new(id:string, path?:NdPath) => Line
-    public Text:new(id:string, str?:string) => Text
-    public Group:new(id:string, children?:GroupChildren) => Group
-    public Circle:new(id:string, radius?:number) => Circle
-    public Field: new (id:string, options?:{[key in keyof NdModField] ?: Parameters<NdModField[key]['set']>[0]}) => Field
-    public Particle: new(sprite:NdParticleSpriteResource | string, resolver:(vector: NdParticleVector, progress:number, time:Date) => boolean, initiator?:(vector: NdParticleVector, time:Date) => boolean) => Particle
+    public Sprite: new(id: string, src?: NdUrlSpriteStr | NdURLStr) => Sprite
+    public Area: new(id: string, path?: NdPath) => Area
+    public Rectangle: new(id: string, size?: NdNumericArray2d) => Rectangle
+    public Line: new(id: string, path?: NdPath) => Line
+    public Text: new(id: string, str?: string) => Text
+    public Group: new(id: string, children?: GroupChildren) => Group
+    public Circle: new(id: string, radius?: number) => Circle
+    public Field: new (id: string, options?: { [key in keyof NdModField]?: Parameters<NdModField[key]['set']>[0] }) => Field
+    public Particle: new(sprite: NdParticleSpriteResource | string, resolver: (vector: NdParticleVector, progress: number, time: Date) => boolean, initiator?: (vector: NdParticleVector, time: Date) => boolean) => Particle
 
     Animation = NdSprite
     Image = NdImage
@@ -52,18 +53,18 @@ export default class Nodas {
         const MouseSrv = new Mouse(CanvasSrv, TickerSrv, TreeSrv)
         const app = this
         CanvasSrv.element(canvas)
-        this.Ticker = TickerSrv
-        this.Canvas = CanvasSrv
-        this.Mouse = MouseSrv
-        this.Tree = TreeSrv
+        this.ticker = TickerSrv
+        this.canvas = CanvasSrv
+        this.mouse = MouseSrv
+        this.nodes = TreeSrv
 
         //Ceating Root Group
         new Group('NODE_TREE_DEFAULT_ROOT', this)
 
         this.Text = class NodasText extends Text {
-            constructor(id:string, str?:string) {
-                super(id,app);
-                if(str) this.style('str', str)
+            constructor(id: string, str?: string) {
+                super(id, app);
+                if (str) this.style('str', str)
             }
         }
         this.Area = class NodasArea extends Area {
@@ -121,3 +122,4 @@ export const Fonts: typeof NodasFonts = NodasFonts
 export const Resources: typeof NodasResources = NodasResources
 export const NodasImage = NdImage
 export const NodasSprite = NdSprite
+export const NodasRand: typeof NodasRandom = NodasRandom

@@ -1,18 +1,19 @@
 import Node from './Node';
 import NdModBase from './models/NdModBase';
 import NdNodeBox from './classes/NdNodeBox';
-import {NdNumericArray2d} from '../@types/types';
 import Nodas from '../../Nodas';
 import {alive} from "./decorators/alive";
 
 export default class Group extends Node<NdModBase> {
-    protected Box: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
+    append: (node: Node<any> | Node<any>[]) => Group
+    protected render: Node<NdModBase>['render']
+    protected Box: NdNodeBox = new NdNodeBox(this, this.cache, () => {
         let minX = Infinity,
             minY = Infinity,
             maxY = -Infinity,
             maxX = -Infinity
 
-        this.TreeConnector!.forEachLayer((e) => {
+        this.treeConnector!.forEachChild((e) => {
             const box = e.box
             if (box) {
                 minX = Math.min(minX, box.position[0])
@@ -35,57 +36,39 @@ export default class Group extends Node<NdModBase> {
             0, 0, 0, 0
         ]
     });
-    protected render: Node<NdModBase>['render']
-    protected test: Node<NdModBase>['test']
-
-    @alive
-    export() {
-        return undefined
-    }
 
     constructor(id: string, app: Nodas) {
         super(id, new NdModBase(), app);
         this.render = (context, date, frame) => {
-            if(!this.destroyed) {
+            if (!this.destroyed) {
                 Node.transformContext(this, context)
-                this.TreeConnector!.forEachLayer((e) => {
-                    app.Tree.compile(e, context, date, frame)
+                this.treeConnector!.forEachChild((e) => {
+                    app.nodes.compile(e, context, date, frame)
                 })
             } else throw new Error('Attempt to render destroyed Group')
             return context
         }
-        this.test = (cursor: NdNumericArray2d) => {
-            if(!this.destroyed) {
-                let result: Node<any> | false = false
-                this.TreeConnector!.forEachLayer(e => {
-                    if (app.Mouse.checkNode(e, cursor)) {
-                        result = e
-                    }
+        this.append = (node: Node<any> | Node<any>[]) => {
+            if (node instanceof Array) {
+                node.forEach(v => {
+                    app.nodes.append(this, v.id)
                 })
-                return result
-            } else throw new Error('Attempt to test destroyed Group')
-
+            } else {
+                app.nodes.append(this, node.id)
+            }
+            return this
         }
+    }
+
+    @alive
+    export() {
     }
 
     @alive
     forEachChild(cb: (e: Node<any>) => void) {
-        this.TreeConnector!.forEachLayer(cb)
+        this.treeConnector!.forEachChild(cb)
     }
 
-    @alive
-    append(node: Node<any> | Node<any>[]) {
-        if (node instanceof Array) {
-            node.forEach(v => {
-                this.TreeConnector!.tree.append(this, v.id)
-            })
-        } else {
-            this.TreeConnector!.tree.append(this, node.id)
-        }
-
-        return this
-
-    }
-
+    protected test: Node<NdModBase>['test'] = () => false
 
 }

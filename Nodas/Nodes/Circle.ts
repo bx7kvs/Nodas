@@ -14,7 +14,7 @@ type CircleNodeModel = NdModCirc & NdModBg & NdModAnchor & NdModBase;
 export default class Circle extends Node<CircleNodeModel> {
 
 
-    protected Box?: NdNodeBox = new NdNodeBox(this, this.Cache, () => {
+    protected Box?: NdNodeBox = new NdNodeBox(this, this.cache, () => {
         const position = [...this.data!.position.protectedValue] as NdNumericArray2d,
             d = this.data!.radius.protectedValue * 2
         Node.applyBoxAnchor(position, d, d, this.data!)
@@ -33,7 +33,7 @@ export default class Circle extends Node<CircleNodeModel> {
         }
         return false
     }
-    protected Assembler?: NdNodeAssembler = new NdNodeAssembler([
+    protected assembler?: NdNodeAssembler = new NdNodeAssembler([
         {
             name: 'fill',
             resolver: context => {
@@ -49,7 +49,7 @@ export default class Circle extends Node<CircleNodeModel> {
                 context.beginPath()
                 context.arc(this.Box!.value.sprite.size[0] / 2, this.Box!.value.sprite.size[1] / 2, this.data!.radius.protectedValue, 0, Math.PI * 2)
                 context.clip()
-                Node.drawBg(this.data!, context, this.Assembler!)
+                Node.drawBg(this.data!, context, this.assembler!)
             }
         },
         {
@@ -65,9 +65,32 @@ export default class Circle extends Node<CircleNodeModel> {
         }
     ])
 
+    constructor(id: string, App: Nodas) {
+        super(id, {...new NdModCirc(), ...new NdModBg(), ...new NdModAnchor(), ...new NdModBase()}, App)
+        this.watch('radius', () => {
+            this.assembler!.update()
+            this.assembler!.resize()
+            this.Box!.purge()
+            this.matrixContainer.purge()
+        })
+        this.watch('fill', () => this.assembler!.update('fill'))
+        this.watch('strokeWidth', () => {
+            this.strokeFix = this.data!.strokeWidth.protectedValue;
+            this.Box!.purge()
+            this.assembler!.update('stroke')
+            this.assembler!.resize()
+            this.matrixContainer.purge()
+        })
+        this.watch(['strokeStyle', 'strokeColor'], () => this.assembler!.update('stroke'))
+        this.watch(['bg', 'backgroundSize', 'backgroundPosition'], () => this.assembler!.update('bg'))
+        this.once('destroyed', () => {
+            NdModBg.destroyBackground(this.data!)
+        })
+    }
+
     @alive
     render(context: CanvasRenderingContext2D) {
-        const render = this.Assembler!.export(this)
+        const render = this.assembler!.export(this)
         if (render) {
             Node.transformContext(this, context)
             context.drawImage(render, 0, 0)
@@ -77,30 +100,7 @@ export default class Circle extends Node<CircleNodeModel> {
     }
 
     @alive
-    export():HTMLCanvasElement | undefined {
-        return this.Assembler!.export(this)
-    }
-
-    constructor(id: string, App: Nodas) {
-        super(id, {...new NdModCirc(), ...new NdModBg(), ...new NdModAnchor(), ...new NdModBase()}, App)
-        this.watch('radius', () => {
-            this.Assembler!.update()
-            this.Assembler!.resize()
-            this.Box!.purge()
-            this.Matrix.purge()
-        })
-        this.watch('fill', () => this.Assembler!.update('fill'))
-        this.watch('strokeWidth', () => {
-            this.strokeFix = this.data!.strokeWidth.protectedValue;
-            this.Box!.purge()
-            this.Assembler!.update('stroke')
-            this.Assembler!.resize()
-            this.Matrix.purge()
-        })
-        this.watch(['strokeStyle', 'strokeColor'], () => this.Assembler!.update('stroke'))
-        this.watch(['bg', 'backgroundSize', 'backgroundPosition'], () => this.Assembler!.update('bg'))
-        this.once('destroyed', () => {
-            NdModBg.destroyBackground(this.data!)
-        })
+    export(): HTMLCanvasElement | undefined {
+        return this.assembler!.export(this)
     }
 }

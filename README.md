@@ -182,13 +182,27 @@ group.on('mouseDown', () => {
 
 })
 ```
+
+## 0.8.1
+
+### Features:
+
+1. Nodes now can be detached from node tree
+2. Nodes now can be rendered to external context
+
+### Fixes:
+
+1. Nodas stops rendering automatically on window blur
+2. Slightly optimized Rectangle rendering
+
 ## 0.8.0
 
 ### Features:
+
 1. Particles and Fields.<br/>
-1.1 Added Field constructor<br/>
-1.2 Added Particle constructor <br/>
-1.3 Added ParticleEmitter constructor
+   1.1 Added Field constructor<br/>
+   1.2 Added Particle constructor <br/>
+   1.3 Added ParticleEmitter constructor
 2. Added built-in random generator service
 
 ### Fixes:

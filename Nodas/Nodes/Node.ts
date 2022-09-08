@@ -11,7 +11,7 @@ import NdCache from '../classes/NdCache';
 import NdNodeBox from './classes/NdNodeBox';
 import NdNodeConnector from './classes/NdNodeConnector';
 import NdCompiler from '../classes/NdCompiler';
-import NdNodeMouseDispatcher from '../Mouse/NdNodeMouseDispatcher';
+import NdMouseConnector from '../Mouse/NdMouseConnector';
 import NdModBg from './models/NdModBg';
 import NdModFreeStroke from './models/NdModFreeStroke';
 import NdModBase from './models/NdModBase';
@@ -33,69 +33,79 @@ export default abstract class Node<Model extends NdModBase, Scheme extends NodeS
 
     abstract export(...args: any[]): NdExportableReturn | undefined | void
 
-    protected TreeConnector?: NdNodeConnector
-    protected Cache = new NdCache()
-    protected Compiler: NdCompiler<Model>
-    protected Matrix: NdNodeMatrixContainer
-    protected Mouse: NdNodeMouseDispatcher<Model>
-    protected Assembler?: NdNodeAssembler
+    id: string = ''
+    z: number = 0
+    detach: () => Node<Model>
+    renderTo: (context: CanvasRenderingContext2D, time: Date) => Node<Model>
+    protected treeConnector: NdNodeConnector
+    protected mouseConnector: NdMouseConnector
 
     public pipe: NdCompiler<Model>['pipe']
     public unpipe: NdCompiler<Model>['unpipe']
     public condition: NdCompiler<Model>['filter']
-
+    protected cache = new NdCache()
+    protected compiler: NdCompiler<Model>
+    protected matrixContainer: NdNodeMatrixContainer
+    protected assembler?: NdNodeAssembler
 
     protected constructor(id: string, model: Model, app: Nodas) {
         super(app, model)
         this.data = model
-        this.Matrix = new NdNodeMatrixContainer(this, model, this.Cache)
-        this.Compiler = new NdCompiler<Model>(this, model, (...args) => this.render(...args))
-        this.TreeConnector = app.Tree.register(id, this, this.Compiler.render)
-        this.Mouse = app.Mouse.register(this, (...args) => this.cast(...args), (...args) => this.test(...args))
-
-        this.pipe = this.Compiler.pipe.bind(this.Compiler)
-        this.unpipe = this.Compiler.unpipe.bind(this.Compiler)
-        this.condition = this.Compiler.filter.bind(this.Compiler)
+        this.matrixContainer = new NdNodeMatrixContainer(this, model, this.cache)
+        this.compiler = new NdCompiler<Model>(this, model, (...args) => this.render(...args))
+        this.treeConnector = new NdNodeConnector(id, this.compiler.render)
+        app.nodes.register(this, this.treeConnector)
+        this.pipe = this.compiler.pipe.bind(this.compiler)
+        this.unpipe = this.compiler.unpipe.bind(this.compiler)
+        this.condition = this.compiler.filter.bind(this.compiler)
         this.order = <(keyof Model)[]>Object.keys(model).sort((a, b) => model[a].ordering - model[b].ordering)
+        Object.defineProperty(this, 'z', {
+            get(): number {
+                return this.treeConnector.z
+            },
+            set(v: number) {
+                app.nodes.z(this.id, v)
+            }
+        })
+        Object.defineProperty(this, 'id', {
+            get(): string {
+                return this.treeConnector.id
+            },
+            set(v: string) {
+                app.nodes.rename(this.id, v)
+            }
+        })
+        this.detach = () => {
+            app.nodes.unmount(this)
+            return this
+        }
+        this.renderTo = (context, time) => {
+            context.save()
+            this.render(context, time, 0)
+            context.restore()
+            return this
+        }
+        this.mouseConnector = new NdMouseConnector<Model>(this.cast.bind(this), (point) => this.test(point))
+        app.mouse.register(this, this.mouseConnector)
         this.watch(['position', 'rotate', 'origin', 'skew', 'translate', 'scale'], () => {
-            this.Matrix.purge()
-            this.TreeConnector!.forEachLayer(e => e.matrix.purgeInversion(e))
+            this.matrixContainer.purge()
+            this.treeConnector!.forEachChild(e => e.matrix.purgeInversion(e))
         })
         this.watch(['position', 'origin', 'translate'], () => this.purgeBox())
         this.once('destroyed', () => {
-            if(this.Assembler) this.Assembler = this.Assembler.destroy()
-            this.TreeConnector = this.TreeConnector!.destroy()
+            if (this.assembler) this.assembler = this.assembler.destroy()
+            this.treeConnector.reset()
         })
-    }
-
-
-
-    @alive
-    get id() {
-        return this.TreeConnector!.id
-    }
-
-    set id(id) {
-        this.TreeConnector!.tree.rename(this.id, id)
-    }
-
-    @alive
-    get z() {
-        return this.TreeConnector!.z
-    }
-
-    set z(value) {
-        this.TreeConnector!.tree.z(this, value)
     }
 
     @alive
     get parent() {
-        return this.TreeConnector!.parent
+        return this.treeConnector!.parent
     }
 
     @alive
     get matrix() {
-        return this.Matrix.value
+        return this.matrixContainer.value
     }
 
     @alive

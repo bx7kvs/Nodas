@@ -1,7 +1,17 @@
 import NdNodeStylesModel from '../classes/NdNodeStylesModel';
 import NdNodeStylePropertyAnimated from '../classes/NdNodeStylePropertyAnimated';
 import NdStylesProperty from '../classes/NdNodeStyleProperty';
-import {NdArrColor, NdColorArrBox, NdColorBox, NdColorStr, NdStrokeStyle, NdStrokeWidthBox} from '../@types/types';
+import {
+    NdArrColor,
+    NdColorArrBox,
+    NdColorBox,
+    NdColorStr,
+    NdPathBezier,
+    NdStrokeStyle,
+    NdStrokeWidthBox
+} from '../@types/types';
+import Rectangle from "../Rectangle";
+import {CIRCLECONST} from "../../../constants";
 
 export default class NdModRect extends NdNodeStylesModel {
     radius = new NdNodeStylePropertyAnimated<[number, number, number, number],
@@ -149,4 +159,114 @@ export default class NdModRect extends NdNodeStylesModel {
             }
         }
     )
+
+    static buildRectPath(node: Rectangle, model: NdModRect) {
+        const [width, height] = model.size.protectedValue
+        const [tl, tr, br, bl] = model.radius.protectedValue.map((v: number) => {
+            if (v > width / 2) v = width / 2
+            if (v > height / 2) v = height / 2
+            return v
+        })
+        if (width && height) {
+            const result: NdPathBezier = []
+            if (tl) {
+                result.push([
+                    0, tl,//p1
+                    tl, 0, //p2
+                    0, tl * CIRCLECONST,//cp1
+                    tl - tl * CIRCLECONST, 0 //cp2
+                ])
+                result.push([
+                    result[0][2], result[0][3],//p1
+                    width, 0, //p2
+                    result[0][2], result[0][3], //cp1
+                    width, 0 //cp2
+                ])
+            } else {
+                result.push([
+                    0, 0,//p1
+                    width, 0, //p2
+                    0, 0, //cp1
+                    width, 0 //cp2
+                ])
+            }
+
+            if (tr) {
+                result[result.length - 1][2] -= tr
+                result[result.length - 1][6] -= tr
+                result.push([
+                    width - tr, 0,//p1
+                    width, tr, //p2
+                    width - tr + (tr * CIRCLECONST), 0, //cp1
+                    width, tr - tr * CIRCLECONST //cp2
+                ])
+                result.push([
+                    width, tr, //p1
+                    width, height, //p2
+                    width, tr, //cp1
+                    width, height//cp2
+                ])
+            } else {
+                result.push([
+                    width, 0,
+                    width, height,
+                    width, 0,
+                    width, height
+                ])
+            }
+
+            if (br) {
+                result[result.length - 1][3] -= br
+                result[result.length - 1][7] -= br
+                result.push([
+                    width, height - br, //p1
+                    width - br, height, //p2
+                    width, height - br + (br * CIRCLECONST), //cp1
+                    width - br + (br * CIRCLECONST), height //cp2
+                ])
+                result.push([
+                    width - br, height,//p1
+                    0, height,//p2
+                    width - br, height,//cp1
+                    0, height//cp2
+                ])
+            } else {
+                result.push([
+                    width, height,
+                    0, height,
+                    width, height,
+                    0, height
+                ])
+            }
+            if (bl) {
+                result[result.length - 1][2] += bl
+                result[result.length - 1][6] += bl
+                result.push([
+                    bl, height,//p1
+                    0, height - bl,//p2
+                    bl - bl * CIRCLECONST, height, //cp1
+                    0, height - bl + bl * CIRCLECONST
+                ])
+                result.push(
+                    [
+                        0, height - bl,
+                        result[0][0], result[0][1],
+                        0, height - bl,
+                        result[0][0], result[0][1]
+                    ]
+                )
+            } else {
+                result.push([
+                    0, height - bl,
+                    result[0][0], result[0][1],
+                    0, height - bl,
+                    result[0][0], result[0][1]
+                ])
+            }
+            return result
+
+        } else {
+            return []
+        }
+    }
 }
