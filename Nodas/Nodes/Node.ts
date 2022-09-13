@@ -152,6 +152,11 @@ export default abstract class Node<Model extends NdModBase, Scheme extends NodeS
 
     appendTo(node: Group) {
         node.append(this)
+        return this
+    }
+    prependTo(node:Group) {
+        node.prepend(this)
+        return this
     }
 
     @alive

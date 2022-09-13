@@ -412,7 +412,8 @@ declare abstract class Node<Model extends NdModBase, Scheme extends NodeScheme<M
     protected matrixContainer: NdNodeMatrixContainer;
     protected assembler?: NdNodeAssembler;
     protected constructor(id: string, model: Model);
-    appendTo(node: Group): void;
+    appendTo(node: Group): this;
+    prependTo(node: Group): this;
     get parent(): Group | null;
     get matrix(): NdNodeMatrix;
     get width(): number;
