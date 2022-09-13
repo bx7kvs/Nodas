@@ -3,16 +3,17 @@ import NdAnimation from "../../classes/NdAnimation";
 import {NdCanvasContext} from "../../@types/types";
 import NdNodeStylePropertyAnimated from "./NdNodeStylePropertyAnimated";
 import {ndEasings} from "../../classes/NdEasings";
-import {NdAnimationStack, NdNodeBasicEventScheme, NodasAnimateConfig} from "../@types/types";
+import {NdAnimationStack, NdDestructibleEventScheme, NodasAnimateConfig} from "../@types/types";
 import {NDB} from "../../Services/NodasDebug";
 import NdNodeStylesModel from "./NdNodeStylesModel";
-import Nodas from "../../../Nodas";
 import {alive} from "../decorators/alive";
+import NdStateEvent from "../../classes/NdStateEvent";
+import NdEvent from "../../classes/NdEvent";
 
 type ExtractAnimated<T extends NdNodeStylesModel, PT> = {
     [Key in keyof T]: T[Key] extends PT ? PT : never
 }
-export default class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme extends NdNodeBasicEventScheme<NdAnimatedNode<Model, Scheme>>> extends NdStyledNode<Model, Scheme> {
+export default class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme extends NdDestructibleEventScheme<NdAnimatedNode<Model, Scheme>> & {[key:string]: NdEvent<any, any>}> extends NdStyledNode<Model, Scheme> {
     protected animations?: NdAnimation<Model>[] = [];
 
     @alive
@@ -71,13 +72,15 @@ export default class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme exte
         }
     }
 
-    constructor(app: Nodas, model: Model) {
+    constructor(model: Model) {
         super(model);
         const callback = (context: NdCanvasContext, date: Date) => this.tickElementAnimations(date)
-        app.canvas.queue(-2, callback)
-        this.once('destroyed', () => {
-            app.canvas.unQueue(callback)
-            this.animations = undefined
+        this.on('mount', (event: NdStateEvent<NdAnimatedNode<Model, Scheme>>) => {
+            event.data.canvas.queue(-2, callback)
+            this.once('unmount', () => {
+                event.data.canvas.unQueue(callback)
+                this.animations = undefined
+            })
         })
     }
 
@@ -121,7 +124,7 @@ export default class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme exte
             if (config.complete) animation.on('complete', config.complete)
             if (config.step) animation.on('step', config.step)
             animation.on('complete', () => this.checkQueue)
-        } else NDB.negative('Invalid animation config', this)
+        } else NDB.negative('Invalid animation config')
         this.checkQueue()
         return this
     }

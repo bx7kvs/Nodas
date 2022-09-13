@@ -1,12 +1,12 @@
 import NdNodeBox from "./NdNodeBox";
 import NdDestroyableNode from "./NdDestroyableNode";
-import NdStateEvent from "../../classes/NdStateEvent";
 import {alive} from "../decorators/alive";
+import {NdDestructibleEventScheme} from "../@types/types";
 
-export default abstract class NdBaseNode<Scheme extends { destroy: NdStateEvent<NdBaseNode<Scheme>>, destroyed: NdStateEvent<NdBaseNode<Scheme>> }, K extends keyof Scheme = keyof Scheme> extends NdDestroyableNode<Scheme> {
+export default abstract class NdBaseNode<Scheme extends NdDestructibleEventScheme<NdBaseNode<Scheme>>, K extends keyof Scheme = keyof Scheme> extends NdDestroyableNode<Scheme> {
     protected abstract Box?: NdNodeBox
 
-    constructor() {
+    protected constructor() {
         super();
         this.once('destroyed', () => {
             this.Box = undefined

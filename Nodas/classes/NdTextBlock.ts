@@ -161,6 +161,7 @@ export default class NdTextBlock extends NdTextPartial {
                 })
             }
         }
+
         return result
     }
 

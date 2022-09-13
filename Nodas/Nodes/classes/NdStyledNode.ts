@@ -1,12 +1,12 @@
 import EventEmitter from "events";
-import {NdNodeBasicEventScheme} from "../@types/types";
+import {NdDestructibleEventScheme} from "../@types/types";
 import NdNodeStylesModel from "./NdNodeStylesModel";
 import NdBaseNode from "./NdBaseNode";
 import NdNodeBox from "./NdNodeBox";
 import {alive} from "../decorators/alive";
 import NdModBg from "../models/NdModBg";
 
-export default class NdStyledNode<Model extends NdNodeStylesModel, Scheme extends NdNodeBasicEventScheme<NdStyledNode<Model, Scheme>>> extends NdBaseNode<Scheme> {
+export default class NdStyledNode<Model extends NdNodeStylesModel, Scheme extends NdDestructibleEventScheme<NdStyledNode<Model, Scheme>>> extends NdBaseNode<Scheme> {
     protected Box?: NdNodeBox;
     protected modelEmitter = new EventEmitter()
     protected order: (keyof Model)[] = []

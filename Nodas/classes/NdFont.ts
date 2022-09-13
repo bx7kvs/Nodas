@@ -2,8 +2,8 @@ import NdResource from './NdResource';
 import {NdFontDescription, NdFontFormats, NdFontStyles, NdFontWeights} from '../@types/types';
 import {NdURLStr} from '../Nodes/@types/types';
 import {NDB} from '../Services/NodasDebug';
-import NdStateEvent from "./NdStateEvent";
 import {alive} from "../Nodes/decorators/alive";
+import NdEvent from "./NdEvent";
 
 export default class NdFont extends NdResource<HTMLCanvasElement> {
 
@@ -91,17 +91,17 @@ export default class NdFont extends NdResource<HTMLCanvasElement> {
                 this.initMeasureBuffer()
                 this.loadFont(() => {
                     NDB.positive(`Font ${this.name} loaded`)
-                    this.cast('load', new NdStateEvent(this,null))
+                    this.cast('load', new NdEvent(this,null))
                 }, () => {
                     NDB.negative(`Unable to load font ${this.name}`)
-                    this.cast('error', new NdStateEvent(this,null))
+                    this.cast('error', new NdEvent(this,null))
                 })
                 this.styles!.innerHTML = this.str.reduce<string>((result, current) => result + current, '')
                 document.head.appendChild(this.styles!)
                 return this
             } else {
                 NDB.positive(`Font ${this.url} loaded`)
-                this.cast('load', new NdStateEvent(this,null))
+                this.cast('load', new NdEvent(this,null))
                 return this
             }
         })

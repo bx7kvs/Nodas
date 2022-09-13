@@ -2,15 +2,15 @@ import {NdEasingF} from '../Nodes/@types/types';
 
 export default class NdMorphine {
 
-    private easing: (timeElapsedS: number, startValue: number, valueDelta: number, durationS: number) => number;
-    private duration = 1;
-    private repeat = 0;
-    private repeatCount = 1;
-    private start_time = 0;
-    private callback: (progress: number, value: number, startTime: number) => void;
-    private start: number;
-    private end: number;
-    private progress = 0;
+    private readonly easing: (timeElapsedS: number, startValue: number, valueDelta: number, durationS: number) => number;
+    private readonly duration:number = 1;
+    private readonly repeat:number = 0;
+    private repeatCount:number = 1;
+    private start_time:number = 0;
+    private readonly callback: (progress: number, value: number, startTime: number) => void;
+    private readonly start: number;
+    private readonly end: number;
+    private progress:number = 0;
     private _paused = false;
     private _done = false;
 

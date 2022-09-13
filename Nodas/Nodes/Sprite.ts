@@ -5,7 +5,6 @@ import NdModAnchor from './models/NdModAnchor';
 import {NdNumericArray2d} from '../@types/types';
 import NdSprite from '../classes/NdSprite';
 import Node from './Node';
-import Nodas from '../../Nodas';
 import {alive} from "./decorators/alive";
 
 type ImageNodeModel = NdModSprite & NdModAnchor & NdModBase
@@ -74,8 +73,8 @@ export default class Sprite extends Node<ImageNodeModel> {
         }
     }
 
-    constructor(id: string, app: Nodas) {
-        super(id, {...new NdModSprite(), ...new NdModBase(), ...new NdModAnchor()}, app);
+    constructor(id: string) {
+        super(id, {...new NdModSprite(), ...new NdModBase(), ...new NdModAnchor()});
         this.watch('src', () => {
             if (this.data!.src.protectedValue) {
                 if (this.data!.src.protectedValue.loaded) {

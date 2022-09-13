@@ -11,7 +11,7 @@ import NdCache from '../classes/NdCache';
 import NdNodeBox from './classes/NdNodeBox';
 import NdNodeConnector from './classes/NdNodeConnector';
 import NdCompiler from '../classes/NdCompiler';
-import NdMouseConnector from '../Mouse/NdMouseConnector';
+import NdMouseConnector from '../classes/NdMouseConnector';
 import NdModBg from './models/NdModBg';
 import NdModFreeStroke from './models/NdModFreeStroke';
 import NdModBase from './models/NdModBase';
@@ -21,6 +21,10 @@ import Nodas from '../../Nodas';
 import NdModAnchor from './models/NdModAnchor';
 import NdAnimatedNode from "./classes/NdAnimatedNode";
 import {alive} from "./decorators/alive";
+import {NDB} from "../Services/NodasDebug";
+import NdStateEvent from "../classes/NdStateEvent";
+import Group from "./Group";
+import SharedConnectorService from "../Services/SharedConnectorService";
 
 type NodeScheme<Model extends NdModBase> = { [key: string]: any } & NdNodeEventScheme<Node<Model, NodeScheme<Model>>>
 
@@ -33,12 +37,87 @@ export default abstract class Node<Model extends NdModBase, Scheme extends NodeS
 
     abstract export(...args: any[]): NdExportableReturn | undefined | void
 
-    id: string = ''
-    z: number = 0
-    detach: () => Node<Model>
-    renderTo: (context: CanvasRenderingContext2D, time: Date) => Node<Model>
-    protected treeConnector: NdNodeConnector
+
+    protected app: Nodas | null = null
+
+    @alive
+    get mounted() {
+        return !!this.app
+    }
+
+    @alive
+    detach(soft: boolean = false) {
+        if (this.mounted) {
+            this.treeConnector.forEachChild(v => v.detach(true))
+            this.app!.nodes.unregister(this)
+            this.app!.mouse.unregister(this)
+            this.cast('unmount', new NdStateEvent(this, this.app!))
+            this.app = null
+        } else NDB.warn(`Node ${this.id} is not attached. Ignoring detach`)
+        if (!soft) this.treeConnector.parent = null
+        return this
+    }
+
+
+    @alive
+    attach(app: Nodas) {
+        if(app !== this.app) {
+            if (this.mounted) this.detach()
+            this.app = app
+            app.nodes.register(this, this.treeConnector)
+            app.mouse.register(this, this.mouseConnector)
+            this.cast('mount', new NdStateEvent(this, this.app!))
+            this.treeConnector.forEachChild(v => v.attach(app))
+            NDB.positive(`Node ${this.id} has been attached to a new app`)
+            return this
+        } else NDB.positive(`Node ${this.id} has already been attached to requested app. Ignored`)
+    }
+
+    @alive
+    renderTo(context: CanvasRenderingContext2D, time: Date) {
+        context.save()
+        this.render(context, time, 0)
+        context.restore()
+        return this
+    }
+
+    @alive
+    destroy() {
+        this.treeConnector.forEachChild(v => v.destroy())
+        if(this.parent) this.parent.remove(this)
+        if (this.assembler) this.assembler = this.assembler.destroy()
+        this.detach()
+        this.treeConnector.reset()
+        this.mouseConnector.destroy()
+        return super.destroy();
+    }
+
+    get z() {
+        return this.treeConnector.z
+    }
+
+    set z(v) {
+        if (this.treeConnector.parent) {
+            const parentConnector = SharedConnectorService.connector(this.treeConnector.parent)
+            if (parentConnector) {
+                parentConnector.zChild(this, v)
+            } else NDB.warn(`Warning! Node ${this.id} is a child of an unregistered node ${this.treeConnector.parent.id}`)
+        }
+        this.treeConnector.z = v
+    }
+
+    get id() {
+        return this.treeConnector.id
+    }
+
+    set id(v) {
+        if (this.mounted) this.app!.nodes.rename(this.id, v)
+        this.treeConnector.id = v
+    }
+
+    private readonly treeConnector: NdNodeConnector
     protected mouseConnector: NdMouseConnector
+
 
     public pipe: NdCompiler<Model>['pipe']
     public unpipe: NdCompiler<Model>['unpipe']
@@ -48,54 +127,31 @@ export default abstract class Node<Model extends NdModBase, Scheme extends NodeS
     protected matrixContainer: NdNodeMatrixContainer
     protected assembler?: NdNodeAssembler
 
-    protected constructor(id: string, model: Model, app: Nodas) {
-        super(app, model)
+    protected constructor(id: string, model: Model) {
+        super(model)
         this.data = model
         this.matrixContainer = new NdNodeMatrixContainer(this, model, this.cache)
         this.compiler = new NdCompiler<Model>(this, model, (...args) => this.render(...args))
         this.treeConnector = new NdNodeConnector(id, this.compiler.render)
-        app.nodes.register(this, this.treeConnector)
+        this.mouseConnector = new NdMouseConnector<Model>(this.cast.bind(this), (point) => this.test(point))
         this.pipe = this.compiler.pipe.bind(this.compiler)
         this.unpipe = this.compiler.unpipe.bind(this.compiler)
         this.condition = this.compiler.filter.bind(this.compiler)
         this.order = <(keyof Model)[]>Object.keys(model).sort((a, b) => model[a].ordering - model[b].ordering)
-        Object.defineProperty(this, 'z', {
-            get(): number {
-                return this.treeConnector.z
-            },
-            set(v: number) {
-                app.nodes.z(this.id, v)
-            }
+        SharedConnectorService.register(this, this.treeConnector)
+        this.on(['unmount', 'mount'], () => {
+            this.matrixContainer.purge()
         })
-        Object.defineProperty(this, 'id', {
-            get(): string {
-                return this.treeConnector.id
-            },
-            set(v: string) {
-                app.nodes.rename(this.id, v)
-            }
-        })
-        this.detach = () => {
-            app.nodes.unmount(this)
-            return this
-        }
-        this.renderTo = (context, time) => {
-            context.save()
-            this.render(context, time, 0)
-            context.restore()
-            return this
-        }
-        this.mouseConnector = new NdMouseConnector<Model>(this.cast.bind(this), (point) => this.test(point))
-        app.mouse.register(this, this.mouseConnector)
+        this.once('destroy', () => SharedConnectorService.unregister(this))
         this.watch(['position', 'rotate', 'origin', 'skew', 'translate', 'scale'], () => {
             this.matrixContainer.purge()
             this.treeConnector!.forEachChild(e => e.matrix.purgeInversion(e))
         })
         this.watch(['position', 'origin', 'translate'], () => this.purgeBox())
-        this.once('destroyed', () => {
-            if (this.assembler) this.assembler = this.assembler.destroy()
-            this.treeConnector.reset()
-        })
+    }
+
+    appendTo(node: Group) {
+        node.append(this)
     }
 
     @alive
@@ -114,7 +170,6 @@ export default abstract class Node<Model extends NdModBase, Scheme extends NodeS
             return this.Box.value.container.size[0]
         }
         return 0
-
     }
 
     @alive

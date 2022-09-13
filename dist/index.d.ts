@@ -74,7 +74,7 @@ declare class NdBox {
 }
 
 declare class NdMatrix {
-    private traceBack;
+    private readonly traceBack;
     protected history: {
         translate?: NdNumericArray2d;
         skew?: NdNumericArray2d;
@@ -106,6 +106,11 @@ declare class NdNodeMatrix extends NdMatrix {
     reset(): void;
 }
 
+declare class NdCache {
+    private values;
+    register<T>(name: string, func: NdCacheGetter<T>): NdCacheRegisterFReturn<T>;
+}
+
 declare class NdNodeStylePropertyAnimated<StoreType, GetType, SetType, AniType extends SetType, Element extends NdStyledNode<any, any> = NdStyledNode<any, any>> extends NdStylesProperty<StoreType, GetType, SetType, Element> {
     private readonly starter;
     private readonly applier;
@@ -132,45 +137,11 @@ declare class NdModBase extends NdNodeStylesModel {
     blending: NdStylesProperty<NdBlend, NdBlend, NdBlend, NdStyledNode<any, any>>;
 }
 
-declare class Group extends Node<NdModBase> {
-    append: (node: Node<any> | Node<any>[]) => Group;
-    protected render: Node<NdModBase>['render'];
-    protected Box: NdNodeBox;
-    constructor(id: string, app: Nodas);
-    export(): void;
-    forEachChild(cb: (e: Node<any>) => void): void;
-    protected test: Node<NdModBase>['test'];
-}
-
-declare class NdCache {
-    private values;
-    register<T>(name: string, func: NdCacheGetter<T>): NdCacheRegisterFReturn<T>;
-}
-
 declare class NdNodeMatrixContainer<Model extends NdModBase = NdModBase, N extends Node<Model> = Node<Model>> {
-    private getter;
-    purge: () => void;
+    private readonly getter;
+    readonly purge: () => void;
     get value(): NdNodeMatrix;
     constructor(element: N, model: Model, cache: NdCache);
-}
-
-declare class NdNodeConnector {
-    private _parent;
-    private layers;
-    private layer;
-    private identifier;
-    render: NdMainDrawingPipeF;
-    zChild(node: Node<any>, z: number, prepend?: boolean): void;
-    removeChild(node: Node<any>, z: number): void;
-    constructor(id: string, render: NdMainDrawingPipeF);
-    reset(): void;
-    get z(): number;
-    set z(value: number);
-    get parent(): Group | null;
-    set parent(value: Group | null);
-    set id(id: string);
-    get id(): string;
-    forEachChild(callback: (e: Node<any>, index: number, layer: number) => void): void;
 }
 
 declare class NdCompiler<Props extends NdModBase, NodeType extends Node<Props> = Node<Props>> {
@@ -190,15 +161,23 @@ declare class NdCompiler<Props extends NdModBase, NodeType extends Node<Props> =
     render: NdMainDrawingPipeF;
 }
 
-declare class NdMouseConnector<Props extends NdModBase = NdModBase> {
+declare class NdDestroyableNode<Scheme extends NdDestructibleEventScheme<NdDestroyableNode<Scheme>>> extends NdEmitter<Scheme> {
+    private _destroyed;
+    constructor();
+    get destroyed(): boolean;
+    destroy(): undefined;
+}
+
+declare class NdMouseConnector<Props extends NdModBase = NdModBase> extends NdDestroyableNode<NdDestructibleEventScheme<NdMouseConnector>> {
     private _disabled;
-    readonly test: NdNodePointerPredicate;
+    test: NdNodePointerPredicate;
     private emit;
     constructor(emitter: Node<Props>['cast'], tester: NdNodePointerPredicate);
     cast(event: Parameters<Node<Props>['cast']>[0], data: Parameters<Node<Props>['cast']>[1]): ReturnType<Node<Props>['cast']> | false;
     get disabled(): boolean;
     disable(): void;
     enable(): void;
+    destroy(): undefined;
 }
 
 declare class NdEvent<TargetType, DataType> {
@@ -211,32 +190,16 @@ declare class NdEvent<TargetType, DataType> {
     constructor(target: TargetType, data: DataType);
 }
 
-declare class NdStateEvent<Target> extends NdEvent<Target, null> {
-    constructor(target: Target, data: null);
-}
-
-declare class NdDestroyableNode<Scheme extends {
-    destroy: NdStateEvent<NdDestroyableNode<Scheme>>;
-    destroyed: NdStateEvent<NdDestroyableNode<Scheme>>;
-}> extends NdEmitter<Scheme> {
-    private _destroyed;
-    constructor();
-    get destroyed(): boolean;
-    destroy(): undefined;
-}
-
 declare abstract class NdResource<T extends NdExportable> extends NdDestroyableNode<{
-    load: NdStateEvent<NdResource<T>>;
-    error: NdStateEvent<NdResource<T>>;
-    destroy: NdStateEvent<NdResource<T>>;
-    destroyed: NdStateEvent<NdResource<T>>;
-}> {
+    load: NdEvent<NdResource<T>, null>;
+    error: NdEvent<NdResource<T>, null>;
+} & NdDestructibleEventScheme<NdResource<T>>> {
     private readonly src;
     private readonly resolve;
     protected status: number;
     private resolved;
     abstract export(time: Date): T | undefined;
-    constructor(url: NdURLStr, resolve: () => NdResource<T>);
+    protected constructor(url: NdURLStr, resolve: () => NdResource<T>);
     get url(): NdURLStr;
     get loaded(): boolean;
     get error(): boolean;
@@ -343,14 +306,14 @@ declare const ndEasings: {
 };
 
 declare class NdMorphine {
-    private easing;
-    private duration;
-    private repeat;
+    private readonly easing;
+    private readonly duration;
+    private readonly repeat;
     private repeatCount;
     private start_time;
-    private callback;
-    private start;
-    private end;
+    private readonly callback;
+    private readonly start;
+    private readonly end;
     private progress;
     private _paused;
     private _done;
@@ -368,11 +331,11 @@ declare class NdAnimation<Model extends NdNodeStylesModel, N extends NdAnimatedN
         ease: number;
     }>;
 }> {
-    private duration;
-    private easing;
+    private readonly duration;
+    private readonly easing;
     private stack;
     morphine?: NdMorphine;
-    private node;
+    private readonly node;
     readonly target: null;
     private readonly _queue;
     private _active;
@@ -391,12 +354,14 @@ declare class NdAnimation<Model extends NdNodeStylesModel, N extends NdAnimatedN
 declare type ExtractAnimated<T extends NdNodeStylesModel, PT> = {
     [Key in keyof T]: T[Key] extends PT ? PT : never;
 };
-declare class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme extends NdNodeBasicEventScheme<NdAnimatedNode<Model, Scheme>>> extends NdStyledNode<Model, Scheme> {
+declare class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme extends NdDestructibleEventScheme<NdAnimatedNode<Model, Scheme>> & {
+    [key: string]: NdEvent<any, any>;
+}> extends NdStyledNode<Model, Scheme> {
     protected animations?: NdAnimation<Model>[];
     private checkQueue;
     private findCompetitors;
     private tickElementAnimations;
-    constructor(app: Nodas, model: Model);
+    constructor(model: Model);
     get animated(): boolean;
     animate<Animated extends ExtractAnimated<Model, NdNodeStylePropertyAnimated<any, any, any, any>>, K extends keyof Animated>(props: {
         [Key in K]?: Parameters<Animated[Key]['set']>[0];
@@ -407,6 +372,19 @@ declare class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme extends NdN
     stop(prop?: keyof Extract<Model, NdNodeStylePropertyAnimated<any, any, any, any>>): this;
 }
 
+declare class Group extends Node<NdModBase> {
+    protected Box: NdNodeBox;
+    render: (context: CanvasRenderingContext2D, date: Date, frame: number) => CanvasRenderingContext2D;
+    append: (node: Node<any> | Node<any>[]) => Group;
+    prepend: (node: Node<any> | Node<any>[]) => Group;
+    remove: (node: Node<any>) => Group;
+    forEachChild: (cb: (e: Node<any>) => void) => Group;
+    private appendChild;
+    constructor(id: string);
+    export(): HTMLCanvasElement;
+    protected test: Node<NdModBase>['test'];
+}
+
 declare type NodeScheme<Model extends NdModBase> = {
     [key: string]: any;
 } & NdNodeEventScheme<Node<Model, NodeScheme<Model>>>;
@@ -414,11 +392,17 @@ declare abstract class Node<Model extends NdModBase, Scheme extends NodeScheme<M
     protected abstract render(...args: Parameters<NdMainDrawingPipeF>): ReturnType<NdMainDrawingPipeF>;
     protected abstract test(...args: Parameters<NdNodePointerPredicate>): ReturnType<NdNodePointerPredicate>;
     abstract export(...args: any[]): NdExportableReturn | undefined | void;
-    id: string;
-    z: number;
-    detach: () => Node<Model>;
-    renderTo: (context: CanvasRenderingContext2D, time: Date) => Node<Model>;
-    protected treeConnector: NdNodeConnector;
+    protected app: Nodas | null;
+    get mounted(): boolean;
+    detach(soft?: boolean): this;
+    attach(app: Nodas): this | undefined;
+    renderTo(context: CanvasRenderingContext2D, time: Date): this;
+    destroy(): undefined;
+    get z(): number;
+    set z(v: number);
+    get id(): string;
+    set id(v: string);
+    private readonly treeConnector;
     protected mouseConnector: NdMouseConnector;
     pipe: NdCompiler<Model>['pipe'];
     unpipe: NdCompiler<Model>['unpipe'];
@@ -427,7 +411,8 @@ declare abstract class Node<Model extends NdModBase, Scheme extends NodeScheme<M
     protected compiler: NdCompiler<Model>;
     protected matrixContainer: NdNodeMatrixContainer;
     protected assembler?: NdNodeAssembler;
-    protected constructor(id: string, model: Model, app: Nodas);
+    protected constructor(id: string, model: Model);
+    appendTo(node: Group): void;
     get parent(): Group | null;
     get matrix(): NdNodeMatrix;
     get width(): number;
@@ -448,19 +433,16 @@ declare abstract class Node<Model extends NdModBase, Scheme extends NodeScheme<M
 }
 
 declare class NdNodeBox {
-    private box;
-    private getter;
+    private readonly box;
+    private readonly getter;
     purge: () => void;
     get value(): NdBox;
     constructor(node: Node<any>, Cache: NdCache, boxGetter: (n: typeof node) => Parameters<NdBox['value']>);
 }
 
-declare abstract class NdBaseNode<Scheme extends {
-    destroy: NdStateEvent<NdBaseNode<Scheme>>;
-    destroyed: NdStateEvent<NdBaseNode<Scheme>>;
-}, K extends keyof Scheme = keyof Scheme> extends NdDestroyableNode<Scheme> {
+declare abstract class NdBaseNode<Scheme extends NdDestructibleEventScheme<NdBaseNode<Scheme>>, K extends keyof Scheme = keyof Scheme> extends NdDestroyableNode<Scheme> {
     protected abstract Box?: NdNodeBox;
-    constructor();
+    protected constructor();
     get box(): {
         size: NdNumericArray2d;
         position: NdNumericArray2d;
@@ -472,7 +454,7 @@ declare abstract class NdBaseNode<Scheme extends {
     } | undefined;
 }
 
-declare class NdStyledNode<Model extends NdNodeStylesModel, Scheme extends NdNodeBasicEventScheme<NdStyledNode<Model, Scheme>>> extends NdBaseNode<Scheme> {
+declare class NdStyledNode<Model extends NdNodeStylesModel, Scheme extends NdDestructibleEventScheme<NdStyledNode<Model, Scheme>>> extends NdBaseNode<Scheme> {
     protected Box?: NdNodeBox;
     protected modelEmitter: EventEmitter$1;
     protected order: (keyof Model)[];
@@ -524,6 +506,10 @@ declare class NdMouseEvent<Target> extends NdEvent<Target, NdMouseEventData> {
     constructor(target: Target, data: NdMouseEventData);
 }
 
+declare class NdStateEvent<Target, Data extends Nodas = Nodas> extends NdEvent<Target, Data> {
+    constructor(target: Target, data: Data);
+}
+
 declare class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageElement> {
     private frameCount;
     private refreshRate;
@@ -553,10 +539,7 @@ declare class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageElement> 
     static isNdUrlSpriteStr(str: string): boolean;
 }
 
-declare class NdLayer extends NdDestroyableNode<{
-    destroyed: NdStateEvent<NdLayer>;
-    destroy: NdStateEvent<NdLayer>;
-}> {
+declare class NdLayer extends NdDestroyableNode<NdDestructibleEventScheme<NdLayer>> {
     private canvas?;
     private width;
     private height;
@@ -571,6 +554,10 @@ declare class NdLayer extends NdDestroyableNode<{
     get order(): number;
     set order(order: number);
     update(): void;
+}
+
+declare class NdDestroyEvent<Target> extends NdEvent<Target, null> {
+    constructor(target: Target);
 }
 
 declare type GroupChildren = Node<any> | Node<any>[];
@@ -589,6 +576,7 @@ declare type NdMouseEventData = {
     cursor: NdNumericArray2d;
 };
 declare type NdNodeMouseEventsScheme<Class extends NdEmitter<any>> = {
+    [key: string]: NdEvent<any, any>;
     mouseMove: NdMouseEvent<Class>;
     mouseLeave: NdMouseEvent<Class>;
     mouseEnter: NdMouseEvent<Class>;
@@ -600,24 +588,34 @@ declare type NdNodeMouseEventsScheme<Class extends NdEmitter<any>> = {
     focus: NdMouseEvent<Class>;
     blur: NdMouseEvent<Class>;
 };
+declare type NdDestructibleEventScheme<Class extends NdEmitter<any>> = {
+    destroy: NdDestroyEvent<Class>;
+    destroyed: NdDestroyEvent<Class>;
+};
 declare type NdNodeBasicEventScheme<Class extends NdEmitter<any>> = {
-    destroy: NdStateEvent<Class>;
-    destroyed: NdStateEvent<Class>;
+    [key: string]: NdEvent<any, any>;
     mount: NdStateEvent<Class>;
+    unmount: NdStateEvent<Class>;
+};
+declare type NdParticleEventScheme<Class extends NdEmitter<any>> = {
+    [key: string]: NdEvent<any, any>;
+    ready: NdEvent<Class, null>;
 };
 declare type NdNodeAssemblerEventScheme<Class extends NdEmitter<any>> = {
-    destroy: NdStateEvent<Class>;
-    destroyed: NdStateEvent<Class>;
+    [key: string]: NdEvent<any, any>;
     resize: NdStateEvent<Class>;
     update: NdStateEvent<Class>;
-};
+} & NdDestructibleEventScheme<Class>;
 declare type NdNodeStateEventsScheme<Class extends NdEmitter<any>> = {
-    unmount: NdStateEvent<Class>;
+    [key: string]: NdEvent<any, any>;
     export: NdStateEvent<Class>;
     update: NdStateEvent<Class>;
 };
-declare type NdNodeEventScheme<Class extends NdEmitter<any>> = NdNodeBasicEventScheme<Class> & NdNodeStateEventsScheme<Class> & NdNodeMouseEventsScheme<Class>;
+declare type NdNodeEventScheme<Class extends NdEmitter<any>> = {
+    [key: string]: NdEvent<any, any>;
+} & NdDestructibleEventScheme<Class> & NdNodeBasicEventScheme<Class> & NdNodeStateEventsScheme<Class> & NdNodeMouseEventsScheme<Class>;
 declare type NdRootCanvasMouseEventsScheme = {
+    [key: string]: NdEvent<any, any>;
     mouseEnter: NdMouseEvent<Canvas>;
     mouseLeave: NdMouseEvent<Canvas>;
     mouseMove: NdMouseEvent<Canvas>;
@@ -625,10 +623,16 @@ declare type NdRootCanvasMouseEventsScheme = {
     mouseUp: NdMouseEvent<Canvas>;
 };
 declare type NdRootCanvasStateEventsScheme = {
-    switch: NdStateEvent<Canvas>;
-    resize: NdStateEvent<Canvas>;
+    [key: string]: NdEvent<any, any>;
+    switch: NdEvent<Canvas, null>;
+    resize: NdEvent<Canvas, null>;
 };
 declare type NdParticleModifier = (vector: NdParticleVector) => void;
+declare type NdParticleArgs = [
+    sprite: NdParticleSpriteResource | string,
+    resolver: (vector: NdParticleVector, progress: number, time: Date) => boolean,
+    initiator?: (vector: NdParticleVector, time: Date) => boolean
+];
 declare type NodasAssemblerUpdateF<T extends AssemblerLayerConfig[], K extends number = keyof T & number> = (name?: T[K]['name']) => void;
 declare type AssemblerLayerConfig = {
     name: string;
@@ -722,6 +726,25 @@ declare class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & NdRootCan
     set clear(value: boolean);
 }
 
+declare class NdNodeConnector {
+    private _parent;
+    private layers;
+    private layer;
+    private identifier;
+    render: NdMainDrawingPipeF;
+    zChild(node: Node<any>, z: number, prepend?: boolean): void;
+    removeChild(node: Node<any>, z: number): void;
+    constructor(id: string, render: NdMainDrawingPipeF);
+    reset(): void;
+    get z(): number;
+    set z(value: number);
+    get parent(): Group | null;
+    set parent(value: Group | null);
+    set id(id: string);
+    get id(): string;
+    forEachChild(callback: (e: Node<any>, index: number, layer: number) => void): void;
+}
+
 declare class Nodes {
     private _root;
     private clear;
@@ -729,16 +752,13 @@ declare class Nodes {
     private nodes;
     private drawNodeTree;
     constructor(Canvas: Canvas);
-    private treeViolation;
     register(node: Node<any>, connector: NdNodeConnector): void;
     unregister(node: Node<any>): void;
-    unmount(node: Node<any>): void;
     compile(node: Node<any>, context: CanvasRenderingContext2D, date: Date, frame: number): void;
     rename(id: string, newId: string): void;
-    z(node: Node<any>, z: number): void;
     get(id: string): Node<any>;
     get root(): Group | undefined;
-    append(target: Group, id: string, prepend?: boolean): void;
+    static treeViolation(target: Group, node: Node<any>): boolean;
 }
 
 declare class Mouse {
@@ -757,6 +777,7 @@ declare class Mouse {
     private getStackCallback;
     private resolveOrPostpone;
     register<Props extends NdModBase>(node: Node<any>, handler: NdMouseConnector<any>): NdMouseConnector<any>;
+    unregister<Props extends NdModBase>(node: Node<any>): void;
 }
 
 declare type LineNodeModel = NdModFreeStroke & NdModAnchor & NdModBase;
@@ -769,7 +790,7 @@ declare class Line extends Node<LineNodeModel> {
     private mouseTester?;
     protected Box?: NdNodeBox;
     protected assembler?: NdNodeAssembler;
-    constructor(id: string, app: Nodas);
+    constructor(id: string);
     export(): HTMLCanvasElement | undefined;
     test(cursor: NdNumericArray2d): Line | false;
     render(context: CanvasRenderingContext2D): CanvasRenderingContext2D;
@@ -788,7 +809,7 @@ declare class Circle extends Node<CircleNodeModel> {
     private strokeFix;
     protected test: Node<CircleNodeModel>['test'];
     protected assembler?: NdNodeAssembler;
-    constructor(id: string, App: Nodas);
+    constructor(id: string);
     render(context: CanvasRenderingContext2D): CanvasRenderingContext2D;
     export(): HTMLCanvasElement | undefined;
 }
@@ -808,7 +829,7 @@ declare class Sprite extends Node<ImageNodeModel> {
     protected Box?: NdNodeBox;
     pause(): void;
     play(): void;
-    constructor(id: string, app: Nodas);
+    constructor(id: string);
 }
 
 declare type AreaStaticModel = NdModFreeStroke & NdModBg & NdModAnchor & NdModBase;
@@ -822,7 +843,7 @@ declare class Area extends Node<AreaStaticModel> {
     protected Box: NdNodeBox;
     protected assembler?: NdNodeAssembler;
     protected test(cursor: NdNumericArray2d): Area | false;
-    constructor(id: string, app: Nodas);
+    constructor(id: string);
     export(): HTMLCanvasElement;
     protected render(context: CanvasRenderingContext2D): CanvasRenderingContext2D;
 }
@@ -846,13 +867,98 @@ declare class Rectangle extends Node<RectNodeModel> {
     private readonly purgePath;
     protected Box?: NdNodeBox;
     protected assembler?: NdNodeAssembler;
-    constructor(id: string, app: Nodas);
+    constructor(id: string);
     export(): HTMLCanvasElement | undefined;
     protected test(cursor: NdNumericArray2d): false | this;
     protected render(context: CanvasRenderingContext2D): CanvasRenderingContext2D;
     private static drawCorner;
     private static drawBridge;
     private drawRectStroke;
+}
+
+declare class NdModEmitter extends NdNodeStylesModel {
+    position: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
+    limit: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
+    intensity: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
+    shape: NdStylesProperty<number | NdPathBezier, number | NdPath, number | NdPath, NdStyledNode<any, any>>;
+}
+
+declare class NdModParticle extends NdNodeStylesModel {
+    lifetime: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
+    blending: NdStylesProperty<NdBlend, NdBlend, NdBlend, NdStyledNode<any, any>>;
+    opacity: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
+    origin: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
+    vector: NdStylesProperty<NdParticleVector, NdParticleVector, NdParticleVector, NdStyledNode<any, any>>;
+    rotate: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
+    scale: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
+    skew: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
+    position: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
+}
+
+declare class Particle extends NdStyledNode<NdModParticle, NdParticleEventScheme<Particle> & NdDestructibleEventScheme<Particle>> {
+    private sprite;
+    private origin;
+    private readonly _resolver;
+    private readonly _initiator?;
+    private _matrix?;
+    private _initialised;
+    private startTime;
+    private resetMatrix;
+    private updateOrigin;
+    get startedAt(): number;
+    opacify(amount: number): void;
+    push(vector: NdNumericArray2d): this;
+    turn(rad: number): this;
+    explode(vector: NdParticleVector): this;
+    jelly(vector: NdNumericArray2d): this;
+    render(applyContext: (vector: NdParticleVector) => void, context: CanvasRenderingContext2D, time: Date): void;
+    get initialized(): boolean;
+    reset(): this;
+    constructor(...[sprite, resolver, initiator]: NdParticleArgs);
+}
+
+declare class NdModField extends NdNodeStylesModel {
+    wind: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
+    gravity: NdStylesProperty<number, number, number>;
+    viscosity: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
+}
+
+declare class Field extends Node<NdModField & NdModBase> {
+    private fps;
+    private active;
+    private emitters?;
+    private particles?;
+    private modifiers?;
+    private fieldFpsCallback;
+    private self;
+    ParticleEmitter: new (initiator: (time: Date) => Particle) => ParticleEmitter;
+    Particle: new (...args: NdParticleArgs) => Particle;
+    attach(app: Nodas): this | undefined;
+    detach(): this;
+    constructor(id: string);
+    private applyFieldVector;
+    export(): undefined;
+    modify(modifier: NdParticleModifier | NdParticleModifier[]): this;
+    simplify(modifier: NdParticleModifier): this;
+    render(context: CanvasRenderingContext2D, time: Date): CanvasRenderingContext2D;
+    test(): false;
+    add(particle: Particle | Particle[]): Field;
+    emitter(emitter: ParticleEmitter): ParticleEmitter;
+    remove(particle: Particle | Particle[]): this;
+    start(): this;
+    stop(): this;
+    static Particle: typeof Particle;
+}
+
+declare class ParticleEmitter extends NdStyledNode<NdModEmitter, NdNodeBasicEventScheme<ParticleEmitter> & NdDestructibleEventScheme<ParticleEmitter>> {
+    private readonly initiator;
+    private particles?;
+    private emitTimeout;
+    private lastEmittedAt;
+    private _field;
+    constructor(initiator: (time: Date) => Particle);
+    field(field: Field): this;
+    render(context: CanvasRenderingContext2D, time: Date): void;
 }
 
 declare class NdModText extends NdNodeStylesModel {
@@ -870,7 +976,7 @@ declare class Text extends Node<TextNodeModel> {
     private textBlock?;
     protected assembler?: NdNodeAssembler;
     protected Box?: NdNodeBox;
-    constructor(id: string, app: Nodas);
+    constructor(id: string);
     protected render(context: CanvasRenderingContext2D): CanvasRenderingContext2D;
     private syncStylesToBlock;
     private bindProps;
@@ -919,84 +1025,6 @@ declare class NodasResources {
 }
 declare const NDR: NodasResources;
 
-declare class NdModField extends NdNodeStylesModel {
-    wind: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
-    gravity: NdStylesProperty<number, number, number>;
-    viscosity: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
-}
-
-declare class NdModParticle extends NdNodeStylesModel {
-    lifetime: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
-    blending: NdStylesProperty<NdBlend, NdBlend, NdBlend, NdStyledNode<any, any>>;
-    opacity: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
-    origin: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
-    vector: NdStylesProperty<NdParticleVector, NdParticleVector, NdParticleVector, NdStyledNode<any, any>>;
-    rotate: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
-    scale: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
-    skew: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
-    position: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
-}
-
-declare class Particle extends NdStyledNode<NdModParticle, NdNodeBasicEventScheme<Particle>> {
-    private sprite;
-    private origin;
-    private readonly _resolver;
-    private readonly _initiator?;
-    private _matrix?;
-    private _initialised;
-    private startTime;
-    private resetMatrix;
-    private updateOrigin;
-    get startedAt(): number;
-    opacify(amount: number): void;
-    push(vector: NdNumericArray2d): this;
-    turn(rad: number): this;
-    explode(vector: NdParticleVector): this;
-    jelly(vector: NdNumericArray2d): this;
-    render(applyContext: (vector: NdParticleVector) => void, context: CanvasRenderingContext2D, time: Date): void;
-    get initialized(): boolean;
-    reset(): this;
-    constructor(sprite: NdParticleSpriteResource | string, resolver: (vector: NdParticleVector, progress: number, time: Date) => boolean, initiator?: (vector: NdParticleVector, time: Date) => boolean);
-}
-
-declare class NdModEmitter extends NdNodeStylesModel {
-    position: NdStylesProperty<NdNumericArray2d, NdNumericArray2d, NdNumericArray2d, NdStyledNode<any, any>>;
-    limit: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
-    intensity: NdStylesProperty<number, number, number, NdStyledNode<any, any>>;
-    shape: NdStylesProperty<number | NdPathBezier, number | NdPath, number | NdPath, NdStyledNode<any, any>>;
-}
-
-declare class ParticleEmitter extends NdStyledNode<NdModEmitter, NdNodeBasicEventScheme<ParticleEmitter>> {
-    private readonly initiator;
-    private particles?;
-    private emitTimeout;
-    private lastEmittedAt;
-    private _field;
-    constructor(initiator: (time: Date) => Particle);
-    field(field: Field): this;
-    render(context: CanvasRenderingContext2D, time: Date): void;
-}
-
-declare class Field extends Node<NdModField & NdModBase> {
-    private fps;
-    private active;
-    private emitters?;
-    private particles?;
-    private modifiers?;
-    constructor(id: string, app: Nodas);
-    private applyFieldVector;
-    export(): undefined;
-    modify(modifier: NdParticleModifier | NdParticleModifier[]): this;
-    simplify(modifier: NdParticleModifier): this;
-    render(context: CanvasRenderingContext2D, time: Date): CanvasRenderingContext2D;
-    test(): false;
-    add(particle: Particle | Particle[]): Field;
-    emitter(initiator: (time: Date) => Particle): ParticleEmitter;
-    remove(particle: Particle | Particle[]): this;
-    start(): this;
-    stop(): this;
-}
-
 declare class NodasRandom {
     number(range: NdNumericArray2d | number, precision?: number): number;
     point(randomVector: NdNumericArray2d, precision?: number): NdNumericArray2d;
@@ -1023,15 +1051,18 @@ declare class Nodas {
     Field: new (id: string, options?: {
         [key in keyof NdModField]?: Parameters<NdModField[key]['set']>[0];
     }) => Field;
-    Particle: new (sprite: NdParticleSpriteResource | string, resolver: (vector: NdParticleVector, progress: number, time: Date) => boolean, initiator?: (vector: NdParticleVector, time: Date) => boolean) => Particle;
+    get(id: string): Node<any>;
+    append: (node: Node<any> | Node<any>[]) => Nodas;
+    setRoot(node: Group): this;
     Animation: typeof NdSprite;
     Image: typeof NdImage;
     constructor(canvas: HTMLCanvasElement | string);
 }
+
 declare const Fonts: typeof _default$1;
 declare const Resources: typeof NDR;
 declare const NodasImage: typeof NdImage;
 declare const NodasSprite: typeof NdSprite;
 declare const NodasRand: typeof _default;
 
-export { Fonts, NodasImage, NodasRand, NodasSprite, Resources, Nodas as default };
+export { Area, Circle, Field, Fonts, Group, Line, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default };

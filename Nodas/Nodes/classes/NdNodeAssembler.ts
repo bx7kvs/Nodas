@@ -5,8 +5,8 @@ import NdLayer from '../../classes/NdLayer';
 import {NDB} from "../../Services/NodasDebug";
 import {alive} from "../decorators/alive";
 import {AssemblerLayerConfig, NdNodeAssemblerEventScheme, NodasAssemblerUpdateF} from "../@types/types";
-import NdStateEvent from "../../classes/NdStateEvent";
 import NdDestroyableNode from "./NdDestroyableNode";
+import NdEvent from "../../classes/NdEvent";
 
 export default class NdNodeAssembler extends NdDestroyableNode<NdNodeAssemblerEventScheme<NdNodeAssembler>> {
     private output?: NdCanvas = new NdCanvas()
@@ -112,7 +112,7 @@ export default class NdNodeAssembler extends NdDestroyableNode<NdNodeAssemblerEv
             if (rect) {
                 if (this.size[0] !== rect.size[0] || this.size[1] !== rect.size[1]) {
                     this.size = [rect.size[0], rect.size[1]]
-                    this.cast('resize', new NdStateEvent<NdNodeAssembler>(this, null))
+                    this.cast('resize', new NdEvent(this, null))
                 }
             }
         }
@@ -122,7 +122,7 @@ export default class NdNodeAssembler extends NdDestroyableNode<NdNodeAssemblerEv
                 if (this.output) v.layer.draw(this.output.context)
             })
             this._ready = true;
-            this.cast('update', new NdStateEvent<NdNodeAssembler>(this, null))
+            this.cast('update', new NdEvent(this, null))
         }
         return this.output!.element
     }

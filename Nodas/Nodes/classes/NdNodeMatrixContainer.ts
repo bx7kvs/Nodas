@@ -5,8 +5,8 @@ import Group from '../Group';
 import NdModBase from '../models/NdModBase';
 
 export class NdNodeMatrixContainer<Model extends NdModBase = NdModBase, N extends Node<Model> = Node<Model>> {
-    private getter: () => NdNodeMatrix
-    public purge: () => void
+    private readonly getter: () => NdNodeMatrix
+    public readonly purge: () => void
 
     get value(): NdNodeMatrix {
         return this.getter()

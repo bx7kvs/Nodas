@@ -1,6 +1,6 @@
 import Node from "./Node";
 import NdModBase from "./models/NdModBase";
-import {NdParticleModifier, NdParticleVector} from "./@types/types";
+import {NdParticleArgs, NdParticleModifier, NdParticleVector} from "./@types/types";
 import Particle from "./Particle";
 import NdModField from "./models/NdModField";
 import Nodas from "../../Nodas";
@@ -14,21 +14,48 @@ export default class Field extends Node<NdModField & NdModBase> {
     private emitters?: ParticleEmitter[] = []
     private particles?: Particle[] = []
     private modifiers?: NdParticleModifier[] = []
+    private fieldFpsCallback() {
+        this.fps = this.app!.ticker.fps
+    }
+    private self:Field | null = this
+    ParticleEmitter:new (initiator:(time: Date) => Particle) => ParticleEmitter
+    Particle:new(...args:NdParticleArgs) => Particle  = Particle
 
-    constructor(id: string, app: Nodas) {
-        super(id, {...new NdModField(), ...new NdModBase()}, app);
-        this.fps = app.ticker.fps
-        const fieldFpsCallback = () => {
+    attach(app: Nodas) {
+        if(!this.mounted) {
             this.fps = app.ticker.fps
+            app.ticker.on('fps', this.fieldFpsCallback.bind(this))
+        } else NDB.positive(`Field ${this.id} has already been attached. Ignore attach`)
+        return super.attach(app);
+    }
+
+    detach():this {
+        if(this.mounted) {
+            this.fps = this.app!.ticker.fps
+            this.app!.ticker.on('fps', this.fieldFpsCallback.bind(this))
+        }else NDB.positive(`Field ${this.id} has already been detached. Ignore detach`)
+
+        return super.detach();
+    }
+
+    constructor(id: string) {
+        super(id, {...new NdModField(), ...new NdModBase()});
+        const self = this
+        this.ParticleEmitter = class FieldParticleEmitter extends ParticleEmitter {
+            constructor(initiator: (time: Date) => Particle) {
+                super(initiator);
+                if(self) this.field(self)
+                self.emitter(this)
+            }
         }
-        app.ticker.on('fps', fieldFpsCallback)
+
         this.once('destroyed', () => {
-            app.ticker.off('fps', fieldFpsCallback)
             this.emitters = undefined
             this.particles = undefined
             this.modifiers = undefined
             this.active = false
             this.removeAllListeners()
+            this.self = null
         })
     }
 
@@ -115,9 +142,11 @@ export default class Field extends Node<NdModField & NdModBase> {
         return this
     }
 
+
+
     @alive
-    emitter(initiator: (time: Date) => Particle) {
-        const e = new ParticleEmitter(initiator).field(this)
+    emitter(emitter:ParticleEmitter) {
+        const e = emitter.field(this)
         this.emitters!.push(e)
         e.once('destroyed', () => {
             if (!this.destroyed) this.emitters = this.emitters!.filter(v => v !== e)
@@ -148,4 +177,6 @@ export default class Field extends Node<NdModField & NdModBase> {
         } else NDB.message('Attempt to activate active Field. Ignored')
         return this
     }
+
+    static Particle = Particle
 }

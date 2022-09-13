@@ -4,17 +4,15 @@ import NdModBase from '../models/NdModBase';
 import NdModBg from '../models/NdModBg';
 import {NdNumericArray2d} from '../../@types/types';
 import NdDestroyableNode from "./NdDestroyableNode";
-import NdStateEvent from "../../classes/NdStateEvent";
 import {alive} from "../decorators/alive";
+import {NdDestructibleEventScheme} from "../@types/types";
 
-export default class NdNodeEmpiricalMouseChecker extends NdDestroyableNode<{ destroy: NdStateEvent<NdNodeEmpiricalMouseChecker>, destroyed:NdStateEvent<NdNodeEmpiricalMouseChecker> }>{
+export default class NdNodeEmpiricalMouseChecker extends NdDestroyableNode<NdDestructibleEventScheme<NdNodeEmpiricalMouseChecker>> {
     private context?: CanvasRenderingContext2D = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
 
     constructor() {
         super();
-        this.once('destroyed', () => {
-            this.context = undefined
-        })
+        this.once('destroyed', () => this.context = undefined)
     }
 
     @alive
@@ -28,7 +26,7 @@ export default class NdNodeEmpiricalMouseChecker extends NdDestroyableNode<{ des
     }
 
     @alive
-    redraw(styles: (NdModFreeStroke & NdModBase) | (NdModFreeStroke &NdModBg )) {
+    redraw(styles: (NdModFreeStroke & NdModBase) | (NdModFreeStroke & NdModBg)) {
         this.context!.clearRect(0, 0, this.context!.canvas.width, this.context!.canvas.height)
         this.context!.save()
         Node.registerPath(styles.path.protectedValue, this.context!, !!styles.interpolation, !!styles.fill)
@@ -41,6 +39,7 @@ export default class NdNodeEmpiricalMouseChecker extends NdDestroyableNode<{ des
         }
         this.context!.restore()
     }
+
     @alive
     check(pointer: NdNumericArray2d) {
         if (pointer[0] > 0 && pointer[0] < this.context!.canvas.width && pointer[1] > 0 && pointer[1] < this.context!.canvas.height) {

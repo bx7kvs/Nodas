@@ -1,11 +1,10 @@
 import {NdNumericArray2d} from '../@types/types';
-import {NdAssemblerContextResolver} from '../Nodes/@types/types';
+import {NdAssemblerContextResolver, NdDestructibleEventScheme} from '../Nodes/@types/types';
 import NdCanvas from './NdCanvas';
 import NdDestroyableNode from "../Nodes/classes/NdDestroyableNode";
-import NdStateEvent from "./NdStateEvent";
 import {alive} from "../Nodes/decorators/alive";
 
-export default class NdLayer extends NdDestroyableNode<{ destroyed: NdStateEvent<NdLayer>, destroy: NdStateEvent<NdLayer> }> {
+export default class NdLayer extends NdDestroyableNode<NdDestructibleEventScheme<NdLayer>> {
     private canvas? = new NdCanvas;
     private width = 0;
     private height = 0;

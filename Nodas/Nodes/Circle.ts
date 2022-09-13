@@ -6,13 +6,11 @@ import NdModCirc from './models/NdModCirc';
 import NdNodeBox from './classes/NdNodeBox';
 import NdNodeAssembler from './classes/NdNodeAssembler';
 import {NdNumericArray2d} from '../@types/types';
-import Nodas from '../../Nodas';
 import {alive} from "./decorators/alive";
 
 type CircleNodeModel = NdModCirc & NdModBg & NdModAnchor & NdModBase;
 
 export default class Circle extends Node<CircleNodeModel> {
-
 
     protected Box?: NdNodeBox = new NdNodeBox(this, this.cache, () => {
         const position = [...this.data!.position.protectedValue] as NdNumericArray2d,
@@ -65,8 +63,8 @@ export default class Circle extends Node<CircleNodeModel> {
         }
     ])
 
-    constructor(id: string, App: Nodas) {
-        super(id, {...new NdModCirc(), ...new NdModBg(), ...new NdModAnchor(), ...new NdModBase()}, App)
+    constructor(id: string) {
+        super(id, {...new NdModCirc(), ...new NdModBg(), ...new NdModAnchor(), ...new NdModBase()})
         this.watch('radius', () => {
             this.assembler!.update()
             this.assembler!.resize()

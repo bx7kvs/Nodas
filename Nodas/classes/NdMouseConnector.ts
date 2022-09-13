@@ -1,15 +1,17 @@
-import {NdNodePointerPredicate} from '../Nodes/@types/types';
+import {NdDestructibleEventScheme, NdNodePointerPredicate} from '../Nodes/@types/types';
 import Node from '../Nodes/Node';
 import NdModBase from '../Nodes/models/NdModBase';
+import NdDestroyableNode from "../Nodes/classes/NdDestroyableNode";
 
-export default class NdMouseConnector<Props extends NdModBase = NdModBase> {
+export default class NdMouseConnector<Props extends NdModBase = NdModBase> extends NdDestroyableNode<NdDestructibleEventScheme<NdMouseConnector>>{
     private _disabled: boolean = false
-    public readonly test: NdNodePointerPredicate
+    test: NdNodePointerPredicate
     private emit: Node<Props>['cast']
 
     constructor(
         emitter: Node<Props>['cast'],
         tester: NdNodePointerPredicate) {
+        super()
         this.test = tester
         this.emit = emitter
     }
@@ -30,4 +32,13 @@ export default class NdMouseConnector<Props extends NdModBase = NdModBase> {
     enable() {
         this._disabled = false
     }
+
+    destroy():undefined {
+        super.destroy();
+        this.test = () => false
+        this.emit = () => undefined
+        this._disabled = true
+        return
+    }
+
 }

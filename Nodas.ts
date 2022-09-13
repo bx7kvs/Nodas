@@ -8,10 +8,11 @@ import Circle from './Nodas/Nodes/Circle';
 import Sprite from './Nodas/Nodes/Sprite';
 import Area from './Nodas/Nodes/Area';
 import Rectangle from './Nodas/Nodes/Rectangle';
+import Node from "./Nodas/Nodes/Node";
+import ParticleEmitter from "./Nodas/Nodes/ParticleEmitter";
+import Particle from "./Nodas/Nodes/Particle";
 import {
     GroupChildren,
-    NdParticleSpriteResource,
-    NdParticleVector,
     NdPath,
     NdUrlSpriteStr,
     NdURLStr
@@ -24,7 +25,6 @@ import NdImage from './Nodas/classes/NdImage';
 import NdSprite from './Nodas/classes/NdSprite';
 import NdModField from "./Nodas/Nodes/models/NdModField";
 import Field from "./Nodas/Nodes/Field";
-import Particle from "./Nodas/Nodes/Particle";
 import NodasRandom from "./Nodas/Services/NodasRandom";
 
 export default class Nodas {
@@ -41,7 +41,20 @@ export default class Nodas {
     public Group: new(id: string, children?: GroupChildren) => Group
     public Circle: new(id: string, radius?: number) => Circle
     public Field: new (id: string, options?: { [key in keyof NdModField]?: Parameters<NdModField[key]['set']>[0] }) => Field
-    public Particle: new(sprite: NdParticleSpriteResource | string, resolver: (vector: NdParticleVector, progress: number, time: Date) => boolean, initiator?: (vector: NdParticleVector, time: Date) => boolean) => Particle
+
+    public get(id:string):Node<any> {
+        return this.nodes.get(id)
+    }
+
+    public append:(node:Node<any> | Node<any>[]) => Nodas
+
+    public setRoot(node:Group) {
+        this.nodes.root?.detach()
+        node.attach(this)
+        return this
+    }
+
+
 
     Animation = NdSprite
     Image = NdImage
@@ -51,72 +64,93 @@ export default class Nodas {
         const CanvasSrv = new Canvas(TickerSrv)
         const TreeSrv = new Nodes(CanvasSrv)
         const MouseSrv = new Mouse(CanvasSrv, TickerSrv, TreeSrv)
-        const app = this
         CanvasSrv.element(canvas)
         this.ticker = TickerSrv
         this.canvas = CanvasSrv
         this.mouse = MouseSrv
         this.nodes = TreeSrv
 
-        //Ceating Root Group
-        new Group('NODE_TREE_DEFAULT_ROOT', this)
 
+        const root = new Group('NODE_TREE_DEFAULT_ROOT')
+        root.attach(this)
+
+        this.append = (node:Node<any> | Node<any>[]) => {
+            root.append(node)
+            return this
+        }
         this.Text = class NodasText extends Text {
             constructor(id: string, str?: string) {
-                super(id, app);
+                super(id);
                 if (str) this.style('str', str)
+                root.append(this)
             }
         }
         this.Area = class NodasArea extends Area {
             constructor(id:string, path?:NdPath) {
-                super(id, app);
+                super(id);
                 if(path) this.style('path', path)
+                root.append(this)
             }
         }
         this.Rectangle = class NodasRectangle extends Rectangle{
             constructor(id:string, size?:NdNumericArray2d) {
-                super(id,app);
+                super(id);
                 if(size) this.style('size', size)
+                root.append(this)
             }
         }
         this.Line = class NodasLine extends Line {
             constructor(id:string, path?:NdPath) {
-                super(id, app);
+                super(id);
                 if(path) this.style('path', path)
+                root.append(this)
             }
         }
         this.Sprite = class NodasSprite extends Sprite {
             constructor(id:string, url?:NdURLStr | NdUrlSpriteStr) {
-                super(id, app);
+                super(id);
                 if(url) this.style('src', url)
+                root.append(this)
             }
         }
         this.Circle = class NodasCircle extends Circle {
             constructor(id:string, radius?:number) {
-                super(id, app);
+                super(id);
                 if(radius) this.style('radius', radius)
+                root.append(this)
             }
         }
         this.Group = class NodasGroup extends Group {
             constructor(id:string, children?:GroupChildren) {
-                super(id, app);
+                super(id);
                 if (children) this.append(children)
+                root.append(this)
             }
         }
 
         this.Field = class NodasField extends Field {
             constructor(id:string, options?:{[key in keyof NdModField] ?: Parameters<NdModField[key]['set']>[0]}) {
-                super(id, app);
+                super(id);
                 if(options) this.style(options)
-            }
-        }
-        this.Particle = class NodasParticle extends Particle {
-            constructor(sprite:NdParticleSpriteResource | string, resolver:(vector: NdParticleVector, progress:number, time:Date) => boolean, initiator?:(vector: NdParticleVector, time:Date) => boolean) {
-                super(sprite, resolver, initiator);
+                root.append(this)
             }
         }
 
+
     }
+}
+export  {
+    Area as Area,
+    Circle as Circle,
+    Field as Field,
+    Group as Group,
+    Line as Line,
+    Node as Node,
+    ParticleEmitter as ParticleEmitter,
+    Particle as Particle,
+    Rectangle as Rectangle,
+    Sprite as Sprite,
+    Text as Text
 }
 export const Fonts: typeof NodasFonts = NodasFonts
 export const Resources: typeof NodasResources = NodasResources

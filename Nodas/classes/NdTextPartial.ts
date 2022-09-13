@@ -1,12 +1,11 @@
-import {NdColorStr, NdTextPartialProps} from '../Nodes/@types/types';
+import {NdColorStr, NdDestructibleEventScheme, NdTextPartialProps} from '../Nodes/@types/types';
 import {NdFontSpecialValues, NdFontStyles, NdFontWeights} from '../@types/types';
 import NdNodeStylesModel from '../Nodes/classes/NdNodeStylesModel';
 import NodasFonts from '../Services/NodasFonts';
 import NdDestroyableNode from "../Nodes/classes/NdDestroyableNode";
-import NdStateEvent from "./NdStateEvent";
 import {alive} from "../Nodes/decorators/alive";
 
-export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPartialProps & {destroy:NdStateEvent<NdTextPartial>, destroyed:NdStateEvent<NdTextPartial>}> implements NdTextPartialProps {
+export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPartialProps & NdDestructibleEventScheme<NdTextPartial>> implements NdTextPartialProps {
     private textColor: NdColorStr = 'rgba(0,0,0,1)'
     private fWeight: NdFontWeights = 400
     private fSize: number = 14

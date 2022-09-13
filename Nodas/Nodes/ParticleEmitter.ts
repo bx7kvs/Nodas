@@ -1,12 +1,12 @@
 import NdStyledNode from "./classes/NdStyledNode";
 import NdModEmitter from "./models/NdModEmitter";
-import {NdNodeBasicEventScheme} from "./@types/types";
+import {NdDestructibleEventScheme, NdNodeBasicEventScheme} from "./@types/types";
 import Particle from "./Particle";
 import Field from "./Field";
 import {alive} from "./decorators/alive";
 import NodasRandom from "../Services/NodasRandom";
 
-export default class ParticleEmitter extends NdStyledNode<NdModEmitter, NdNodeBasicEventScheme<ParticleEmitter>> {
+export default class ParticleEmitter extends NdStyledNode<NdModEmitter, NdNodeBasicEventScheme<ParticleEmitter> & NdDestructibleEventScheme<ParticleEmitter>> {
 
     private readonly initiator: (time: Date) => Particle
     private particles?: Particle[] = []

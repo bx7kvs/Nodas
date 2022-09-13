@@ -23,7 +23,6 @@ export default class Ticker extends NdEmitter<NdTickerEvents> {
         window.addEventListener('focus', () => {
             if (this.softPause) {
                 NDB.positive('Window focused. Restart')
-                this.softPause = false
                 this.start()
             }
         })
@@ -42,6 +41,7 @@ export default class Ticker extends NdEmitter<NdTickerEvents> {
 
     start() {
         if (!this.interval) {
+            this.softPause = false
             this.interval = window.setInterval(this.tick, this.frameDuration)
             if (!this.init) {
                 this.cast("fps", null)

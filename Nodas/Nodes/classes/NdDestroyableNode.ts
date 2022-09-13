@@ -1,9 +1,10 @@
 import NdEmitter from "../../classes/NdEmitter";
 import {alive} from "../decorators/alive";
-import NdStateEvent from "../../classes/NdStateEvent";
+import NdDestroyEvent from "../../classes/NdDestroyEvent";
+import {NdDestructibleEventScheme} from "../@types/types";
 
 
-export default class NdDestroyableNode<Scheme extends { destroy: NdStateEvent<NdDestroyableNode<Scheme>>, destroyed:NdStateEvent<NdDestroyableNode<Scheme>> }> extends NdEmitter<Scheme> {
+export default class NdDestroyableNode<Scheme extends NdDestructibleEventScheme<NdDestroyableNode<Scheme>>> extends NdEmitter<Scheme> {
     private _destroyed: boolean = false
 
     constructor() {
@@ -14,9 +15,9 @@ export default class NdDestroyableNode<Scheme extends { destroy: NdStateEvent<Nd
     }
     @alive
     destroy():undefined {
-        this.cast('destroy', new NdStateEvent(this, null) as Scheme['destroy'])
+        this.cast('destroy', new NdDestroyEvent(this) as Scheme['destroy'])
         this._destroyed = true
-        this.cast('destroyed', new NdStateEvent(this, null) as Scheme['destroyed'])
+        this.cast('destroyed', new NdDestroyEvent(this) as Scheme['destroyed'])
         this.removeAllListeners()
         return
     }

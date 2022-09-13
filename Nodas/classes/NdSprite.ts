@@ -3,8 +3,8 @@ import {NdUrlSpriteStr, NdURLStr} from '../Nodes/@types/types';
 import {NdNumericArray2d} from '../@types/types';
 import {NDB} from '../Services/NodasDebug';
 import NDR from '../Services/NodasResources';
-import NdStateEvent from "./NdStateEvent";
 import {alive} from "../Nodes/decorators/alive";
+import NdEvent from "./NdEvent";
 
 export default class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageElement> {
     private frameCount: number = 0
@@ -28,12 +28,12 @@ export default class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageEl
                 if (match[2]) {
                     this.frameCount = parseInt(match[2])
                 } else NDB.error(`No frame group match for url ${url}. How did you even get here?`)
-                this.cast('load', new NdStateEvent(this, null))
+                this.cast('load', new NdEvent(this, null))
 
             }, () => {
                 NDB.negative(`Error loading sprite ${this.url}.`)
                 this.status = 0;
-                this.cast('error', new NdStateEvent(this, null))
+                this.cast('error', new NdEvent(this, null))
             }, () => {
                 this.defineImage(url)
             })

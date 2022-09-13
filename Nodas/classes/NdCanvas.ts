@@ -1,8 +1,8 @@
 import NdDestroyableNode from "../Nodes/classes/NdDestroyableNode";
-import NdStateEvent from "./NdStateEvent";
 import {alive} from "../Nodes/decorators/alive";
+import {NdDestructibleEventScheme} from "../Nodes/@types/types";
 
-export default class NdCanvas extends NdDestroyableNode<{ destroy: NdStateEvent<NdCanvas>, destroyed: NdStateEvent<NdCanvas> }> {
+export default class NdCanvas extends NdDestroyableNode<NdDestructibleEventScheme<NdCanvas>> {
     private _element?: HTMLCanvasElement;
     private _context?: CanvasRenderingContext2D;
     private size = [0, 0]

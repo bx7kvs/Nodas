@@ -14,9 +14,9 @@ import {
     NdRootCanvasStateEventsScheme
 } from './Nodes/@types/types';
 import NdMouseEvent from './classes/NdMouseEvent';
-import NdStateEvent from './classes/NdStateEvent';
 import NdEmitter from './classes/NdEmitter';
 import {NDB} from './Services/NodasDebug';
+import NdEvent from "./classes/NdEvent";
 
 export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & NdRootCanvasStateEventsScheme>{
 
@@ -121,14 +121,14 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
                 if (this.resizeProcessTimeout) clearTimeout(this.resizeProcessTimeout)
                 this.resizeProcessTimeout = setTimeout(() => {
                     this.recalculateSize()
-                    this.cast('resize', new NdStateEvent<Canvas>(this, null))
+                    this.cast('resize', new NdEvent(this, null))
                 }, 1000)
             } else {
                 if (this.resizeProcessTimeout) clearTimeout(this.resizeProcessTimeout)
                 this.sNumeric[0] = this.s[0]
                 this.sNumeric[1] = this.s[1]
                 this.recalculateSize()
-                this.cast('resize', new NdStateEvent(this, null))
+                this.cast('resize', new NdEvent(this, null))
             }
         }
     }
@@ -141,7 +141,7 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
             this.args[0] = this.context;
             this.args[1] = date;
             this.args[2] = frame;
-            this.q.forEach((qcb, i) => {
+            this.q.forEach((qcb) => {
                 qcb.callback.apply(this, this.args)
             })
         }
@@ -182,7 +182,7 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
             NDB.positive(`Accepted ${target.id ? target.id : target.classList.toString()} as rendering root`)
         }
         this.handleResize()
-        this.cast('switch', new NdStateEvent<Canvas>(this, null))
+        this.cast('switch', new NdEvent<Canvas, null>(this, null))
     };
 
     queue(a: NdCanvasQueueCallback | number, b?: NdCanvasQueueCallback) {

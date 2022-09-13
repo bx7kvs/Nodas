@@ -2,7 +2,7 @@ import {NdNumericArray2d} from "../@types/types";
 import {NdMatrixVal} from "../Nodes/@types/types";
 
 export default class NdMatrix {
-    private traceBack:boolean
+    private readonly traceBack:boolean
     protected history: {
         translate?: NdNumericArray2d,
         skew?: NdNumericArray2d,

@@ -1,7 +1,9 @@
 import {NdNumericArray2d} from "../@types/types";
 import NdSprite from "../classes/NdSprite";
 import {
-    NdNodeBasicEventScheme,
+    NdDestructibleEventScheme,
+    NdParticleArgs,
+    NdParticleEventScheme,
     NdParticleSpriteResource,
     NdParticleVector,
     NdUrlSpriteStr,
@@ -11,10 +13,10 @@ import NdImage from "../classes/NdImage";
 import NdMatrix from "../classes/NdMatrix";
 import NdStyledNode from "./classes/NdStyledNode";
 import NdModParticle from "./models/NdModParticle";
-import NdStateEvent from "../classes/NdStateEvent";
 import {alive} from "./decorators/alive";
+import NdEvent from "../classes/NdEvent";
 
-export default class Particle extends NdStyledNode<NdModParticle, NdNodeBasicEventScheme<Particle>> {
+export default class Particle extends NdStyledNode<NdModParticle, NdParticleEventScheme<Particle> & NdDestructibleEventScheme<Particle>> {
 
     private sprite: NdParticleSpriteResource | null
     private origin: NdNumericArray2d = [0, 0]
@@ -87,7 +89,7 @@ export default class Particle extends NdStyledNode<NdModParticle, NdNodeBasicEve
                     this._initialised = this._initiator(this.data!.vector.protectedValue, time)
                 } else this._initialised = true
                 this.startTime = time.getTime()
-                this.cast('mount', new NdStateEvent<Particle>(this, null))
+                this.cast('ready', new NdEvent(this, null))
             }
             if (this._initialised) {
                 applyContext(this.data!.vector.protectedValue)
@@ -114,7 +116,7 @@ export default class Particle extends NdStyledNode<NdModParticle, NdNodeBasicEve
                         context.drawImage(image, 0, 0)
                         context.restore()
                     }
-                    if(progress === 1) this.destroy()
+                    if (progress === 1) this.destroy()
                 } else this.destroy()
             }
         }
@@ -132,10 +134,7 @@ export default class Particle extends NdStyledNode<NdModParticle, NdNodeBasicEve
         return this
     }
 
-    constructor(
-        sprite: NdParticleSpriteResource | string,
-        resolver: (vector: NdParticleVector, progress:number, time:Date) => boolean,
-        initiator?: (vector: NdParticleVector, time:Date) => boolean) {
+    constructor(...[sprite, resolver, initiator]:NdParticleArgs) {
         super(new NdModParticle());
         this._resolver = resolver
         if (initiator) this._initiator = initiator

@@ -6,7 +6,6 @@ import NdTextBlock from '../classes/NdTextBlock';
 import NdModText from './models/NdModText';
 import {NdFontSpecialValues, NdNumericArray2d} from '../@types/types';
 import Node from './Node';
-import Nodas from '../../Nodas';
 import {NdTextPartialProps} from './@types/types';
 import nodasFonts from '../Services/NodasFonts';
 import {alive} from "./decorators/alive";
@@ -32,8 +31,8 @@ export default class Text extends Node<TextNodeModel> {
         return [position[0], position[1], width, height, 0, 0, 0, 0]
     });
 
-    constructor(id: string, app: Nodas) {
-        super(id, {...new NdModText(), ...new NdModAnchor(), ...new NdModBase()}, app);
+    constructor(id: string) {
+        super(id, {...new NdModText(), ...new NdModAnchor(), ...new NdModBase()});
         this.textBlock = new NdTextBlock(this.data!.str.protectedValue)
         this.syncStylesToBlock()
         this.watch(['str', 'lineHeight', 'width', 'weight', 'style'], () => {

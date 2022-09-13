@@ -3,8 +3,8 @@ import Node from '../Node';
 import NdCache from '../../classes/NdCache';
 
 export default class NdNodeBox {
-    private box: NdBox
-    private getter: () => NdBox
+    private readonly box: NdBox
+    private readonly getter: () => NdBox
     public purge: () => void
 
     get value(): NdBox {

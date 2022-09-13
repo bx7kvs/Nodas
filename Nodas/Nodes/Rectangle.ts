@@ -8,7 +8,6 @@ import {NdColorStr, NdPathBezier, NdSegmentBezier, NdStrokeWidthBox} from './@ty
 import NdModBg from './models/NdModBg';
 import {NdNumericArray2d} from '../@types/types';
 import Node from './Node';
-import Nodas from '../../Nodas';
 import {alive} from "./decorators/alive";
 
 type RectNodeModel = NdModRect & NdModSize & NdModAnchor & NdModBg & NdModBase
@@ -52,8 +51,8 @@ export default class Rectangle extends Node<RectNodeModel> {
         }
     ])
 
-    constructor(id: string, app: Nodas) {
-        super(id, {...new NdModRect(), ...new NdModSize(), ...new NdModAnchor(), ...new NdModBg(), ...new NdModBase()}, app);
+    constructor(id: string) {
+        super(id, {...new NdModRect(), ...new NdModSize(), ...new NdModAnchor(), ...new NdModBg(), ...new NdModBase()});
         this.strokeFix = [...this.data!.strokeWidth.protectedValue] as [number, number, number, number]
         const {
             getter,

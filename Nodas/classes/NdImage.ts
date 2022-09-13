@@ -2,8 +2,8 @@ import NdResource from './NdResource';
 import {NdURLStr} from '../Nodes/@types/types';
 import NDR from '../Services/NodasResources';
 import {NDB} from '../Services/NodasDebug';
-import NdStateEvent from "./NdStateEvent";
 import {alive} from "../Nodes/decorators/alive";
+import NdEvent from "./NdEvent";
 
 export default class NdImage extends NdResource<HTMLImageElement> {
     public image?: HTMLImageElement
@@ -18,12 +18,12 @@ export default class NdImage extends NdResource<HTMLImageElement> {
                     this._size[0] = this.image.width
                     this._size[1] = this.image.height
                 } else NDB.error('Unable to set size of image that was not yet defined')
-                this.cast('load', new NdStateEvent(this, null))
+                this.cast('load', new NdEvent(this, null))
             },
             () => {
                 this.status = 0
-                this.cast('load', new NdStateEvent(this, null))
-                this.cast('error', new NdStateEvent(this, null))
+                this.cast('load', new NdEvent(this, null))
+                this.cast('error', new NdEvent(this, null))
             },
             () => this.defineImage(url)
         )

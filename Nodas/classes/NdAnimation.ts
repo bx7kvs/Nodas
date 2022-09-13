@@ -9,11 +9,11 @@ import NdAnimatedNode from "../Nodes/classes/NdAnimatedNode";
 
 export default class NdAnimation<Model extends NdNodeStylesModel, N extends NdAnimatedNode<Model, any>= NdAnimatedNode<Model, any>>
     extends NdEmitter<{ [key in 'step' | 'complete']: NdEvent<N, { progress: number, ease: number }> }> {
-    private duration: number;
-    private easing: keyof typeof ndEasings;
+    private readonly duration: number;
+    private readonly easing: keyof typeof ndEasings;
     private stack: NdAnimationStack<Model> = [];
     morphine?: NdMorphine;
-    private node: N
+    private readonly node: N
     public readonly target = null;
     private readonly _queue: boolean = false;
     private _active: boolean = false;

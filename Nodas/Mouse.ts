@@ -1,4 +1,4 @@
-import NdMouseConnector from './Mouse/NdMouseConnector';
+import NdMouseConnector from './classes/NdMouseConnector';
 import NdModBase from './Nodes/models/NdModBase';
 import {NdMouseEventData, NdNodeMouseEventsScheme} from './Nodes/@types/types';
 import Ticker from './Ticker';
@@ -8,6 +8,7 @@ import NdMouseEvent from './classes/NdMouseEvent';
 import Nodes from './Nodes';
 import Node from './Nodes/Node';
 import Group from "./Nodes/Group";
+import {NDB} from "./Services/NodasDebug";
 
 export default class Mouse {
     private Nodes: {
@@ -180,8 +181,14 @@ export default class Mouse {
                 node: node,
                 handler: handler
             }
-            node.once('destroy', () => delete this.Nodes[node.id])
+            node.once('destroy', () =>  this.unregister(node))
         } else throw new Error(`Another Nodas with id ${node.id} has already been registered as mouse sensitive`)
         return this.Nodes[node.id].handler
+    }
+    unregister<Props extends NdModBase>(node:Node<any>) {
+        if(this.Nodes[node.id]) {
+            delete this.Nodes[node.id]
+            NDB.positive(`Node ${node.id} has been unregistered as mouse sensitive`)
+        }
     }
 }

@@ -4,7 +4,6 @@ import NdModBase from './models/NdModBase';
 import NdModFreeStroke from './models/NdModFreeStroke';
 import NdModAnchor from './models/NdModAnchor';
 import Node from './Node';
-import Nodas from '../../Nodas';
 import NdNodeStylesModel from './classes/NdNodeStylesModel';
 import NdNodeEmpiricalMouseChecker from './classes/NdNodeEmpiricalMouseChecker';
 import {NdNumericArray2d} from '../@types/types';
@@ -78,8 +77,8 @@ export default class Line extends Node<LineNodeModel> {
         }
     ])
 
-    constructor(id: string, app: Nodas) {
-        super(id, {...new NdModFreeStroke(), ...new NdModAnchor(), ...new NdModBase()}, app);
+    constructor(id: string) {
+        super(id, {...new NdModFreeStroke(), ...new NdModAnchor(), ...new NdModBase()});
         this.once('destroyed', () => {
             this.mouseTester = this.mouseTester!.destroy()
         })

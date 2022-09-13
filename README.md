@@ -183,6 +183,25 @@ group.on('mouseDown', () => {
 })
 ```
 
+## 0.9.0
+### Features:
+1. Nodes can be detached from instance and transferred across Nodas apps
+2. Group class new methods prepend(), attach(), detach(), remove() and boolean property "mount" indicating if node is currently attached to an app
+3. All nodes new methods appendTo(), prependTo()
+4. Nodas provides detached classes import Area, Circle, Field, Group, Line, Node, ParticleEmitter,Particle, Rectangle,Sprite, Text. Those classes can be extended and attached to any Nodas app
+5. Nodas now has new methods:
+   a) setRoot() to set any group as a root group for a Nodas app
+   b) append() to append element to current root group and mount (attach) those nodes to app
+6. Added Particle field for Field class to create particle attached to the Field from the start
+7. Added ParticleEmitter field for Field class to create ParticleEmitter attached to Field from the start
+
+### Updated:
+1. Full refactor of node tree functionality
+
+### Fixed:
+1. Nodes now actually emit "mount" and "unmount" events
+2. Numerous small fixes and improvements across package
+
 ## 0.8.1
 
 ### Features:

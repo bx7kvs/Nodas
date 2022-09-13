@@ -8,7 +8,6 @@ import NdModBg from './models/NdModBg';
 import NdModAnchor from './models/NdModAnchor';
 import NdNodeBox from './classes/NdNodeBox';
 import {NdSegmentBezier} from './@types/types';
-import Nodas from '../../Nodas';
 import NdNodeEmpiricalMouseChecker from './classes/NdNodeEmpiricalMouseChecker';
 import {NdNumericArray2d} from '../@types/types';
 import {alive} from "./decorators/alive";
@@ -108,8 +107,8 @@ export default class Area extends Node<AreaStaticModel> {
         return this.mouseTester!.check(this.matrix.traceCursorToLocalSpace([...cursor], this)) ? this : false
     }
 
-    constructor(id: string, app: Nodas) {
-        super(id, {...new NdModBase(), ...new NdModFreeStroke(true), ...new NdModAnchor(), ...new NdModBg}, app)
+    constructor(id: string) {
+        super(id, {...new NdModBase(), ...new NdModFreeStroke(true), ...new NdModAnchor(), ...new NdModBg})
         this.once('destroyed', () => {
             this.mouseTester = this.mouseTester!.destroy()
         })

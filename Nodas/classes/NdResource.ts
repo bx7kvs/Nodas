@@ -1,21 +1,20 @@
-import {NdExportable, NdURLStr} from '../Nodes/@types/types';
+import {NdDestructibleEventScheme, NdExportable, NdURLStr} from '../Nodes/@types/types';
 import {alive} from "../Nodes/decorators/alive";
 import NdDestroyableNode from "../Nodes/classes/NdDestroyableNode";
-import NdStateEvent from "./NdStateEvent";
+import NdEvent from "./NdEvent";
 
 export default abstract class NdResource<T extends NdExportable> extends NdDestroyableNode<{
-    load: NdStateEvent<NdResource<T>>,
-    error: NdStateEvent<NdResource<T>>,
-    destroy: NdStateEvent<NdResource<T>>,
-    destroyed: NdStateEvent<NdResource<T>>
-}> {
+    load: NdEvent<NdResource<T>, null>,
+    error: NdEvent<NdResource<T>, null>,
+
+} & NdDestructibleEventScheme<NdResource<T>>> {
     private readonly src: NdURLStr
     private readonly resolve: () => NdResource<T>
     protected status: number = -1
     private resolved: boolean = false
     abstract export(time:Date): T | undefined
 
-    constructor(url: NdURLStr, resolve: () => NdResource<T>) {
+    protected constructor(url: NdURLStr, resolve: () => NdResource<T>) {
         super()
         this.src = url
         this.resolve = resolve
