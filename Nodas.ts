@@ -26,6 +26,7 @@ import NdSprite from './Nodas/classes/NdSprite';
 import NdModField from "./Nodas/Nodes/models/NdModField";
 import Field from "./Nodas/Nodes/Field";
 import NodasRandom from "./Nodas/Services/NodasRandom";
+import {NDB} from "./Nodas/Services/NodasDebug";
 
 export default class Nodas {
     readonly ticker = new Ticker()
@@ -150,7 +151,10 @@ export  {
     Particle as Particle,
     Rectangle as Rectangle,
     Sprite as Sprite,
-    Text as Text
+    Text as Text,
+    NdImage as NdImage,
+    NdSprite as NdSprite,
+    NDB as NDB
 }
 export const Fonts: typeof NodasFonts = NodasFonts
 export const Resources: typeof NodasResources = NodasResources

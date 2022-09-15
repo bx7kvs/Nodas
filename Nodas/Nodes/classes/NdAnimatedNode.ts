@@ -13,7 +13,7 @@ import NdEvent from "../../classes/NdEvent";
 type ExtractAnimated<T extends NdNodeStylesModel, PT> = {
     [Key in keyof T]: T[Key] extends PT ? PT : never
 }
-export default class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme extends NdDestructibleEventScheme<NdAnimatedNode<Model, Scheme>> & {[key:string]: NdEvent<any, any>}> extends NdStyledNode<Model, Scheme> {
+export default class NdAnimatedNode<Model extends NdNodeStylesModel, Scheme extends NdDestructibleEventScheme<NdAnimatedNode<Model, Scheme>> & { [key: string]: NdEvent<any, any> }> extends NdStyledNode<Model, Scheme> {
     protected animations?: NdAnimation<Model>[] = [];
 
     @alive

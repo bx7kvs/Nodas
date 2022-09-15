@@ -30,7 +30,6 @@ export default class Nodes {
     }
 
 
-
     register(node: Node<any>, connector: NdNodeConnector) {
         if (!node.destroyed) {
             if (!this._root.node) {
@@ -57,7 +56,7 @@ export default class Nodes {
         if (this.ids.has(node.id)) {
             delete this.nodes[node.id]
             this.ids.delete(node.id)
-            if(this._root && this._root.node === node) {
+            if (this._root && this._root.node === node) {
                 NDB.warn('Unregistering root group')
                 this._root = {}
             }
@@ -90,7 +89,7 @@ export default class Nodes {
         NDB.warn(`Attempt to rename non existing node ${id}`)
     }
 
-    get(id: string):Node<any> {
+    get(id: string): Node<any> {
         return this.nodes[id].node
     }
 

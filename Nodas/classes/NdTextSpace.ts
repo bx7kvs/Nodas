@@ -11,10 +11,10 @@ export default class NdTextSpace extends NdTextPartial {
     constructor() {
         super();
         this.on('font', () => {
-            if(!Object.values(NdFontSpecialValues).includes(this.font as NdFontSpecialValues)) {
+            if (!Object.values(NdFontSpecialValues).includes(this.font as NdFontSpecialValues)) {
                 const font = nodasFonts.get(this.font)
-                if(font) {
-                    if(!font.loaded) {
+                if (font) {
+                    if (!font.loaded) {
                         font.once('load', () => {
                             this.measured = false
                         })
@@ -36,7 +36,8 @@ export default class NdTextSpace extends NdTextPartial {
     }
 
     @alive
-    render(){}
+    render() {
+    }
 
     @alive
     forceRedraw() {

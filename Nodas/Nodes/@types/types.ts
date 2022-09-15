@@ -48,7 +48,7 @@ export type NdMouseEventData = {
 }
 
 export type NdNodeMouseEventsScheme<Class extends NdEmitter<any>> = {
-    [key:string] : NdEvent<any, any>
+    [key: string]: NdEvent<any, any>
     mouseMove: NdMouseEvent<Class>
     mouseLeave: NdMouseEvent<Class>
     mouseEnter: NdMouseEvent<Class>
@@ -66,27 +66,27 @@ export type NdDestructibleEventScheme<Class extends NdEmitter<any>> = {
 }
 
 export type NdNodeBasicEventScheme<Class extends NdEmitter<any>> = {
-    [key:string] : NdEvent<any, any>
+    [key: string]: NdEvent<any, any>
     mount: NdStateEvent<Class>
     unmount: NdStateEvent<Class>
 }
 
 export type NdParticleEventScheme<Class extends NdEmitter<any>> = {
-    [key:string] : NdEvent<any, any>
+    [key: string]: NdEvent<any, any>
     ready: NdEvent<Class, null>
 }
 export type NdNodeAssemblerEventScheme<Class extends NdEmitter<any>> = {
-    [key:string] : NdEvent<any, any>
+    [key: string]: NdEvent<any, any>
     resize: NdStateEvent<Class>,
     update: NdStateEvent<Class>
 } & NdDestructibleEventScheme<Class>
 export type NdNodeStateEventsScheme<Class extends NdEmitter<any>> = {
-    [key:string] : NdEvent<any, any>
+    [key: string]: NdEvent<any, any>
     export: NdStateEvent<Class>
     update: NdStateEvent<Class>
 }
 export type NdNodeEventScheme<Class extends NdEmitter<any>> = {
-    [key:string] : NdEvent<any, any>
+    [key: string]: NdEvent<any, any>
 } &
     NdDestructibleEventScheme<Class>
     & NdNodeBasicEventScheme<Class>
@@ -94,7 +94,7 @@ export type NdNodeEventScheme<Class extends NdEmitter<any>> = {
     & NdNodeMouseEventsScheme<Class>
 
 export type NdRootCanvasMouseEventsScheme = {
-    [key:string] : NdEvent<any, any>
+    [key: string]: NdEvent<any, any>
     mouseEnter: NdMouseEvent<Canvas>
     mouseLeave: NdMouseEvent<Canvas>
     mouseMove: NdMouseEvent<Canvas>
@@ -102,15 +102,15 @@ export type NdRootCanvasMouseEventsScheme = {
     mouseUp: NdMouseEvent<Canvas>
 }
 export type NdRootCanvasStateEventsScheme = {
-    [key:string] : NdEvent<any, any>
+    [key: string]: NdEvent<any, any>
     switch: NdEvent<Canvas, null>
-    resize:  NdEvent<Canvas, null>
+    resize: NdEvent<Canvas, null>
 }
 export type NdParticleModifier = (vector: NdParticleVector) => void
 export type NdParticleArgs = [
     sprite: NdParticleSpriteResource | string,
-    resolver: (vector: NdParticleVector, progress:number, time:Date) => boolean,
-    initiator?: (vector: NdParticleVector, time:Date) => boolean
+    resolver: (vector: NdParticleVector, progress: number, time: Date) => boolean,
+    initiator?: (vector: NdParticleVector, time: Date) => boolean
 ]
 export type NodasAssemblerUpdateF<T extends AssemblerLayerConfig[], K extends number = keyof T & number> = (name?: T[K]['name']) => void
 export type AssemblerLayerConfig = {
@@ -168,8 +168,10 @@ export type NdTextPartialProps = {
 
 export type NdPercentStr = (`${number}%` | `${number}.${number}%` | `.${number}%`) & string
 export type NdColorStr = `rgba(${number},${number},${number},${number})` & string;
-export type NdURLStr = `${string}.${('png' | 'jpg')}` & string
-export type NdUrlSpriteStr = `${string}.${('png' | 'jpg' | 'font')}[${number}]` & string
+export type NdURLStr = `${string}.${('png' | 'jpg')}` | `data:image/${string};base64,${string}` & string
+export type NdUrlSpriteStr =
+    `${string}.${('png' | 'jpg' | 'font')}[${number}]`
+    | `[${number}]data:image/${string};base64,${string}` & string
 export type NdPosition =
     NdPercentStr
     | 'left'

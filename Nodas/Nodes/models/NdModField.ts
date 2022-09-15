@@ -32,8 +32,8 @@ export default class NdModField extends NdNodeStylesModel {
         current => current,
         value => {
             if (isFinite(value)) return value
-            if(value < 0) value = 0
-            if(value > 1) value = 1
+            if (value < 0) value = 0
+            if (value > 1) value = 1
             return value
         }
     )

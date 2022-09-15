@@ -61,7 +61,7 @@ export default abstract class Node<Model extends NdModBase, Scheme extends NodeS
 
     @alive
     attach(app: Nodas) {
-        if(app !== this.app) {
+        if (app !== this.app) {
             if (this.mounted) this.detach()
             this.app = app
             app.nodes.register(this, this.treeConnector)
@@ -84,7 +84,7 @@ export default abstract class Node<Model extends NdModBase, Scheme extends NodeS
     @alive
     destroy() {
         this.treeConnector.forEachChild(v => v.destroy())
-        if(this.parent) this.parent.remove(this)
+        if (this.parent) this.parent.remove(this)
         if (this.assembler) this.assembler = this.assembler.destroy()
         this.detach()
         this.treeConnector.reset()
@@ -154,7 +154,8 @@ export default abstract class Node<Model extends NdModBase, Scheme extends NodeS
         node.append(this)
         return this
     }
-    prependTo(node:Group) {
+
+    prependTo(node: Group) {
         node.prepend(this)
         return this
     }

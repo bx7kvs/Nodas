@@ -10,11 +10,13 @@ export default class NdDestroyableNode<Scheme extends NdDestructibleEventScheme<
     constructor() {
         super();
     }
+
     get destroyed() {
         return this._destroyed
     }
+
     @alive
-    destroy():undefined {
+    destroy(): undefined {
         this.cast('destroy', new NdDestroyEvent(this) as Scheme['destroy'])
         this._destroyed = true
         this.cast('destroyed', new NdDestroyEvent(this) as Scheme['destroyed'])

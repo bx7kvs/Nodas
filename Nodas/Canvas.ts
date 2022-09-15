@@ -18,7 +18,7 @@ import NdEmitter from './classes/NdEmitter';
 import {NDB} from './Services/NodasDebug';
 import NdEvent from "./classes/NdEvent";
 
-export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & NdRootCanvasStateEventsScheme>{
+export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & NdRootCanvasStateEventsScheme> {
 
     private e: HTMLCanvasElement | null = null;
     private context: NdCanvasContext = null;
@@ -37,30 +37,30 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
         screen: [0, 0]
     }
 
-    private updateEventData:(e: MouseEvent)=> NdMouseEventData = (e) => {
+    private updateEventData: (e: MouseEvent) => NdMouseEventData = (e) => {
         this.cursor.page = [e.pageX, e.pageY]
         this.cursor.cursor = this.getMouseRelativePosition(e)
         this.cursor.screen = [e.pageX - this.scroll[0], e.pageY - this.scroll[1]]
         return this.cursor
     }
 
-    private onCanvasMouseMove:(e: MouseEvent)=> void = (e) => {
+    private onCanvasMouseMove: (e: MouseEvent) => void = (e) => {
         this.cast('mouseMove', new NdMouseEvent<Canvas>(this, this.updateEventData(e)))
     }
 
-    private onCanvasMouseLeave:(e: MouseEvent)=> void = (e) => {
+    private onCanvasMouseLeave: (e: MouseEvent) => void = (e) => {
         this.cast('mouseLeave', new NdMouseEvent<Canvas>(this, this.updateEventData(e)))
     }
 
-    private onCanvasMouseEnter:(e: MouseEvent)=> void = (e) => {
+    private onCanvasMouseEnter: (e: MouseEvent) => void = (e) => {
         this.cast('mouseEnter', new NdMouseEvent<Canvas>(this, this.updateEventData(e)))
     }
 
-    private onCanvasMouseDown:(e: MouseEvent)=> void = (e) => {
+    private onCanvasMouseDown: (e: MouseEvent) => void = (e) => {
         this.cast('mouseDown', new NdMouseEvent<Canvas>(this, this.updateEventData(e)))
     }
 
-    private onCanvasMouseUp:(e: MouseEvent)=> void = (e) =>{
+    private onCanvasMouseUp: (e: MouseEvent) => void = (e) => {
         this.cast('mouseUp', new NdMouseEvent<Canvas>(this, this.updateEventData(e)))
     }
 
@@ -135,8 +135,8 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
 
     private DrawScene: NdTickerF = (date, frame) => {
         if (this._ready && this.context) {
-            if(this._clear) {
-                this.context.clearRect(0,0, this.context.canvas.offsetWidth, this.context.canvas.offsetHeight)
+            if (this._clear) {
+                this.context.clearRect(0, 0, this.context.canvas.offsetWidth, this.context.canvas.offsetHeight)
             }
             this.args[0] = this.context;
             this.args[1] = date;
@@ -223,9 +223,11 @@ export default class Canvas extends NdEmitter<NdRootCanvasMouseEventsScheme & Nd
     get ready() {
         return this._ready
     }
+
     get clear() {
         return this._clear
     }
+
     set clear(value) {
         this._clear = value
     }

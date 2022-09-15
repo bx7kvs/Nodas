@@ -71,7 +71,7 @@ export default class NdCompiler<Props extends NdModBase,
         return this.node;
     }
 
-    public render:NdMainDrawingPipeF = (context: CanvasRenderingContext2D, date: Date, frame: number) => {
+    public render: NdMainDrawingPipeF = (context: CanvasRenderingContext2D, date: Date, frame: number) => {
         if (this.isRenderAllowed(context, date, frame)) {
             let currentContext: CanvasRenderingContext2D | false = context
             context.save();

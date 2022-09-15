@@ -12,14 +12,14 @@ export default class NdTextWord extends NdTextPartial {
 
 
     @alive
-    private resize(){
+    private resize() {
         this.context!.font = this.fontString()
         const w = Math.ceil(this.context!.measureText(this.str).width)
-        if(w !== this.w) {
+        if (w !== this.w) {
             this.context!.canvas.width = w
             this.w = w
         }
-        if(this.context!.canvas.height !== this.lineHeight) this.context!.canvas.height = this.lineHeight
+        if (this.context!.canvas.height !== this.lineHeight) this.context!.canvas.height = this.lineHeight
         this.resizeFlag = false
     }
 
@@ -59,7 +59,7 @@ export default class NdTextWord extends NdTextPartial {
     }
 
     @alive
-    render(context: CanvasRenderingContext2D, x: number, y: number){
+    render(context: CanvasRenderingContext2D, x: number, y: number) {
         if (this.resizeFlag) this.resize()
         if (this.redrawFlag) this.redraw()
         context.drawImage(this.context!.canvas, x, y)
@@ -68,12 +68,12 @@ export default class NdTextWord extends NdTextPartial {
     constructor(str: string) {
         super();
         this.string = str
-        this.once('destroyed',() => this.context = undefined)
+        this.once('destroyed', () => this.context = undefined)
         this.on('font', () => {
-            if(!Object.values(NdFontSpecialValues).includes(this.font as NdFontSpecialValues)) {
+            if (!Object.values(NdFontSpecialValues).includes(this.font as NdFontSpecialValues)) {
                 const font = nodasFonts.get(this.font)
-                if(font) {
-                    if(!font.loaded) {
+                if (font) {
+                    if (!font.loaded) {
                         font.once('load', () => {
                             this.resizeFlag = true
                             this.redrawFlag = true

@@ -1,5 +1,6 @@
 # Nodas
 
+[![github](https://img.shields.io/badge/github-follow-green)](https://choosealicense.com/licenses/mit/)<br/>
 Library to add Node tree functionality to HTMLCanvas elements.<br/>
 It is 100% standalone with no external dependencies
 
@@ -182,6 +183,14 @@ group.on('mouseDown', () => {
 
 })
 ```
+
+## v. 0.9.1
+### New:
+1. Base64 string support for sprite url
+2. NdImage and NdSprite classes now available to import and extend
+
+### Fixed:
+1. Background where nor loaded under certain conditions
 
 ## 0.9.0
 ### Features:

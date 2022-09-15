@@ -5,7 +5,7 @@ export default class NdBox {
         size: [0, 0],
         position: [0, 0]
     }
-    public readonly sprite:{margin:[number,number,number,number],position:NdNumericArray2d,size:NdNumericArray2d} = {
+    public readonly sprite: { margin: [number, number, number, number], position: NdNumericArray2d, size: NdNumericArray2d } = {
         margin: [0, 0, 0, 0],
         position: [0, 0],
         size: [0, 0]

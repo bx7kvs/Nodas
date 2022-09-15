@@ -7,8 +7,8 @@ import NdEvent from "./NdEvent";
 
 export default class NdFont extends NdResource<HTMLCanvasElement> {
 
-    private context ?= document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
-    private styles ?= document.createElement('style')
+    private context ? = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
+    private styles ? = document.createElement('style')
     private str: string[]
     private scheme: NdFontDescription
     private fontMaxLoadTime = 10000
@@ -46,6 +46,7 @@ export default class NdFont extends NdResource<HTMLCanvasElement> {
         this.context!.font = customFamily ? `${style} ${NdFont.extractNumericWeight(weight)} 12px/12px "${customFamily}"` : this.string(style, NdFont.extractNumericWeight(weight), 12)
         return this.context!.measureText(NdFont.CONSTFONTCHECKSTRING).width
     }
+
     @alive
     private initMeasureBuffer() {
         this.fontLoadStart = new Date().getTime()
@@ -81,7 +82,7 @@ export default class NdFont extends NdResource<HTMLCanvasElement> {
         return `${style} ${NdFont.extractNumericWeight(weight)} ${size}px/${lineHeight}px "${this.scheme.name}"`
     }
 
-    export = () =>{
+    export = () => {
         return this.context!.canvas
     }
 
@@ -91,17 +92,17 @@ export default class NdFont extends NdResource<HTMLCanvasElement> {
                 this.initMeasureBuffer()
                 this.loadFont(() => {
                     NDB.positive(`Font ${this.name} loaded`)
-                    this.cast('load', new NdEvent(this,null))
+                    this.cast('load', new NdEvent(this, null))
                 }, () => {
                     NDB.negative(`Unable to load font ${this.name}`)
-                    this.cast('error', new NdEvent(this,null))
+                    this.cast('error', new NdEvent(this, null))
                 })
                 this.styles!.innerHTML = this.str.reduce<string>((result, current) => result + current, '')
                 document.head.appendChild(this.styles!)
                 return this
             } else {
                 NDB.positive(`Font ${this.url} loaded`)
-                this.cast('load', new NdEvent(this,null))
+                this.cast('load', new NdEvent(this, null))
                 return this
             }
         })
@@ -122,12 +123,14 @@ export default class NdFont extends NdResource<HTMLCanvasElement> {
             this.scheme = {name: 'default', weight: [], style: []}
         }
     }
+
     static extractNumericWeight(word: NdFontWeights) {
-        if(word === 'normal') return 400
-        if(word === 'black') return 900
-        if(word === 'light') return  300
-        if(word === 'bold') return 600
+        if (word === 'normal') return 400
+        if (word === 'black') return 900
+        if (word === 'light') return 300
+        if (word === 'bold') return 600
         else return word
     }
+
     static readonly CONSTFONTCHECKSTRING = 'abcdefghijklmnopqrstuvwxyz 1234567890[!?,.<>"£$%^&*()~@#-=]'
 }

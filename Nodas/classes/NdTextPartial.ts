@@ -15,7 +15,9 @@ export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPart
     abstract readonly width: number
     abstract readonly string: string
     abstract readonly length: number
+
     abstract render(context: CanvasRenderingContext2D, xPos: number, yPos: number): void
+
     freeze: {
         [K in keyof NdTextPartialProps]?: boolean
     } = {}
@@ -32,7 +34,7 @@ export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPart
 
     set font(font) {
         if (!this.freeze.font) {
-            if(this.ndFont !== font) {
+            if (this.ndFont !== font) {
                 this.ndFont = font
                 this.cast('font', font)
             }
@@ -48,7 +50,7 @@ export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPart
     set lineHeight(value) {
         if (!this.freeze.lineHeight) {
             if (value < 0) value = 0
-            if(value !== this.lHeight) {
+            if (value !== this.lHeight) {
                 this.lHeight = value
                 this.cast('lineHeight', this.lHeight)
             }
@@ -62,7 +64,7 @@ export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPart
 
     set weight(value) {
         if (!this.freeze.weight) {
-            if(this.fWeight !== value) {
+            if (this.fWeight !== value) {
                 this.fWeight = value
                 this.cast('weight', value)
             }
@@ -80,7 +82,7 @@ export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPart
             const normalized = NdNodeStylesModel.arrayToColor(NdNodeStylesModel.normalizeColor(
                 NdNodeStylesModel.colorToArray(value)
             ))
-            if(normalized !== this.textColor) {
+            if (normalized !== this.textColor) {
                 this.textColor = normalized
                 this.cast('color', this.textColor)
             }
@@ -94,7 +96,7 @@ export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPart
 
     set style(value) {
         if (!this.freeze.style) {
-            if(this.fStyle !==value) {
+            if (this.fStyle !== value) {
                 this.fStyle = value
                 this.cast('style', value)
             }
@@ -109,7 +111,7 @@ export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPart
     set fontSize(value) {
         if (!this.freeze.style) {
             if (value < 0) value = 0
-            if(this.fSize !== value) {
+            if (this.fSize !== value) {
                 this.fSize = value
                 this.cast('fontSize', this.fSize)
             }
@@ -117,7 +119,7 @@ export default abstract class NdTextPartial extends NdDestroyableNode<NdTextPart
     }
 
     @alive
-    fontString (){
+    fontString() {
         if ((Object.values(NdFontSpecialValues) as string[]).includes(this.ndFont)) {
             return this.ndFont === 'system' ? `${this.style} ${this.weight} ${this.fSize}px serif` : this.fSize + 'px ' + this.ndFont
         } else {

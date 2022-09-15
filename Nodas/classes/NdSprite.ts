@@ -5,6 +5,7 @@ import {NDB} from '../Services/NodasDebug';
 import NDR from '../Services/NodasResources';
 import {alive} from "../Nodes/decorators/alive";
 import NdEvent from "./NdEvent";
+import {SPRITEBASE64PATTERN, SPRITEPATTERN} from "../../constants";
 
 export default class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageElement> {
     private frameCount: number = 0
@@ -20,13 +21,14 @@ export default class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageEl
 
     @alive
     private defineImage(url: NdUrlSpriteStr) {
-        const match = url.match(/(^.+)\[(\d+)]/)
-        if (match) {
-            this.image = NDR.image(match[1], () => {
+        const match = url.match(SPRITEPATTERN)
+        const match64 = !match ? url.match(SPRITEBASE64PATTERN) : null
+        if (match || match64) {
+            this.image = NDR.image(match ? match[1] : match64 ? match64[2] : '[invalid-image-src]', () => {
                 this.setFrameData()
                 this.status = 1
-                if (match[2]) {
-                    this.frameCount = parseInt(match[2])
+                if (match || match64) {
+                    this.frameCount = parseInt(match ? match[2] : match64 ? match64[1] : '0')
                 } else NDB.error(`No frame group match for url ${url}. How did you even get here?`)
                 this.cast('load', new NdEvent(this, null))
 
@@ -74,9 +76,10 @@ export default class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageEl
     }
 
     constructor(url: NdUrlSpriteStr) {
-        const match = url.match(/(^.+)\[(\d+)]/)
+        const match = url.match(SPRITEPATTERN)
+        const match64 = !match ? url.match(SPRITEBASE64PATTERN) : null
         super(
-            (match ? match[1] : `invalid-image-src[${url}]`) as NdURLStr,
+            (match ? match[1] : match64 ? match64[2] : `invalid-image-src[${url}]`) as NdURLStr,
             () => this.defineImage(url))
         this.once('destroyed', () => {
             this.canvas = []
@@ -156,10 +159,7 @@ export default class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageEl
         }
     }
 
-
-    static NdUrlSpriteStrRegex = /(^.+)\[([0-9]+)]$/
-
     static isNdUrlSpriteStr(str: string) {
-        return NdSprite.NdUrlSpriteStrRegex.test(str)
+        return SPRITEPATTERN.test(str) || SPRITEBASE64PATTERN.test(str)
     }
 }

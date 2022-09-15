@@ -105,6 +105,7 @@ export default class Ticker extends NdEmitter<NdTickerEvents> {
             this.start();
         }
     }
+
     get fps() {
         return this._fps
     }

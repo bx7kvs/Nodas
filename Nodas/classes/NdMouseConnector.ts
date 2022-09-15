@@ -3,7 +3,7 @@ import Node from '../Nodes/Node';
 import NdModBase from '../Nodes/models/NdModBase';
 import NdDestroyableNode from "../Nodes/classes/NdDestroyableNode";
 
-export default class NdMouseConnector<Props extends NdModBase = NdModBase> extends NdDestroyableNode<NdDestructibleEventScheme<NdMouseConnector>>{
+export default class NdMouseConnector<Props extends NdModBase = NdModBase> extends NdDestroyableNode<NdDestructibleEventScheme<NdMouseConnector>> {
     private _disabled: boolean = false
     test: NdNodePointerPredicate
     private emit: Node<Props>['cast']
@@ -33,7 +33,7 @@ export default class NdMouseConnector<Props extends NdModBase = NdModBase> exten
         this._disabled = false
     }
 
-    destroy():undefined {
+    destroy(): undefined {
         super.destroy();
         this.test = () => false
         this.emit = () => undefined

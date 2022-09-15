@@ -1,6 +1,6 @@
 import NdDestroyableNode from "../classes/NdDestroyableNode";
 
-export function alive (target: NdDestroyableNode<any>, property: string, descriptor: PropertyDescriptor) {
+export function alive(target: NdDestroyableNode<any>, property: string, descriptor: PropertyDescriptor) {
     if (typeof descriptor.value === "function") {
         const method = descriptor.value
         descriptor.value = function (...args: any[]) {

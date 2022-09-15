@@ -12,17 +12,17 @@ export default class NdNodeBox {
     }
 
     constructor(node: Node<any>, Cache: NdCache, boxGetter: (n: typeof node) => Parameters<NdBox['value']>) {
-        let localNode:Node<any> | undefined = node
+        let localNode: Node<any> | undefined = node
         this.box = new NdBox()
         node.once('destroyed', () => localNode = undefined)
         const {getter, purge} = Cache.register<NdBox>('box', () => {
-            if(localNode) this.box.value.apply(this.box, boxGetter(localNode))
+            if (localNode) this.box.value.apply(this.box, boxGetter(localNode))
             return this.box
         })
         this.getter = getter
         this.purge = () => {
             purge();
-            if(localNode && localNode.parent) localNode.parent.purgeBox()
+            if (localNode && localNode.parent) localNode.parent.purgeBox()
         }
     }
 }

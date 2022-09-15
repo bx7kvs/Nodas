@@ -10,14 +10,15 @@ import {alive} from "./decorators/alive";
 type ImageNodeModel = NdModSprite & NdModAnchor & NdModBase
 export default class Sprite extends Node<ImageNodeModel> {
     @alive
-    export(date?: Date){
+    export(date?: Date) {
         if (!date) date = new Date
         if (this.data!.src.protectedValue) {
             return this.data!.src.protectedValue.export(date)
         }
     }
+
     @alive
-    render(context:CanvasRenderingContext2D, time:Date) {
+    render(context: CanvasRenderingContext2D, time: Date) {
         if (this.data!.src.protectedValue) {
             Sprite.transformContext(this, context)
             const result = this.data!.src.protectedValue.export(time)
@@ -35,7 +36,7 @@ export default class Sprite extends Node<ImageNodeModel> {
     }
 
     @alive
-    test(cursor: NdNumericArray2d){
+    test(cursor: NdNumericArray2d) {
         cursor = this.matrix.traceCursorToLocalSpace([...cursor], this)
         if (cursor[0] > 0 && cursor[0] < this.Box!.value.sprite.size[0]) {
             if (cursor[1] > 0 && cursor[1] < this.Box!.value.sprite.size[1]) {

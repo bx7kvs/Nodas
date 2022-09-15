@@ -2,7 +2,7 @@ import {NdNumericArray2d} from "../@types/types";
 import {NdMatrixVal} from "../Nodes/@types/types";
 
 export default class NdMatrix {
-    private readonly traceBack:boolean
+    private readonly traceBack: boolean
     protected history: {
         translate?: NdNumericArray2d,
         skew?: NdNumericArray2d,
@@ -17,7 +17,7 @@ export default class NdMatrix {
     }
 
     invert() {
-        if(!this.traceBack) return this._inversion
+        if (!this.traceBack) return this._inversion
         for (let i = this.history.length - 1; i >= 0; i--) {
             if (this.history[i].rotate !== undefined) {
                 const sinA = Math.sin(-<number>this.history[i].rotate)
@@ -43,7 +43,7 @@ export default class NdMatrix {
 
         NdMatrix.multiply(this._value, m);
 
-        if(this.traceBack) this.history.push({'rotate': angle});
+        if (this.traceBack) this.history.push({'rotate': angle});
 
         return this;
     };
@@ -52,7 +52,7 @@ export default class NdMatrix {
         const m = [1, 0, 0, 1, x, y] as NdMatrixVal;
         if (x !== 0 || y !== 0) {
             NdMatrix.multiply(this._value, m);
-            if(this.traceBack)this.history.push({'translate': [x, y]});
+            if (this.traceBack) this.history.push({'translate': [x, y]});
         }
 
         return this;
@@ -62,7 +62,7 @@ export default class NdMatrix {
         if (x !== 1 || y !== 1) {
             const m = [x, 0, 0, y, 0, 0] as NdMatrixVal;
             NdMatrix.multiply(this._value, m);
-            if(this.traceBack) this.history.push({'scale': [x, y]});
+            if (this.traceBack) this.history.push({'scale': [x, y]});
         }
         return this;
     };
@@ -74,11 +74,12 @@ export default class NdMatrix {
                 m = [1, tanB, tanA, 1, 0, 0] as NdMatrixVal;
 
             NdMatrix.multiply(this._value, m);
-            if(this.traceBack) this.history.push({'skew': [x, y]});
+            if (this.traceBack) this.history.push({'skew': [x, y]});
         }
 
         return this;
     };
+
     reset() {
         this._value[0] = 1
         this._value[1] = 0
@@ -102,9 +103,11 @@ export default class NdMatrix {
     extractInversion(): NdMatrixVal {
         return [...this._inversion];
     };
-    tracePoint(point:NdNumericArray2d) {
+
+    tracePoint(point: NdNumericArray2d) {
         return NdMatrix.applyMatrixToPoint(this._inversion, point)
     }
+
     protected static multiply(target: NdMatrixVal, multiplier: NdMatrixVal) {
         // noinspection UnnecessaryLocalVariableJS
         const a0 = target[0] * multiplier[0] + target[2] * multiplier[1],

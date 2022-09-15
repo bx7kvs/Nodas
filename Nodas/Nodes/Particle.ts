@@ -134,7 +134,7 @@ export default class Particle extends NdStyledNode<NdModParticle, NdParticleEven
         return this
     }
 
-    constructor(...[sprite, resolver, initiator]:NdParticleArgs) {
+    constructor(...[sprite, resolver, initiator]: NdParticleArgs) {
         super(new NdModParticle());
         this._resolver = resolver
         if (initiator) this._initiator = initiator

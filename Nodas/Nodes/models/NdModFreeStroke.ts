@@ -14,8 +14,9 @@ import NdStylesProperty from '../classes/NdNodeStyleProperty';
 
 export default class NdModFreeStroke extends NdNodeStylesModel {
 
-    path : NdStylesProperty<NdPathBezier, NdPath, NdPath>
-    constructor(closed:boolean = false) {
+    path: NdStylesProperty<NdPathBezier, NdPath, NdPath>
+
+    constructor(closed: boolean = false) {
         super();
         this.path = new NdStylesProperty<NdPathBezier, NdPath, NdPath>(
             1,
@@ -32,6 +33,7 @@ export default class NdModFreeStroke extends NdNodeStylesModel {
             }
         )
     }
+
     interpolation = new NdStylesProperty<number, number, number>(
         0,
         0,

@@ -4,10 +4,10 @@ import Node from '../Node';
 import Group from '../Group';
 import NdMatrix from "../../classes/NdMatrix";
 
-export default class NdNodeMatrix extends NdMatrix{
+export default class NdNodeMatrix extends NdMatrix {
     private _globalInversion: NdMatrixVal | null = null;
-    globalInversion:(node:Node<any>) => NdMatrixVal
-    purgeInversion: (node:Node<any>) => void
+    globalInversion: (node: Node<any>) => NdMatrixVal
+    purgeInversion: (node: Node<any>) => void
 
     constructor() {
         super()
@@ -20,11 +20,11 @@ export default class NdNodeMatrix extends NdMatrix{
         }
         this.purgeInversion = (node) => {
             this._globalInversion = null
-            if(node instanceof Group) node.forEachChild((e) => e.matrix.purgeInversion(e))
+            if (node instanceof Group) node.forEachChild((e) => e.matrix.purgeInversion(e))
         }
     }
 
-    traceCursorToLocalSpace(point: NdNumericArray2d, node:Node<any>) {
+    traceCursorToLocalSpace(point: NdNumericArray2d, node: Node<any>) {
         return NdMatrix.applyMatrixToPoint(this.globalInversion(node), point);
     };
 

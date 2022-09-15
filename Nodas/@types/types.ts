@@ -44,7 +44,10 @@ export type NdTickerQueueItem = {
 }
 
 export interface NdTickerEvents {
-    fps: null, start: null, stop: null, error: null
+    fps: null,
+    start: null,
+    stop: null,
+    error: null
 }
 
 export interface NdListenable<Scheme, K extends keyof Scheme = keyof Scheme> {

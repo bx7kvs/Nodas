@@ -87,7 +87,7 @@ class NodasDebug extends NdEmitter<{ message: string, error: string, info: strin
     };
 
     group(message: string) {
-        if(this.verbose) {
+        if (this.verbose) {
             console.group(message);
             this.groupLevel++;
         }

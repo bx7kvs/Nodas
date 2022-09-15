@@ -12,7 +12,8 @@ export default abstract class NdResource<T extends NdExportable> extends NdDestr
     private readonly resolve: () => NdResource<T>
     protected status: number = -1
     private resolved: boolean = false
-    abstract export(time:Date): T | undefined
+
+    abstract export(time: Date): T | undefined
 
     protected constructor(url: NdURLStr, resolve: () => NdResource<T>) {
         super()

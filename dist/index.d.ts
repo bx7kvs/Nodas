@@ -215,7 +215,6 @@ declare class NdImage extends NdResource<HTMLImageElement> {
     get width(): number;
     get height(): number;
     get size(): number[];
-    static NdUrlStrRegex: RegExp;
     static isNdUrlStrRegex(str: string): boolean;
 }
 
@@ -536,7 +535,6 @@ declare class NdSprite extends NdResource<HTMLCanvasElement | HTMLImageElement> 
     get fps(): number;
     set fps(value: number);
     export(time: Date): HTMLCanvasElement | undefined;
-    static NdUrlSpriteStrRegex: RegExp;
     static isNdUrlSpriteStr(str: string): boolean;
 }
 
@@ -663,8 +661,8 @@ interface NodasAnimateConfig<Class extends NdAnimatedNode<any, any>> {
 }
 declare type NdPercentStr = (`${number}%` | `${number}.${number}%` | `.${number}%`) & string;
 declare type NdColorStr = `rgba(${number},${number},${number},${number})` & string;
-declare type NdURLStr = `${string}.${('png' | 'jpg')}` & string;
-declare type NdUrlSpriteStr = `${string}.${('png' | 'jpg' | 'font')}[${number}]` & string;
+declare type NdURLStr = `${string}.${('png' | 'jpg')}` | `data:image/${string};base64,${string}` & string;
+declare type NdUrlSpriteStr = `${string}.${('png' | 'jpg' | 'font')}[${number}]` | `[${number}]data:image/${string};base64,${string}` & string;
 declare type NdPosition = NdPercentStr | 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | number;
 declare type NdSize = number | 'auto';
 declare type NdSizeArr = [NdSize, NdSize];
@@ -1020,6 +1018,7 @@ declare const _default$1: NodasFonts;
 
 declare class NodasResources {
     private images;
+    private hash;
     image(src: string, onLoad?: () => void, onError?: () => void, onReset?: () => void): HTMLImageElement;
     reset(): void;
     bulkLoad(resources: NdURLStr[]): void;
@@ -1036,6 +1035,33 @@ declare class NodasRandom {
     setItem<T>(set: T[], probabilities?: number[]): T;
 }
 declare const _default: NodasRandom;
+
+declare class NodasDebug extends NdEmitter<{
+    message: string;
+    error: string;
+    info: string;
+    important: string;
+}> {
+    private prefix;
+    private warnings;
+    private groupLevel;
+    private currentLevel;
+    private separatorMessages;
+    verbose: boolean;
+    constructor();
+    private getMessage;
+    error(message: string | Error): void;
+    warn(message: string, verbose?: boolean): void;
+    info(message: string): void;
+    message(message: string): void;
+    separator(message: string): void;
+    separatorEnd(): void;
+    positive(message: string): void;
+    negative(message: string): void;
+    group(message: string): void;
+    groupEnd(): void;
+}
+declare const NDB: NodasDebug;
 
 declare class Nodas {
     readonly ticker: Ticker;
@@ -1066,4 +1092,4 @@ declare const NodasImage: typeof NdImage;
 declare const NodasSprite: typeof NdSprite;
 declare const NodasRand: typeof _default;
 
-export { Area, Circle, Field, Fonts, Group, Line, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default };
+export { Area, Circle, Field, Fonts, Group, Line, NDB, NdImage, NdSprite, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default };

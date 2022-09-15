@@ -103,7 +103,7 @@ export default class Area extends Node<AreaStaticModel> {
     ])
 
     @alive
-    protected test(cursor: NdNumericArray2d):Area | false {
+    protected test(cursor: NdNumericArray2d): Area | false {
         return this.mouseTester!.check(this.matrix.traceCursorToLocalSpace([...cursor], this)) ? this : false
     }
 

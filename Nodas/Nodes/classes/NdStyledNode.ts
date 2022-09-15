@@ -18,7 +18,7 @@ export default class NdStyledNode<Model extends NdNodeStylesModel, Scheme extend
         this.data = styles
         this.once('destroyed', () => {
             this.modelEmitter.removeAllListeners()
-            if(this.data!.bg) NdModBg.destroyBackground(this.data! as unknown as NdModBg)
+            if (this.data!.bg) NdModBg.destroyBackground(this.data! as unknown as NdModBg)
             this.Box = undefined
             this.data = undefined
         })
@@ -51,15 +51,17 @@ export default class NdStyledNode<Model extends NdNodeStylesModel, Scheme extend
 
         return this
     }
+
     @alive
-    watch(prop: keyof Model | (keyof Model)[], callback: () => void):NdStyledNode<Model, Scheme> {
+    watch(prop: keyof Model | (keyof Model)[], callback: () => void): NdStyledNode<Model, Scheme> {
         if (prop instanceof Array) {
             prop.forEach(v => this.modelEmitter.on(<string>v, callback))
         } else this.modelEmitter.on(<string>prop, callback)
         return this
     }
+
     @alive
-    unwatch(prop: keyof Model | (keyof Model)[], callback: () => void):NdStyledNode<Model, Scheme> {
+    unwatch(prop: keyof Model | (keyof Model)[], callback: () => void): NdStyledNode<Model, Scheme> {
         if (prop instanceof Array) {
             prop.forEach(v => this.modelEmitter.off(<string>v, callback))
         } else this.modelEmitter.off(<string>prop, callback)

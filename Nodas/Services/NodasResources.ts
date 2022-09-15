@@ -1,5 +1,6 @@
 import {NDB} from './NodasDebug';
 import {NdURLStr} from '../Nodes/@types/types';
+import {IMAGEBASE64URLPATTERN} from "../../constants";
 
 class NodasResources {
 
@@ -16,54 +17,68 @@ class NodasResources {
         }
     } = {}
 
+    private hash(string: string) {
+        if (string.length === 0) return 0;
+        let hash = 0,
+            i, chr;
+        for (i = 0; i < string.length; i++) {
+            chr = string.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0;
+        }
+        return hash;
+    }
+
     image(src: string, onLoad?: () => void, onError?: () => void, onReset?: () => void) {
-        if (this.images[src]) {
-            if (this.images[src].loading) {
-                if(onLoad) this.images[src].onLoad.push(onLoad)
-                if(onError) this.images[src].onError.push(onError)
+        const isBase64 = IMAGEBASE64URLPATTERN.test(src)
+        const key = isBase64 ? this.hash(src) >>> 0 : src
+        if (this.images[key]) {
+            if (this.images[key].loading) {
+                if (onLoad) this.images[key].onLoad.push(onLoad)
+                if (onError) this.images[key].onError.push(onError)
             } else {
                 setTimeout(() => {
 
-                    if (this.images[src]) {
-                        if (this.images[src].loaded && onLoad) onLoad()
-                        if (this.images[src].error && onError) onError()
+                    if (this.images[key]) {
+                        if (this.images[key].loaded && onLoad) onLoad()
+                        if (this.images[key].error && onError) onError()
                     }
                 })
             }
-            if(onReset) this.images[src].onReset.push(onReset)
+            if (onReset) this.images[key].onReset.push(onReset)
         } else {
-            NDB.info(`Loading image ${src}`)
-            this.images[src] = {
+            NDB.info(`Loading image ${isBase64 ? `base64 encoded [${key}]` : key}`)
+            this.images[key] = {
                 loaded: false,
                 error: false,
                 loading: true,
-                onError: onError? [onError] : [],
+                onError: onError ? [onError] : [],
                 onLoad: onLoad ? [onLoad] : [],
                 onReset: onReset ? [onReset] : [],
                 src: src,
                 image: new Image()
             }
-            this.images[src].image.addEventListener('load', () => {
-                NDB.positive(`Image ${src} loaded.`)
-                this.images[src].loaded = true
-                this.images[src].loading = false
-                this.images[src].error = false
-                this.images[src].onLoad.forEach(v => v())
-                this.images[src].onError = []
-                this.images[src].onLoad = []
+            this.images[key].image.addEventListener('load', () => {
+                NDB.positive(`Image  ${isBase64 ? `base64 encoded key[${key}]` : key} loaded.`)
+                this.images[key].loaded = true
+                this.images[key].loading = false
+                this.images[key].error = false
+                this.images[key].onLoad.forEach(v => v())
+                this.images[key].onError = []
+                this.images[key].onLoad = []
             })
-            this.images[src].image.addEventListener('error', () => {
-                NDB.negative(`Image ${src} failed to load`)
-                this.images[src].loaded = false
-                this.images[src].error = true
-                this.images[src].loading = false
-                this.images[src].onError.forEach(v => v())
-                this.images[src].onError = []
-                this.images[src].onLoad = []
+            this.images[key].image.addEventListener('error', () => {
+                NDB.negative(`Image ${isBase64 ? `base64 encoded key[${key}]` : key} failed to load`)
+                this.images[key].loaded = false
+                this.images[key].error = true
+                this.images[key].loading = false
+                this.images[key].onError.forEach(v => v())
+                this.images[key].onError = []
+                this.images[key].onLoad = []
             })
-            this.images[src].image.src = src
+            this.images[key].image.src = src
         }
-        return this.images[src].image
+        return this.images[key].image
     }
 
     reset() {
@@ -71,8 +86,11 @@ class NodasResources {
         this.images = {}
         images.forEach(v => v.onReset.forEach(v => v()))
     }
-    bulkLoad(resources:NdURLStr[]) {
-        resources.forEach(v => {this.image(v)})
+
+    bulkLoad(resources: NdURLStr[]) {
+        resources.forEach(v => {
+            this.image(v)
+        })
     }
 }
 

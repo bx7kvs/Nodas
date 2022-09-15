@@ -76,7 +76,7 @@ export default class NdModBg extends NdNodeStylesModel {
         (current) => current.map(v => v.url),
         (value, node) => {
             if (!node.box) {
-                NDB.error('Background can be bound only to nodes with box')
+                NDB.error('Background  can not be applied to nodes without box')
                 return []
             } else {
                 let result: NdImage[] = [...this.bg.protectedValue]
@@ -101,6 +101,7 @@ export default class NdModBg extends NdNodeStylesModel {
                                     image.once('load', () => {
                                         if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, key, image)
                                     })
+                                    image.load()
                                 } else if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, key, image)
                                 return image
                             })
@@ -113,6 +114,7 @@ export default class NdModBg extends NdNodeStylesModel {
                                             if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, key, v)
                                         }
                                     })
+                                    v.load()
                                 }
                                 if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, key, v)
                                 return v
@@ -127,6 +129,7 @@ export default class NdModBg extends NdNodeStylesModel {
                             value.once('load', () => {
                                 if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, 0, value)
                             })
+                            value.load()
                         } else {
                             NdModBg.updateSizeAndPosition(this, node.box.size, 0, value)
                         }
@@ -140,6 +143,7 @@ export default class NdModBg extends NdNodeStylesModel {
                                         image.once('load', () => {
                                             if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, parseInt(prop), image)
                                         })
+                                        image.load()
                                         result[prop] = image
                                     }
                                 }
@@ -151,6 +155,7 @@ export default class NdModBg extends NdNodeStylesModel {
                                     image.once('load', () => {
                                         if (node.box) NdModBg.updateSizeAndPosition(this, node.box.size, parseInt(prop), image)
                                     })
+                                    image.load()
                                 } else NdModBg.updateSizeAndPosition(this, node.box.size, parseInt(prop), image)
                                 result.push(value[prop] as NdImage)
                             }

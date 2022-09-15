@@ -14,26 +14,28 @@ export default class Field extends Node<NdModField & NdModBase> {
     private emitters?: ParticleEmitter[] = []
     private particles?: Particle[] = []
     private modifiers?: NdParticleModifier[] = []
+
     private fieldFpsCallback() {
         this.fps = this.app!.ticker.fps
     }
-    private self:Field | null = this
-    ParticleEmitter:new (initiator:(time: Date) => Particle) => ParticleEmitter
-    Particle:new(...args:NdParticleArgs) => Particle  = Particle
+
+    private self: Field | null = this
+    ParticleEmitter: new (initiator: (time: Date) => Particle) => ParticleEmitter
+    Particle: new(...args: NdParticleArgs) => Particle = Particle
 
     attach(app: Nodas) {
-        if(!this.mounted) {
+        if (!this.mounted) {
             this.fps = app.ticker.fps
             app.ticker.on('fps', this.fieldFpsCallback.bind(this))
         } else NDB.positive(`Field ${this.id} has already been attached. Ignore attach`)
         return super.attach(app);
     }
 
-    detach():this {
-        if(this.mounted) {
+    detach(): this {
+        if (this.mounted) {
             this.fps = this.app!.ticker.fps
             this.app!.ticker.on('fps', this.fieldFpsCallback.bind(this))
-        }else NDB.positive(`Field ${this.id} has already been detached. Ignore detach`)
+        } else NDB.positive(`Field ${this.id} has already been detached. Ignore detach`)
 
         return super.detach();
     }
@@ -44,7 +46,7 @@ export default class Field extends Node<NdModField & NdModBase> {
         this.ParticleEmitter = class FieldParticleEmitter extends ParticleEmitter {
             constructor(initiator: (time: Date) => Particle) {
                 super(initiator);
-                if(self) this.field(self)
+                if (self) this.field(self)
                 self.emitter(this)
             }
         }
@@ -143,9 +145,8 @@ export default class Field extends Node<NdModField & NdModBase> {
     }
 
 
-
     @alive
-    emitter(emitter:ParticleEmitter) {
+    emitter(emitter: ParticleEmitter) {
         const e = emitter.field(this)
         this.emitters!.push(e)
         e.once('destroyed', () => {

@@ -3,14 +3,14 @@ import {NdEasingF} from '../Nodes/@types/types';
 export default class NdMorphine {
 
     private readonly easing: (timeElapsedS: number, startValue: number, valueDelta: number, durationS: number) => number;
-    private readonly duration:number = 1;
-    private readonly repeat:number = 0;
-    private repeatCount:number = 1;
-    private start_time:number = 0;
+    private readonly duration: number = 1;
+    private readonly repeat: number = 0;
+    private repeatCount: number = 1;
+    private start_time: number = 0;
     private readonly callback: (progress: number, value: number, startTime: number) => void;
     private readonly start: number;
     private readonly end: number;
-    private progress:number = 0;
+    private progress: number = 0;
     private _paused = false;
     private _done = false;
 
@@ -45,7 +45,7 @@ export default class NdMorphine {
         if (!this._done) {
             if (this._paused) {
                 this.start_time = new Date().getTime() - (this.duration * this.progress)
-            }else {
+            } else {
                 this.progress = (time - this.start_time) / this.duration
                 if (this.progress > 1) this.progress = 1;
                 if (this.progress == 1) {

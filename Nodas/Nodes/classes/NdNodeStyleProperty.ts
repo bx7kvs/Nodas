@@ -8,7 +8,7 @@ export default class NdStylesProperty<StoreType, GetType, SetType, Node extends 
     public readonly ordering: number = 0
     public get: () => GetType
     public set: (value: SetType, node: Node) => StoreType = () => this._value
-    reset:() => void
+    reset: () => void
     private value: GetType
 
     get protectedValue(): StoreType {
@@ -29,7 +29,7 @@ export default class NdStylesProperty<StoreType, GetType, SetType, Node extends 
                     if (typeof filler == 'function') {
                         this._value.push(filler(i))
                     } else {
-                        if(filler instanceof Array) {
+                        if (filler instanceof Array) {
                             this._value.push(
                                 filler.map((value: T[K], key: number) => typeof value === 'function' ? value(i, key) : value)
                             )

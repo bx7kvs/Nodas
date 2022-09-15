@@ -7,7 +7,7 @@ import NdNodeStylesModel from "../Nodes/classes/NdNodeStylesModel";
 import NdAnimatedNode from "../Nodes/classes/NdAnimatedNode";
 
 
-export default class NdAnimation<Model extends NdNodeStylesModel, N extends NdAnimatedNode<Model, any>= NdAnimatedNode<Model, any>>
+export default class NdAnimation<Model extends NdNodeStylesModel, N extends NdAnimatedNode<Model, any> = NdAnimatedNode<Model, any>>
     extends NdEmitter<{ [key in 'step' | 'complete']: NdEvent<N, { progress: number, ease: number }> }> {
     private readonly duration: number;
     private readonly easing: keyof typeof ndEasings;
@@ -45,7 +45,7 @@ export default class NdAnimation<Model extends NdNodeStylesModel, N extends NdAn
         return this.stack.findIndex(v => v.name === property)
     }
 
-    get props():(keyof Model)[] {
+    get props(): (keyof Model)[] {
         return this.stack.map(v => v.name)
     }
 
