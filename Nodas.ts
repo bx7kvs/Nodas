@@ -27,7 +27,10 @@ import NdModField from "./Nodas/Nodes/models/NdModField";
 import Field from "./Nodas/Nodes/Field";
 import NodasRandom from "./Nodas/Services/NodasRandom";
 import {NDB} from "./Nodas/Services/NodasDebug";
-
+import NdStateEvent from "./Nodas/classes/NdStateEvent";
+import NdMouseEvent from "./Nodas/classes/NdMouseEvent";
+import NdDestroyEvent from "./Nodas/classes/NdDestroyEvent";
+import NdEvent from "./Nodas/classes/NdEvent";
 export default class Nodas {
     readonly ticker = new Ticker()
     readonly canvas: Canvas
@@ -154,6 +157,10 @@ export  {
     Text as Text,
     NdImage as NdImage,
     NdSprite as NdSprite,
+    NdEvent as NdEvent,
+    NdStateEvent as NdStateEvent,
+    NdMouseEvent as NdMouseEvent,
+    NdDestroyEvent as NdDestroyEvent,
     NDB as NDB
 }
 export const Fonts: typeof NodasFonts = NodasFonts

@@ -1092,4 +1092,4 @@ declare const NodasImage: typeof NdImage;
 declare const NodasSprite: typeof NdSprite;
 declare const NodasRand: typeof _default;
 
-export { Area, Circle, Field, Fonts, Group, Line, NDB, NdImage, NdSprite, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default };
+export { Area, Circle, Field, Fonts, Group, Line, NDB, NdDestroyEvent, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default };
