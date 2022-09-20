@@ -347,7 +347,6 @@ declare class NdAnimation<Model extends NdNodeStylesModel, N extends NdAnimatedN
     get props(): (keyof Model)[];
     stop(property?: string): void;
     start(): void;
-    private tick;
 }
 
 declare type ExtractAnimated<T extends NdNodeStylesModel, PT> = {
@@ -1063,6 +1062,8 @@ declare class NodasDebug extends NdEmitter<{
 }
 declare const NDB: NodasDebug;
 
+declare function universalTicker(complete: number, progress: number, start: NodasTickingType, end: NodasTickingType): NodasTickingType;
+
 declare class Nodas {
     readonly ticker: Ticker;
     readonly canvas: Canvas;
@@ -1092,4 +1093,4 @@ declare const NodasImage: typeof NdImage;
 declare const NodasSprite: typeof NdSprite;
 declare const NodasRand: typeof _default;
 
-export { Area, Circle, Field, Fonts, Group, Line, NDB, NdDestroyEvent, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default };
+export { Area, Circle, ndEasings as Easings, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };

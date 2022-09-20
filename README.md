@@ -184,6 +184,12 @@ group.on('mouseDown', () => {
 })
 ```
 
+## 0.9.3
+### New:
+1. Morphine - class for smooth numeric value change with time
+2. universalTicker - function to tick any numeric, numeric array or percent value. Useful in combination with Morphine class
+3. Easings - a library of standard easing functions useful when using Morphine class
+
 ## 0.9.2
 ### New:
 1. NdEvent,NdStateEvent,NdMouseEvent, NdDestroyEvent are available to import

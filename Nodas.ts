@@ -31,6 +31,9 @@ import NdStateEvent from "./Nodas/classes/NdStateEvent";
 import NdMouseEvent from "./Nodas/classes/NdMouseEvent";
 import NdDestroyEvent from "./Nodas/classes/NdDestroyEvent";
 import NdEvent from "./Nodas/classes/NdEvent";
+import NdMorphine from "./Nodas/classes/NdMorphine";
+import {ndEasings} from "./Nodas/classes/NdEasings";
+import universalTicker from "./Nodas/classes/NdUniversalTicker";
 export default class Nodas {
     readonly ticker = new Ticker()
     readonly canvas: Canvas
@@ -46,18 +49,17 @@ export default class Nodas {
     public Circle: new(id: string, radius?: number) => Circle
     public Field: new (id: string, options?: { [key in keyof NdModField]?: Parameters<NdModField[key]['set']>[0] }) => Field
 
-    public get(id:string):Node<any> {
+    public get(id: string): Node<any> {
         return this.nodes.get(id)
     }
 
-    public append:(node:Node<any> | Node<any>[]) => Nodas
+    public append: (node: Node<any> | Node<any>[]) => Nodas
 
-    public setRoot(node:Group) {
+    public setRoot(node: Group) {
         this.nodes.root?.detach()
         node.attach(this)
         return this
     }
-
 
 
     Animation = NdSprite
@@ -78,7 +80,7 @@ export default class Nodas {
         const root = new Group('NODE_TREE_DEFAULT_ROOT')
         root.attach(this)
 
-        this.append = (node:Node<any> | Node<any>[]) => {
+        this.append = (node: Node<any> | Node<any>[]) => {
             root.append(node)
             return this
         }
@@ -90,42 +92,42 @@ export default class Nodas {
             }
         }
         this.Area = class NodasArea extends Area {
-            constructor(id:string, path?:NdPath) {
+            constructor(id: string, path?: NdPath) {
                 super(id);
-                if(path) this.style('path', path)
+                if (path) this.style('path', path)
                 root.append(this)
             }
         }
-        this.Rectangle = class NodasRectangle extends Rectangle{
-            constructor(id:string, size?:NdNumericArray2d) {
+        this.Rectangle = class NodasRectangle extends Rectangle {
+            constructor(id: string, size?: NdNumericArray2d) {
                 super(id);
-                if(size) this.style('size', size)
+                if (size) this.style('size', size)
                 root.append(this)
             }
         }
         this.Line = class NodasLine extends Line {
-            constructor(id:string, path?:NdPath) {
+            constructor(id: string, path?: NdPath) {
                 super(id);
-                if(path) this.style('path', path)
+                if (path) this.style('path', path)
                 root.append(this)
             }
         }
         this.Sprite = class NodasSprite extends Sprite {
-            constructor(id:string, url?:NdURLStr | NdUrlSpriteStr) {
+            constructor(id: string, url?: NdURLStr | NdUrlSpriteStr) {
                 super(id);
-                if(url) this.style('src', url)
+                if (url) this.style('src', url)
                 root.append(this)
             }
         }
         this.Circle = class NodasCircle extends Circle {
-            constructor(id:string, radius?:number) {
+            constructor(id: string, radius?: number) {
                 super(id);
-                if(radius) this.style('radius', radius)
+                if (radius) this.style('radius', radius)
                 root.append(this)
             }
         }
         this.Group = class NodasGroup extends Group {
-            constructor(id:string, children?:GroupChildren) {
+            constructor(id: string, children?: GroupChildren) {
                 super(id);
                 if (children) this.append(children)
                 root.append(this)
@@ -133,9 +135,9 @@ export default class Nodas {
         }
 
         this.Field = class NodasField extends Field {
-            constructor(id:string, options?:{[key in keyof NdModField] ?: Parameters<NdModField[key]['set']>[0]}) {
+            constructor(id: string, options?: { [key in keyof NdModField]?: Parameters<NdModField[key]['set']>[0] }) {
                 super(id);
-                if(options) this.style(options)
+                if (options) this.style(options)
                 root.append(this)
             }
         }
@@ -143,7 +145,7 @@ export default class Nodas {
 
     }
 }
-export  {
+export {
     Area as Area,
     Circle as Circle,
     Field as Field,
@@ -161,6 +163,9 @@ export  {
     NdStateEvent as NdStateEvent,
     NdMouseEvent as NdMouseEvent,
     NdDestroyEvent as NdDestroyEvent,
+    NdMorphine as Morphine,
+    ndEasings as Easings,
+    universalTicker as morphineTicker,
     NDB as NDB
 }
 export const Fonts: typeof NodasFonts = NodasFonts
