@@ -21,6 +21,7 @@ import NdEmitter from "../../classes/NdEmitter";
 import NdAnimatedNode from "../classes/NdAnimatedNode";
 import NdLayer from "../../classes/NdLayer";
 import NdDestroyEvent from "../../classes/NdDestroyEvent";
+import NdModBase from "../models/NdModBase";
 
 
 export type GroupChildren = Node<any> | Node<any>[]
@@ -92,6 +93,7 @@ export type NdNodeEventScheme<Class extends NdEmitter<any>> = {
     & NdNodeBasicEventScheme<Class>
     & NdNodeStateEventsScheme<Class>
     & NdNodeMouseEventsScheme<Class>
+export type NodeScheme<Model extends NdModBase> = { [key: string]: any } & NdNodeEventScheme<Node<Model, NodeScheme<Model>>>
 
 export type NdRootCanvasMouseEventsScheme = {
     [key: string]: NdEvent<any, any>

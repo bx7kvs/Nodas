@@ -28,7 +28,7 @@ class NodasRandom {
         return [this.number(randomVector[0], precision), this.number(randomVector[1], precision)]
     }
 
-    pointWithinCircle(r: number, precision?: number) {
+    pointWithinCircle(r: number, precision?: number):NdNumericArray2d {
         let angle = this.number(Math.PI * 2, 4),
             distance = this.number(r);
 

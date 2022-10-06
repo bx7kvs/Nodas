@@ -3,7 +3,7 @@ import {
     NdNodeEventScheme,
     NdNodePointerPredicate,
     NdPathBezier,
-    NdSegmentBezier
+    NdSegmentBezier, NodeScheme
 } from './@types/types';
 import {NdMainDrawingPipeF} from '../@types/types';
 import {NdNodeMatrixContainer} from './classes/NdNodeMatrixContainer';
@@ -26,10 +26,9 @@ import NdStateEvent from "../classes/NdStateEvent";
 import Group from "./Group";
 import SharedConnectorService from "../Services/SharedConnectorService";
 
-type NodeScheme<Model extends NdModBase> = { [key: string]: any } & NdNodeEventScheme<Node<Model, NodeScheme<Model>>>
+
 
 export default abstract class Node<Model extends NdModBase, Scheme extends NodeScheme<Model> = NodeScheme<Model>> extends NdAnimatedNode<Model, NodeScheme<Model>> {
-
 
     protected abstract render(...args: Parameters<NdMainDrawingPipeF>): ReturnType<NdMainDrawingPipeF>
 

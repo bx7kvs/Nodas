@@ -184,6 +184,13 @@ group.on('mouseDown', () => {
 })
 ```
 
+## 0.9.4
+### New:
+1. Following models are available to import by user. Useful for creating user defined nodes:  Base,Anchor,Bg,Circle,Emitter,Field,FreeStroke,Particle,Rect,Size,Sprite.
+2. EventScheme type available to import. Also needed to extend custom nodes 
+### Fixed:
+1. NodasRandom service methods return values fixed
+
 ## 0.9.3
 ### New:
 1. Morphine - class for smooth numeric value change with time

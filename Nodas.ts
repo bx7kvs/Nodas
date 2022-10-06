@@ -12,7 +12,7 @@ import Node from "./Nodas/Nodes/Node";
 import ParticleEmitter from "./Nodas/Nodes/ParticleEmitter";
 import Particle from "./Nodas/Nodes/Particle";
 import {
-    GroupChildren,
+    GroupChildren, NdNodeEventScheme,
     NdPath,
     NdUrlSpriteStr,
     NdURLStr
@@ -34,6 +34,18 @@ import NdEvent from "./Nodas/classes/NdEvent";
 import NdMorphine from "./Nodas/classes/NdMorphine";
 import {ndEasings} from "./Nodas/classes/NdEasings";
 import universalTicker from "./Nodas/classes/NdUniversalTicker";
+import NdModBase from "./Nodas/Nodes/models/NdModBase";
+import NdModAnchor from "./Nodas/Nodes/models/NdModAnchor";
+import NdModBg from "./Nodas/Nodes/models/NdModBg";
+import NdModCirc from "./Nodas/Nodes/models/NdModCirc";
+import NdModEmitter from "./Nodas/Nodes/models/NdModEmitter";
+import NdModFreeStroke from "./Nodas/Nodes/models/NdModFreeStroke";
+import NdModParticle from "./Nodas/Nodes/models/NdModParticle";
+import NdModRect from "./Nodas/Nodes/models/NdModRect";
+import NdModSize from "./Nodas/Nodes/models/NdModSize";
+import NdModSprite from "./Nodas/Nodes/models/NdModSprite";
+import NdModText from "./Nodas/Nodes/models/NdModText";
+import NdEmitter from "./Nodas/classes/NdEmitter";
 export default class Nodas {
     readonly ticker = new Ticker()
     readonly canvas: Canvas
@@ -160,6 +172,7 @@ export {
     NdImage as NdImage,
     NdSprite as NdSprite,
     NdEvent as NdEvent,
+    NdEmitter as NdEmitter,
     NdStateEvent as NdStateEvent,
     NdMouseEvent as NdMouseEvent,
     NdDestroyEvent as NdDestroyEvent,
@@ -168,6 +181,21 @@ export {
     universalTicker as morphineTicker,
     NDB as NDB
 }
+export const NdModel = {
+    Base: NdModBase,
+    Anchor: NdModAnchor,
+    Bg: NdModBg,
+    Circle: NdModCirc,
+    Emitter: NdModEmitter,
+    Field: NdModField,
+    FreeStroke: NdModFreeStroke,
+    Particle: NdModParticle,
+    Rect: NdModRect,
+    Size: NdModSize,
+    Sprite: NdModSprite,
+    Text: NdModText,
+}
+export type EventScheme<Class extends NdEmitter<Class>> = NdNodeEventScheme<Class>
 export const Fonts: typeof NodasFonts = NodasFonts
 export const Resources: typeof NodasResources = NodasResources
 export const NodasImage = NdImage
