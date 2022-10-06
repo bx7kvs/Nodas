@@ -202,7 +202,7 @@ export {
     NdModSize as NodasModelSize,
     NdModSprite as NodasModelSprite,
     NdModText as NodasModelText,
-    NdNodeStylesModel as ModeModel
+    NdNodeStylesModel as NodeModel
 }
 export type NodasRenderCallback = NdMainDrawingPipeF
 export type NodeExportReturn = NdExportableReturn
