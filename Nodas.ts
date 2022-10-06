@@ -179,21 +179,19 @@ export {
     NdMorphine as Morphine,
     ndEasings as Easings,
     universalTicker as morphineTicker,
-    NDB as NDB
-}
-export const NdModel = {
-    Base: NdModBase,
-    Anchor: NdModAnchor,
-    Bg: NdModBg,
-    Circle: NdModCirc,
-    Emitter: NdModEmitter,
-    Field: NdModField,
-    FreeStroke: NdModFreeStroke,
-    Particle: NdModParticle,
-    Rect: NdModRect,
-    Size: NdModSize,
-    Sprite: NdModSprite,
-    Text: NdModText,
+    NDB as NDB,
+    NdModBase as NodasModelBase,
+    NdModAnchor as NodasModelAnchor ,
+    NdModBg as NodasModelBg,
+    NdModCirc as NodasModelCirc,
+    NdModEmitter as NodasModelEmitter,
+    NdModField as NodasModelField,
+    NdModFreeStroke as NodasModelStroke ,
+    NdModParticle as NodasModelParticle ,
+    NdModRect as NodasModelRect ,
+    NdModSize as NodasModelSize ,
+    NdModSprite as NodasModelSprite,
+    NdModText as NodasModelText
 }
 export type EventScheme<Class extends NdEmitter<Class>> = NdNodeEventScheme<Class>
 export const Fonts: typeof NodasFonts = NodasFonts

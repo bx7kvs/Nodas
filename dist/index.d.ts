@@ -1087,20 +1087,6 @@ declare class Nodas {
     constructor(canvas: HTMLCanvasElement | string);
 }
 
-declare const NdModel: {
-    Base: typeof NdModBase;
-    Anchor: typeof NdModAnchor;
-    Bg: typeof NdModBg;
-    Circle: typeof NdModCirc;
-    Emitter: typeof NdModEmitter;
-    Field: typeof NdModField;
-    FreeStroke: typeof NdModFreeStroke;
-    Particle: typeof NdModParticle;
-    Rect: typeof NdModRect;
-    Size: typeof NdModSize;
-    Sprite: typeof NdModSprite;
-    Text: typeof NdModText;
-};
 declare type EventScheme<Class extends NdEmitter<Class>> = NdNodeEventScheme<Class>;
 declare const Fonts: typeof _default$1;
 declare const Resources: typeof NDR;
@@ -1108,4 +1094,4 @@ declare const NodasImage: typeof NdImage;
 declare const NodasSprite: typeof NdSprite;
 declare const NodasRand: typeof _default;
 
-export { Area, Circle, ndEasings as Easings, EventScheme, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEmitter, NdEvent, NdImage, NdModel, NdMouseEvent, NdSprite, NdStateEvent, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };
+export { Area, Circle, ndEasings as Easings, EventScheme, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEmitter, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasImage, NdModAnchor as NodasModelAnchor, NdModBase as NodasModelBase, NdModBg as NodasModelBg, NdModCirc as NodasModelCirc, NdModEmitter as NodasModelEmitter, NdModField as NodasModelField, NdModParticle as NodasModelParticle, NdModRect as NodasModelRect, NdModSize as NodasModelSize, NdModSprite as NodasModelSprite, NdModFreeStroke as NodasModelStroke, NdModText as NodasModelText, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };

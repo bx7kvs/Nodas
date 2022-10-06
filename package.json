@@ -1,7 +1,7 @@
 {
   "name": "nodas",
   "author": "Khodosevich Viktor",
-  "version": "0.9.45",
+  "version": "0.9.5",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
