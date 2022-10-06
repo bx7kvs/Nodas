@@ -183,6 +183,10 @@ group.on('mouseDown', () => {
 
 })
 ```
+## 0.9.53
+### Fixed:
+1. Model class renamed to NodeModel
+
 ## 0.9.52
 ### New:
 1. Added NdStylesModel class import, useful to create custom style models for custom nodes
