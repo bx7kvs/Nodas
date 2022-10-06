@@ -383,9 +383,6 @@ declare class Group extends Node<NdModBase> {
     protected test: Node<NdModBase>['test'];
 }
 
-declare type NodeScheme<Model extends NdModBase> = {
-    [key: string]: any;
-} & NdNodeEventScheme<Node<Model, NodeScheme<Model>>>;
 declare abstract class Node<Model extends NdModBase, Scheme extends NodeScheme<Model> = NodeScheme<Model>> extends NdAnimatedNode<Model, NodeScheme<Model>> {
     protected abstract render(...args: Parameters<NdMainDrawingPipeF>): ReturnType<NdMainDrawingPipeF>;
     protected abstract test(...args: Parameters<NdNodePointerPredicate>): ReturnType<NdNodePointerPredicate>;
@@ -612,6 +609,9 @@ declare type NdNodeStateEventsScheme<Class extends NdEmitter<any>> = {
 declare type NdNodeEventScheme<Class extends NdEmitter<any>> = {
     [key: string]: NdEvent<any, any>;
 } & NdDestructibleEventScheme<Class> & NdNodeBasicEventScheme<Class> & NdNodeStateEventsScheme<Class> & NdNodeMouseEventsScheme<Class>;
+declare type NodeScheme<Model extends NdModBase> = {
+    [key: string]: any;
+} & NdNodeEventScheme<Node<Model, NodeScheme<Model>>>;
 declare type NdRootCanvasMouseEventsScheme = {
     [key: string]: NdEvent<any, any>;
     mouseEnter: NdMouseEvent<Canvas>;
@@ -1027,7 +1027,7 @@ declare const NDR: NodasResources;
 declare class NodasRandom {
     number(range: NdNumericArray2d | number, precision?: number): number;
     point(randomVector: NdNumericArray2d, precision?: number): NdNumericArray2d;
-    pointWithinCircle(r: number, precision?: number): number[];
+    pointWithinCircle(r: number, precision?: number): NdNumericArray2d;
     pointOnCircle(r: number, precision?: number): NdNumericArray2d;
     pointOnPath(segment: NdSegmentBezier): NdNumericArray2d;
     luck(probability: number): boolean;
@@ -1087,10 +1087,25 @@ declare class Nodas {
     constructor(canvas: HTMLCanvasElement | string);
 }
 
+declare const NdModel: {
+    Base: typeof NdModBase;
+    Anchor: typeof NdModAnchor;
+    Bg: typeof NdModBg;
+    Circle: typeof NdModCirc;
+    Emitter: typeof NdModEmitter;
+    Field: typeof NdModField;
+    FreeStroke: typeof NdModFreeStroke;
+    Particle: typeof NdModParticle;
+    Rect: typeof NdModRect;
+    Size: typeof NdModSize;
+    Sprite: typeof NdModSprite;
+    Text: typeof NdModText;
+};
+declare type EventScheme<Class extends NdEmitter<Class>> = NdNodeEventScheme<Class>;
 declare const Fonts: typeof _default$1;
 declare const Resources: typeof NDR;
 declare const NodasImage: typeof NdImage;
 declare const NodasSprite: typeof NdSprite;
 declare const NodasRand: typeof _default;
 
-export { Area, Circle, ndEasings as Easings, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };
+export { Area, Circle, ndEasings as Easings, EventScheme, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEmitter, NdEvent, NdImage, NdModel, NdMouseEvent, NdSprite, NdStateEvent, NodasImage, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };
