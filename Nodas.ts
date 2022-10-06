@@ -51,6 +51,7 @@ import NdNodeAssembler from "./Nodas/Nodes/classes/NdNodeAssembler";
 import NdStylesProperty from "./Nodas/Nodes/classes/NdNodeStyleProperty";
 import NdNodeStylePropertyAnimated from "./Nodas/Nodes/classes/NdNodeStylePropertyAnimated";
 import {NdExportableReturn} from "./Nodas/Nodes/@types/types.js";
+import NdNodeStylesModel from "./Nodas/Nodes/classes/NdNodeStylesModel";
 
 export default class Nodas {
     readonly ticker = new Ticker()
@@ -201,6 +202,7 @@ export {
     NdModSize as NodasModelSize,
     NdModSprite as NodasModelSprite,
     NdModText as NodasModelText,
+    NdNodeStylesModel as ModeModel
 }
 export type NodasRenderCallback = NdMainDrawingPipeF
 export type NodeExportReturn = NdExportableReturn
