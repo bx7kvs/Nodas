@@ -183,6 +183,10 @@ group.on('mouseDown', () => {
 
 })
 ```
+## 0.9.51
+### New:
+1. A Bunch of useful types and classes imports for those who create custom node classes
+
 ## 0.9.5
 ### Fixed:
 1. Models import format changed to

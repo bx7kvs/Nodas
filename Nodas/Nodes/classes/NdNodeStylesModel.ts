@@ -1,5 +1,5 @@
 import {NdNumericArray2d} from '../../@types/types';
-import {NdArrColor, NdColorStr, NDCpArr, NdPath, NdPathBezier, NdPercentStr, NdSegmentBezier} from '../@types/types';
+import {NdArrColor, NdColorStr, NdCpArr, NdPath, NdPathBezier, NdPercentStr, NdSegmentBezier} from '../@types/types';
 import NdStylesProperty from './NdNodeStyleProperty';
 import NdNodeStylePropertyAnimated from './NdNodeStylePropertyAnimated';
 
@@ -47,7 +47,7 @@ export default abstract class NdNodeStylesModel {
         return (`rgba(${value[0]},${value[1]},${value[2]},${value[3]})` as NdColorStr)
     }
 
-    static getControlPoints(...[x0, y0, x1, y1, x2, y2, t]: [number, number, number, number, number, number, number]): NDCpArr {
+    static getControlPoints(...[x0, y0, x1, y1, x2, y2, t]: [number, number, number, number, number, number, number]): NdCpArr {
         let d01 = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2)),
             d12 = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)),
             fa = t * d01 / (d01 + d12),
@@ -108,7 +108,7 @@ export default abstract class NdNodeStylesModel {
             let prev: NdNumericArray2d,
                 mid = [v[0], v[1]],
                 next = [v[2], v[3]],
-                controls: NDCpArr;
+                controls: NdCpArr;
 
             prev = key === 0 ? closed ? [path[path.length - 1][0], path[path.length - 1][1]] : [mid[0] - (next[0] - mid[0]), mid[1] - (next[1] - mid[0])] : [path[key - 1][0], path[key - 1][1]]
 

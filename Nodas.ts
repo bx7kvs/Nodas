@@ -12,14 +12,15 @@ import Node from "./Nodas/Nodes/Node";
 import ParticleEmitter from "./Nodas/Nodes/ParticleEmitter";
 import Particle from "./Nodas/Nodes/Particle";
 import {
-    GroupChildren, NdNodeEventScheme,
-    NdPath,
+    AssemblerLayerConfig,
+    GroupChildren, NdBlend, NdColorStr, NdEasingF, NdNodeEventScheme, NdNodePointerPredicate,
+    NdPath, NdPercentStr, NdSegmentBezier,
     NdUrlSpriteStr,
-    NdURLStr
+    NdURLStr, NodasTickingType
 } from './Nodas/Nodes/@types/types.js';
 import Text from './Nodas/Nodes/Text';
 import NodasFonts from './Nodas/Services/NodasFonts';
-import {NdNumericArray2d} from './Nodas/@types/types';
+import {NdMainDrawingPipeF, NdNumericArray2d} from './Nodas/@types/types';
 import NodasResources from './Nodas/Services/NodasResources';
 import NdImage from './Nodas/classes/NdImage';
 import NdSprite from './Nodas/classes/NdSprite';
@@ -46,6 +47,11 @@ import NdModSize from "./Nodas/Nodes/models/NdModSize";
 import NdModSprite from "./Nodas/Nodes/models/NdModSprite";
 import NdModText from "./Nodas/Nodes/models/NdModText";
 import NdEmitter from "./Nodas/classes/NdEmitter";
+import NdNodeAssembler from "./Nodas/Nodes/classes/NdNodeAssembler";
+import NdStylesProperty from "./Nodas/Nodes/classes/NdNodeStyleProperty";
+import NdNodeStylePropertyAnimated from "./Nodas/Nodes/classes/NdNodeStylePropertyAnimated";
+import {NdExportableReturn} from "./Nodas/Nodes/@types/types.js";
+
 export default class Nodas {
     readonly ticker = new Ticker()
     readonly canvas: Canvas
@@ -180,19 +186,35 @@ export {
     ndEasings as Easings,
     universalTicker as morphineTicker,
     NDB as NDB,
+    NdNodeAssembler as NodeAssembler,
+    NdStylesProperty as NodeStaticProperty,
+    NdNodeStylePropertyAnimated as NodeAnimatedProperty,
     NdModBase as NodasModelBase,
-    NdModAnchor as NodasModelAnchor ,
+    NdModAnchor as NodasModelAnchor,
     NdModBg as NodasModelBg,
     NdModCirc as NodasModelCirc,
     NdModEmitter as NodasModelEmitter,
     NdModField as NodasModelField,
-    NdModFreeStroke as NodasModelStroke ,
-    NdModParticle as NodasModelParticle ,
-    NdModRect as NodasModelRect ,
-    NdModSize as NodasModelSize ,
+    NdModFreeStroke as NodasModelStroke,
+    NdModParticle as NodasModelParticle,
+    NdModRect as NodasModelRect,
+    NdModSize as NodasModelSize,
     NdModSprite as NodasModelSprite,
-    NdModText as NodasModelText
+    NdModText as NodasModelText,
 }
+export type NodasRenderCallback = NdMainDrawingPipeF
+export type NodeExportReturn = NdExportableReturn
+export type NodasAnimatableValues = NodasTickingType
+export type NodasEasingCallback = NdEasingF
+export type NodasPercentStr = NdPercentStr
+export type NodasSpriteURL = NdPercentStr
+export type NodasHoverPredicate = NdNodePointerPredicate
+export type NodasColor = NdColorStr
+export type NodasBezierSegment = NdSegmentBezier
+export type NodasPath = NdPath
+export type NodasPathBezier = NodasBezierSegment[]
+export type NodasBlending = NdBlend
+export type NodasAssemblerLayerConfig = AssemblerLayerConfig
 export type EventScheme<Class extends NdEmitter<Class>> = NdNodeEventScheme<Class>
 export const Fonts: typeof NodasFonts = NodasFonts
 export const Resources: typeof NodasResources = NodasResources

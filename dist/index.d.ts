@@ -488,7 +488,7 @@ declare abstract class NdNodeStylesModel {
     static normalizeColor(color: NdColorStr | NdArrColor): NdArrColor;
     static colorToArray(value: NdColorStr): NdArrColor;
     static arrayToColor(value: NdArrColor): NdColorStr;
-    static getControlPoints(...[x0, y0, x1, y1, x2, y2, t]: [number, number, number, number, number, number, number]): NDCpArr;
+    static getControlPoints(...[x0, y0, x1, y1, x2, y2, t]: [number, number, number, number, number, number, number]): NdCpArr;
     static convertComplexPath(path: NdPathBezier): NdPath;
     static convertSimplePath: (path: NdPath, closed?: boolean) => NdPathBezier;
     static interpolate(path: NdPathBezier, smoothing: number, closed: boolean): void;
@@ -669,7 +669,7 @@ declare type NdPositionArr = [NdPosition, NdPosition];
 declare type NdBg = (NdImage | NdURLStr)[] | NdImage | NdURLStr;
 declare type NdBgSize = [NdPercentStr | 'auto' | number, NdPercentStr | 'auto' | number];
 declare type NdArrColor = [r: number, g: number, b: number, a: number];
-declare type NDCpArr = [number, number, number, number];
+declare type NdCpArr = [number, number, number, number];
 declare type NdSegmentBezier = [x1: number, y1: number, x2: number, y2: number, cx1: number, cy1: number, cx2: number, cy2: number];
 declare type NdPathBezier = NdSegmentBezier[];
 declare type NdPath = NdNumericArray2d[];
@@ -1087,6 +1087,19 @@ declare class Nodas {
     constructor(canvas: HTMLCanvasElement | string);
 }
 
+declare type NodasRenderCallback = NdMainDrawingPipeF;
+declare type NodeExportReturn = NdExportableReturn;
+declare type NodasAnimatableValues = NodasTickingType;
+declare type NodasEasingCallback = NdEasingF;
+declare type NodasPercentStr = NdPercentStr;
+declare type NodasSpriteURL = NdPercentStr;
+declare type NodasHoverPredicate = NdNodePointerPredicate;
+declare type NodasColor = NdColorStr;
+declare type NodasBezierSegment = NdSegmentBezier;
+declare type NodasPath = NdPath;
+declare type NodasPathBezier = NodasBezierSegment[];
+declare type NodasBlending = NdBlend;
+declare type NodasAssemblerLayerConfig = AssemblerLayerConfig;
 declare type EventScheme<Class extends NdEmitter<Class>> = NdNodeEventScheme<Class>;
 declare const Fonts: typeof _default$1;
 declare const Resources: typeof NDR;
@@ -1094,4 +1107,4 @@ declare const NodasImage: typeof NdImage;
 declare const NodasSprite: typeof NdSprite;
 declare const NodasRand: typeof _default;
 
-export { Area, Circle, ndEasings as Easings, EventScheme, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEmitter, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasImage, NdModAnchor as NodasModelAnchor, NdModBase as NodasModelBase, NdModBg as NodasModelBg, NdModCirc as NodasModelCirc, NdModEmitter as NodasModelEmitter, NdModField as NodasModelField, NdModParticle as NodasModelParticle, NdModRect as NodasModelRect, NdModSize as NodasModelSize, NdModSprite as NodasModelSprite, NdModFreeStroke as NodasModelStroke, NdModText as NodasModelText, NodasRand, NodasSprite, Node, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };
+export { Area, Circle, ndEasings as Easings, EventScheme, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEmitter, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasAnimatableValues, NodasAssemblerLayerConfig, NodasBezierSegment, NodasBlending, NodasColor, NodasEasingCallback, NodasHoverPredicate, NodasImage, NdModAnchor as NodasModelAnchor, NdModBase as NodasModelBase, NdModBg as NodasModelBg, NdModCirc as NodasModelCirc, NdModEmitter as NodasModelEmitter, NdModField as NodasModelField, NdModParticle as NodasModelParticle, NdModRect as NodasModelRect, NdModSize as NodasModelSize, NdModSprite as NodasModelSprite, NdModFreeStroke as NodasModelStroke, NdModText as NodasModelText, NodasPath, NodasPathBezier, NodasPercentStr, NodasRand, NodasRenderCallback, NodasSprite, NodasSpriteURL, Node, NdNodeStylePropertyAnimated as NodeAnimatedProperty, NdNodeAssembler as NodeAssembler, NodeExportReturn, NdStylesProperty as NodeStaticProperty, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };
