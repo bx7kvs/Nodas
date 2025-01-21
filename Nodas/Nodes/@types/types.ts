@@ -93,7 +93,9 @@ export type NdNodeEventScheme<Class extends NdEmitter<any>> = {
     & NdNodeBasicEventScheme<Class>
     & NdNodeStateEventsScheme<Class>
     & NdNodeMouseEventsScheme<Class>
-export type NodeScheme<Model extends NdModBase> = { [key: string]: any } & NdNodeEventScheme<Node<Model, NodeScheme<Model>>>
+export type NodeScheme<Model extends NdModBase> =
+    { [key: string]: any }
+    & NdNodeEventScheme<Node<Model, NodeScheme<Model>>>
 
 export type NdRootCanvasMouseEventsScheme = {
     [key: string]: NdEvent<any, any>
@@ -202,10 +204,35 @@ export type NdStrokeStyle = number[]
 export type NdStrokeStyleArr = NdStrokeStyle[]
 export type NdAnchor = [x: 'left' | 'right' | 'center', y: 'top' | 'bottom' | 'middle']
 export type NdCap = 'round' | 'butt' | 'square'
-export type NdBlend = 'source-over' | 'source-in' | 'source-out' | 'source-atop' | 'destination-over' |
-    'destination-in' | 'destination-out' | 'destination-atop' | 'lighter' | 'copy' | 'xor' | 'multiply' |
-    'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' |
-    'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity'
+
+export enum NdBlend {
+    SOURCE_OVER = 'source-over',
+    SOURCE_IN = 'source-in',
+    SOURCE_OUT = 'source-out',
+    SOURCE_ATOP = 'source-atop',
+    DESTINATION_OVER = 'destination-over',
+    DESTINATION_IN = 'destination-in',
+    DESTINATION_OUT = 'destination-out',
+    DESTINATION_ATOP = 'destination-atop',
+    LIGHTER = 'lighter',
+    COPY = 'copy',
+    XOR = 'xor',
+    MULTIPLY = 'multiply',
+    SCREEN = 'screen',
+    OVERLAY ='overlay',
+    DARKEN = 'darken',
+    LIGHTEN = 'lighten',
+    COLOR_DODGE ='color-dodge',
+    COLOR_BURN = 'color-burn',
+    HARD_LIGHT = 'hard-light',
+    SOFT_LIGHT ='soft-light',
+    DIFFERENCE = 'difference',
+    EXCLUSION = 'exclusion',
+    HUE = 'hue',
+    SATURATION = 'saturation',
+    COLOR = 'color',
+    LUMINOSITY = 'luminosity'
+}
 
 export type NdParticleVector = [x: number, y: number, r: number, xsk: number, ysk: number, xsc: number, ysc: number, o: number]
 export type NdMatrixVal = [number, number, number, number, number, number]

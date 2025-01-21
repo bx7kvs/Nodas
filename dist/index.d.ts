@@ -682,7 +682,34 @@ declare type NdStrokeStyle = number[];
 declare type NdStrokeStyleArr = NdStrokeStyle[];
 declare type NdAnchor = [x: 'left' | 'right' | 'center', y: 'top' | 'bottom' | 'middle'];
 declare type NdCap = 'round' | 'butt' | 'square';
-declare type NdBlend = 'source-over' | 'source-in' | 'source-out' | 'source-atop' | 'destination-over' | 'destination-in' | 'destination-out' | 'destination-atop' | 'lighter' | 'copy' | 'xor' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' | 'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity';
+declare enum NdBlend {
+    SOURCE_OVER = "source-over",
+    SOURCE_IN = "source-in",
+    SOURCE_OUT = "source-out",
+    SOURCE_ATOP = "source-atop",
+    DESTINATION_OVER = "destination-over",
+    DESTINATION_IN = "destination-in",
+    DESTINATION_OUT = "destination-out",
+    DESTINATION_ATOP = "destination-atop",
+    LIGHTER = "lighter",
+    COPY = "copy",
+    XOR = "xor",
+    MULTIPLY = "multiply",
+    SCREEN = "screen",
+    OVERLAY = "overlay",
+    DARKEN = "darken",
+    LIGHTEN = "lighten",
+    COLOR_DODGE = "color-dodge",
+    COLOR_BURN = "color-burn",
+    HARD_LIGHT = "hard-light",
+    SOFT_LIGHT = "soft-light",
+    DIFFERENCE = "difference",
+    EXCLUSION = "exclusion",
+    HUE = "hue",
+    SATURATION = "saturation",
+    COLOR = "color",
+    LUMINOSITY = "luminosity"
+}
 declare type NdParticleVector = [x: number, y: number, r: number, xsk: number, ysk: number, xsc: number, ysc: number, o: number];
 declare type NdMatrixVal = [number, number, number, number, number, number];
 declare type NdParticleSpriteResource = NdSprite | NdImage | HTMLCanvasElement | HTMLImageElement;
@@ -1098,7 +1125,6 @@ declare type NodasColor = NdColorStr;
 declare type NodasBezierSegment = NdSegmentBezier;
 declare type NodasPath = NdPath;
 declare type NodasPathBezier = NodasBezierSegment[];
-declare type NodasBlending = NdBlend;
 declare type NodasAssemblerLayerConfig = AssemblerLayerConfig;
 declare type EventScheme<Class extends NdEmitter<Class>> = NdNodeEventScheme<Class>;
 declare const Fonts: typeof _default$1;
@@ -1107,4 +1133,4 @@ declare const NodasImage: typeof NdImage;
 declare const NodasSprite: typeof NdSprite;
 declare const NodasRand: typeof _default;
 
-export { Area, Circle, ndEasings as Easings, EventScheme, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEmitter, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasAnimatableValues, NodasAssemblerLayerConfig, NodasBezierSegment, NodasBlending, NodasColor, NodasEasingCallback, NodasHoverPredicate, NodasImage, NdModAnchor as NodasModelAnchor, NdModBase as NodasModelBase, NdModBg as NodasModelBg, NdModCirc as NodasModelCirc, NdModEmitter as NodasModelEmitter, NdModField as NodasModelField, NdModParticle as NodasModelParticle, NdModRect as NodasModelRect, NdModSize as NodasModelSize, NdModSprite as NodasModelSprite, NdModFreeStroke as NodasModelStroke, NdModText as NodasModelText, NodasPath, NodasPathBezier, NodasPercentStr, NodasRand, NodasRenderCallback, NodasSprite, NodasSpriteURL, Node, NdNodeStylePropertyAnimated as NodeAnimatedProperty, NdNodeAssembler as NodeAssembler, NodeExportReturn, NdNodeStylesModel as NodeModel, NdStylesProperty as NodeStaticProperty, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };
+export { Area, Circle, ndEasings as Easings, EventScheme, Field, Fonts, Group, Line, NdMorphine as Morphine, NDB, NdDestroyEvent, NdEmitter, NdEvent, NdImage, NdMouseEvent, NdSprite, NdStateEvent, NodasAnimatableValues, NodasAssemblerLayerConfig, NodasBezierSegment, NdBlend as NodasBlending, NodasColor, NodasEasingCallback, NodasHoverPredicate, NodasImage, NdModAnchor as NodasModelAnchor, NdModBase as NodasModelBase, NdModBg as NodasModelBg, NdModCirc as NodasModelCirc, NdModEmitter as NodasModelEmitter, NdModField as NodasModelField, NdModParticle as NodasModelParticle, NdModRect as NodasModelRect, NdModSize as NodasModelSize, NdModSprite as NodasModelSprite, NdModFreeStroke as NodasModelStroke, NdModText as NodasModelText, NodasPath, NodasPathBezier, NodasPercentStr, NodasRand, NodasRenderCallback, NodasSprite, NodasSpriteURL, Node, NdNodeStylePropertyAnimated as NodeAnimatedProperty, NdNodeAssembler as NodeAssembler, NodeExportReturn, NdNodeStylesModel as NodeModel, NdStylesProperty as NodeStaticProperty, Particle, ParticleEmitter, Rectangle, Resources, Sprite, Text, Nodas as default, universalTicker as morphineTicker };

@@ -202,7 +202,8 @@ export {
     NdModSize as NodasModelSize,
     NdModSprite as NodasModelSprite,
     NdModText as NodasModelText,
-    NdNodeStylesModel as NodeModel
+    NdNodeStylesModel as NodeModel,
+    NdBlend as NodasBlending
 }
 export type NodasRenderCallback = NdMainDrawingPipeF
 export type NodeExportReturn = NdExportableReturn
@@ -215,7 +216,6 @@ export type NodasColor = NdColorStr
 export type NodasBezierSegment = NdSegmentBezier
 export type NodasPath = NdPath
 export type NodasPathBezier = NodasBezierSegment[]
-export type NodasBlending = NdBlend
 export type NodasAssemblerLayerConfig = AssemblerLayerConfig
 export type EventScheme<Class extends NdEmitter<Class>> = NdNodeEventScheme<Class>
 export const Fonts: typeof NodasFonts = NodasFonts

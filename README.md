@@ -183,6 +183,10 @@ group.on('mouseDown', () => {
 
 })
 ```
+## 0.9.54
+### Fixed:
+1. NodasBlending is enum now
+
 ## 0.9.53
 ### Fixed:
 1. Model class renamed to NodeModel

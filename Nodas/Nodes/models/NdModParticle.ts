@@ -12,7 +12,7 @@ export default class NdModParticle extends NdNodeStylesModel {
     )
     blending = new NdStylesProperty<NdBlend, NdBlend, NdBlend>(
         0,
-        'source-over',
+        NdBlend.SOURCE_OVER,
         (current) => current,
         (value) => value
     )
